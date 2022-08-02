@@ -21,8 +21,27 @@ if isempty(handles.data.calls) || ~any(handles.data.calls.Box(handles.data.curre
     return
 end
 
-[I,windowsize,noverlap,nfft,rate,box,~,~,~] = CreateFocusSpectrogram(handles.data.calls(handles.data.currentcall,:),handles,true, [], handles.data);
-stats = CalculateStats(I,windowsize,noverlap,nfft,rate,box,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
+% If a call was not saved with an Entropy or Amplitude threshold, apply
+% global settings to that call
+if ~any(strcmp('EntThresh',handles.data.calls.Properties.VariableNames)) || ...
+    isempty(handles.data.calls.EntThresh(handles.data.currentcall)) || ...
+    handles.data.calls.EntThresh(handles.data.currentcall) == 0
+    
+    handles.data.calls.EntThresh(handles.data.currentcall) = handles.data.settings.EntropyThreshold;
+end
+if ~any(strcmp('AmpThresh',handles.data.calls.Properties.VariableNames)) || ...
+    isempty(handles.data.calls.AmpThresh(handles.data.currentcall)) || ...
+    handles.data.calls.AmpThresh(handles.data.currentcall) == 0
+
+    handles.data.calls.AmpThresh(handles.data.currentcall) = handles.data.settings.AmplitudeThreshold;
+end
+
+% Set the sliders to the saved values
+set(handles.TonalitySlider, 'Value', handles.data.calls.EntThresh(handles.data.currentcall));
+
+[I,windowsize,noverlap,nfft,rate,box,~,~,~] = CreateFocusSpectrogram(handles.data.calls(handles.data.currentcall,:),handles,false, [], handles.data);
+
+stats = CalculateStats(I,windowsize,noverlap,nfft,rate,box,handles.data.calls.EntThresh(handles.data.currentcall),handles.data.calls.AmpThresh(handles.data.currentcall));
 
 % plot Ridge Detection
 set(handles.ContourScatter,'XData',stats.ridgeTime','YData',stats.ridgeFreq_smooth);
@@ -44,12 +63,22 @@ else
     set(handles.status,'String','Rejected');
     set(handles.status,'ForegroundColor',[1,0,0])       
 end
-set(handles.text19,'String',['Label: ' char(handles.data.calls.Type(handles.data.currentcall))]);
+if any(strcmp('CallID', handles.data.calls.Properties.VariableNames))
+    set(handles.text19,'String',['User ID: ' char(handles.data.calls.CallID(handles.data.currentcall))]);
+else
+    set(handles.text19,'String','User ID: N/A');
+end
+set(handles.text36,'String',['Label: ' char(handles.data.calls.Type(handles.data.currentcall))]);
+if any(strcmp('ClustCat', handles.data.calls.Properties.VariableNames))
+    set(handles.text37,'String',['Clust Assign: ' char(handles.data.calls.ClustCat(handles.data.currentcall))]);
+else
+    set(handles.text37,'String','Clust Assign: N/A');
+end
 set(handles.freq,'String',['Frequency: ' num2str(stats.PrincipalFreq,'%.1f') ' kHz']);
 set(handles.slope,'String',['Slope: ' num2str(stats.Slope,'%.3f') ' kHz/s']);
 set(handles.duration,'String',['Duration: ' num2str(stats.DeltaTime*1000,'%.0f') ' ms']);
 set(handles.sinuosity,'String',['Sinuosity: ' num2str(stats.Sinuosity,'%.4f')]);
-set(handles.powertext,'String',['Power: ' num2str(stats.MeanPower) ' dB/Hz'])
+set(handles.powertext,'String',['Rel Pwr: ' num2str(stats.MeanPower) ' dB/Hz']);
 set(handles.tonalitytext,'String',['Tonality: ' num2str(stats.SignalToNoise,'%.4f')]);
 
 % Waveform
@@ -64,6 +93,8 @@ set(handles.Waveform,...
 y = 0-stats.Entropy;
 x = 1:length(stats.Entropy);
 z = zeros(size(x));
+col = double(stats.Entropy < 1-handles.data.calls.EntThresh(handles.data.currentcall));  % This is the color, vary with x in this case.
+set(handles.SNR, 'XData', [x;x], 'YData', [y;y], 'ZData', [z;z], 'CData', [col;col]);
 set(handles.waveformWindow, 'XLim', [x(1), x(end)]);
 end
 

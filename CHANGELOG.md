@@ -1,4 +1,10 @@
 ﻿# Changelog
+## 3.1.0 2022-08-02
+## DeepWaves Fork
+- Forked DeepSqueak v3 for dedicated marine mammal version
+- Merged all changes made since gcalongi forked DeepSqueak to gcalongi/DeepSqueak/main_GA branch
+- Replaced most instances of "DeepSqueak" with "DeepWaves" (maintained some linkage to DeepSqueak documentation until we get our documentation together)
+
 ## 3.0.4 2022-07-27
 ## Supervised Clustering Bug Fix
 - Fixed an issue where supervised clustering was crashing

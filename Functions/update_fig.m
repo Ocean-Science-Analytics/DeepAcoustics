@@ -59,8 +59,8 @@ handles = render_call_boxes(handles.focusWindow, handles, true,false);
 
 % Deals with a random figure popping up rarely.... literally no idea why
 chkfig = findobj('type','figure');
-% Make sure not main window (which has Number == [] and Name = 'DeepSqueak'
-if length(chkfig)==1 && ~isempty(chkfig.Number) && ~strcmp(chkfig.Name,'DeepSqueak')
+% Make sure not main window (which has Number == [] and Name = 'DeepWaves'
+if length(chkfig)==1 && ~isempty(chkfig.Number) && ~strcmp(chkfig.Name,'DeepWaves')
     close(chkfig.Number); 
 end
 

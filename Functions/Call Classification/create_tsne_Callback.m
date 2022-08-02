@@ -21,7 +21,7 @@ inputParameters= questdlg('Select the input dimensions', 'Input Dimensions', 'Va
 if isempty(inputParameters); return; end
 
 % Choose to assign colors by the call classification or by pitch.
-colorType = questdlg({'Color the calls by frequecy (pitch), or by cluster identity?','If coloring by cluster, you may not use pre-extracted contours'}, 'Choose Color', 'Frequency' , 'Cluster', 'Frequency');
+colorType = questdlg({'Color the calls by frequency (pitch), or by cluster identity?','If coloring by cluster, you may not use pre-extracted contours'}, 'Choose Color', 'Frequency' , 'Cluster', 'Frequency');
 if isempty(colorType); return; end
 
 switch inputParameters

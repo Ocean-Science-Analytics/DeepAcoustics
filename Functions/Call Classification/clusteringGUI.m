@@ -26,15 +26,19 @@ classdef clusteringGUI < handle
     methods
         function [obj, NewclusterName, NewRejected, NewFinished, NewClustAssign] = clusteringGUI(clustAssign, ClusteringData)
             
-            
-            
             obj.clustAssign = clustAssign;
             %Image, Lower freq, delta time, Time points, Freq points, File path, Call ID in file, power, RelBox
             obj.ClusteringData = ClusteringData;
             obj.rejected = zeros(1,length(obj.clustAssign));
             
-            obj.minfreq = prctile(ClusteringData.MinFreq, 5);
-            obj.maxfreq = prctile(ClusteringData.MinFreq + ClusteringData.Bandwidth, 95);
+%             obj.minfreq = prctile(ClusteringData.MinFreq, 5);
+%             obj.maxfreq = prctile(ClusteringData.MinFreq + ClusteringData.Bandwidth, 95);
+            %This is going to be scaled from 0 to the Nyquist, not the
+            %boxed call
+            obj.minfreq = 0;
+            %Assumes all calls in ClusteringData were recorded at the same
+            %SR
+            obj.maxfreq = size(ClusteringData.Spectrogram{1},1)*ClusteringData.FreqScale(1);
             obj.ColorData = jet(256); % Color by mean frequency
             % obj.ColorData = HSLuv_to_RGB(256, 'H',  [270 0], 'S', 100, 'L', 75, 'type', 'HSL'); % Make a color map for each category
             obj.ColorData = reshape(obj.ColorData,size(obj.ColorData,1),1,size(obj.ColorData,2));
@@ -139,13 +143,21 @@ classdef clusteringGUI < handle
                 'HorizontalAlignment','center');
             
             
+%             obj.call_id_text = uicontrol('Parent',obj.fig,...
+%                 'BackgroundColor',[.1 .1 .1],...
+%                 'ForegroundColor','w',...
+%                 'Style','text',...
+%                 'String','',...
+%                 'FontSize',12,...
+%                 'Position',[100 470 400 30],...
+%                 'HorizontalAlignment','center');
             obj.call_id_text = uicontrol('Parent',obj.fig,...
                 'BackgroundColor',[.1 .1 .1],...
                 'ForegroundColor','w',...
                 'Style','text',...
                 'String','',...
-                'FontSize',12,...
-                'Position',[100 470 400 30],...
+                'FontSize',10,...
+                'Position',[320 495 250 45],...
                 'HorizontalAlignment','center');
             
             
@@ -220,8 +232,10 @@ classdef clusteringGUI < handle
             % Resize the image while maintaining the aspect ratio by
             % padding with zeros
             im_size = size(ClusteringData.Spectrogram{clustIndex(callID)}) ;
-            new_size = floor(im_size .* min(obj.thumbnail_size ./ im_size));
-            im = double(imresize(ClusteringData.Spectrogram{clustIndex(callID)}, new_size));
+            %new_size = floor(im_size .* min(obj.thumbnail_size ./ im_size));
+            new_size = obj.thumbnail_size;
+            im = double(imresize(ClusteringData.Spectrogram{clustIndex(callID)}, obj.thumbnail_size));
+            %im = double(imresize(ClusteringData.Spectrogram{clustIndex(callID)}, new_size));
             pad = (obj.thumbnail_size - size(im)) / 2;
             im = padarray(im, floor(pad), 'pre');
             im = padarray(im, ceil(pad), 'post');
@@ -231,15 +245,58 @@ classdef clusteringGUI < handle
             rel_x = [rel_size(2), 1-rel_size(2)];
             rel_y = [rel_size(1), 1-rel_size(1)];
             
-            % Apply color to the greyscale images
-            freqRange = [ClusteringData.MinFreq(clustIndex(callID)),...
-                ClusteringData.MinFreq(clustIndex(callID)) + ClusteringData.Bandwidth(clustIndex(callID))];
-            % Account for any padding on the y axis
-            freqRange = freqRange + range(freqRange) .* rel_y(1) .* [-1, 1];
+%             % Apply color to the greyscale images
+                %this type of color scaling isn't applicable as is because
+                %all call images have the same frequency span
+%             freqRange = [ClusteringData.MinFreq(clustIndex(callID)),...
+%                 ClusteringData.MinFreq(clustIndex(callID)) + ClusteringData.Bandwidth(clustIndex(callID))];
+%             freqRange = [obj.minfreq, obj.maxfreq];
+%             % Account for any padding on the y axis
+%             freqRange = freqRange + range(freqRange) .* rel_y(1) .* [-1, 1];
 
-            freqdata = linspace(freqRange(2) ,freqRange(1), obj.thumbnail_size(1));
-            colorMask = interp1(linspace(obj.minfreq, obj.maxfreq, size(obj.ColorData,1)), obj.ColorData, freqdata, 'nearest', 'extrap');
-            colorIM = im .* colorMask ./ 255;
+%             freqdata = linspace(freqRange(2) ,freqRange(1), obj.thumbnail_size(1));
+%             colorMask = interp1(linspace(obj.minfreq, obj.maxfreq, size(obj.ColorData,1)), obj.ColorData, freqdata, 'nearest', 'extrap');
+%             colorIM = im .* colorMask ./ 255;
+            colorIM = ind2rgb(im,inferno(256));
+            
+            if ismember('NumContPts',ClusteringData.Properties.VariableNames) && ~all(ClusteringData.NumContPts==0)
+                %Overlay the contour used for the k-means clustering
+                resz = new_size./im_size;            
+                %contourfreq = cell2mat(cellfun(@(x) imresize(x',[1 ClusteringData.NumContPts(clustIndex(callID))]) ,table2cell(obj.ClusteringData(clustIndex(callID),'xFreq')),'UniformOutput',0));
+                %contourtime = cell2mat(cellfun(@(x) imresize(x',[ClusteringData.NumContPts(clustIndex(callID)) 1]) ,table2cell(obj.ClusteringData(clustIndex(callID),'xTime')),'UniformOutput',0))';
+                
+                contourtime = cell2mat(obj.ClusteringData.xTime_Contour(clustIndex(callID)));
+                contourfreq = cell2mat(obj.ClusteringData.xFreq_Contour(clustIndex(callID)));
+                ploty = resz(1)*contourfreq/ClusteringData.FreqScale(clustIndex(callID))+pad(1);
+                %Save for later - compatible with update that saves only
+                %spectrograms within boxes to ClusteringData
+                %ploty = resz(1)*(contourfreq-ClusteringData.MinFreq(clustIndex(callID)))/ClusteringData.FreqScale(clustIndex(callID))+pad(1);
+                
+                ploty = size(colorIM,1)-ploty;
+                plotx = resz(2)*contourtime/ClusteringData.TimeScale(clustIndex(callID))+pad(2);
+                
+                dotheight = 1;
+                dotlength = 5;
+                
+                if ClusteringData.IsJen(clustIndex(callID)) == 1
+                    dotheight = 2;
+                    dotlength = 1;
+                end
+                
+                %Limit values for boundary/indexing issues
+                plotx(plotx<1) = 1;
+                ploty(ploty<1) = 1;
+                plotx(plotx>(size(colorIM,2)-dotlength)) = size(colorIM,2)-dotlength;
+                ploty(ploty>(size(colorIM,1)-dotheight)) = size(colorIM,1)-dotheight;
+
+                for i = 1:length(ploty)
+                    maxd1 = size(colorIM,1);
+                    maxd2 = size(colorIM,2);
+                    maxd1 = min(maxd1,int16(ploty(i))+dotheight);
+                    maxd2 = min(maxd2,int16(plotx(i))+dotlength);
+                    colorIM(int16(ploty(i)):maxd1,int16(plotx(i)):maxd2,:) = colorIM(int16(ploty(i)):maxd1,int16(plotx(i)):maxd2,:)+0.75;
+                end
+            end
         end
         
         function obj = config_axis(obj, axis_handles,i, rel_x, rel_y)
@@ -249,14 +306,19 @@ classdef clusteringGUI < handle
             x_lim = xlim(axis_handles);
             x_span = x_lim(2) - x_lim(1);
             xtick_positions = linspace(x_span*rel_x(1)+x_lim(1), x_span*rel_x(2)+x_lim(1),4);
-            x_ticks = linspace(0,obj.ClusteringData.Duration(i),4);
+            %x_ticks = linspace(0,obj.ClusteringData.Duration(i),4);
+            x_ticks = linspace(0,size(obj.ClusteringData.Spectrogram{i},2)*obj.ClusteringData.TimeScale(i),4);
             x_ticks = arrayfun(@(x) sprintf('%.3f',x),x_ticks(2:end),'UniformOutput',false);
             
             y_lim = ylim(axis_handles);
             y_span = y_lim(2) - y_lim(1);
-            ytick_positions = linspace(y_span*rel_y(1)+y_lim(1), y_span*rel_y(2)+y_lim(1),3);            
+            ytick_positions = linspace(y_span*rel_y(1)+y_lim(1), y_span*rel_y(2)+y_lim(1),4);            
             
-            y_ticks = linspace(obj.ClusteringData.MinFreq(i),obj.ClusteringData.MinFreq(i)+obj.ClusteringData.Bandwidth(i),3);
+            
+            %Save for later - compatible with update that saves only boxed
+            %call
+            %y_ticks = linspace(obj.ClusteringData.MinFreq(i),obj.ClusteringData.MinFreq(i)+obj.ClusteringData.Bandwidth(i),3);
+            y_ticks = linspace(obj.minfreq,obj.maxfreq,4);
             y_ticks = arrayfun(@(x) sprintf('%.1f',x),y_ticks(1:end),'UniformOutput',false);
             y_ticks = flip(y_ticks);
             
@@ -264,6 +326,44 @@ classdef clusteringGUI < handle
             xticks(axis_handles,xtick_positions(2:end));
             xticklabels(axis_handles,x_ticks);
             yticklabels(axis_handles,y_ticks);
+            
+            sUID = 'N/A';
+            sType = 'N/A';
+            sD2C = 'N/A';
+            sI = 'N/A';
+            sSil = 'N/A';
+            if ismember('UserID',obj.ClusteringData.Properties.VariableNames)
+                sUID = obj.ClusteringData.UserID(i);
+            end
+            if ismember('Type',obj.ClusteringData.Properties.VariableNames)
+                sType = obj.ClusteringData.Type(i);
+            end
+            if ismember('DistToCen',obj.ClusteringData.Properties.VariableNames)
+                sD2C = obj.ClusteringData.DistToCen(i);
+            end
+            if ismember('NumInflPts',obj.ClusteringData.Properties.VariableNames)
+                sI = obj.ClusteringData.NumInflPts(i);
+            end
+            if ismember('Silhouette',obj.ClusteringData.Properties.VariableNames)
+                sSil = obj.ClusteringData.Silhouette(i);
+            end
+            
+            title(axis_handles,{sprintf('%s %s I: %d',sUID, sType, sI); ...
+                sprintf('D: %0.3f  S: %0.3f', sD2C, sSil)}, ...
+                'Color','white','Interpreter','none');
+            
+%             if any(strcmp('Type', obj.ClusteringData.Properties.VariableNames)) && ...
+%                     any(strcmp('DistToCen', obj.ClusteringData.Properties.VariableNames)) 
+%                 if any(strcmp('UserID', obj.ClusteringData.Properties.VariableNames))
+%                     title(axis_handles,{sprintf('%s %s I: %d',obj.ClusteringData.UserID(i), obj.ClusteringData.Type(i), obj.ClusteringData.NumInflPts(i)); ...
+%                         sprintf('D: %0.3f  S: %0.3f', obj.ClusteringData.DistToCen(i), obj.ClusteringData.Silhouette(i))}, ...
+%                         'Color','white','Interpreter','none');
+%                 else
+%                     title(axis_handles,{sprintf('%s I: %d', obj.ClusteringData.Type(i), obj.ClusteringData.NumInflPts(i));  ...
+%                         sprintf('D: %0.3f  S: %0.3f', obj.ClusteringData.DistToCen(i), obj.ClusteringData.Silhouette(i))}, ...
+%                         'Color','white','Interpreter','none');
+%                 end
+%             end
             xlabel(axis_handles,'Time (s)');
             ylabel(axis_handles,'Frequency (kHz)');
         end
@@ -290,8 +390,65 @@ classdef clusteringGUI < handle
                     
                     % Display the file ID and call number on mouse hover
                     [~,call_file,~] = fileparts(obj.ClusteringData.Filename(clustIndex(callID)));
-                    call_id = sprintf('Call: %u', obj.ClusteringData.callID(clustIndex(callID)));                   
-                    pointerBehavior.enterFcn = @(~,~) set(obj.call_id_text, 'string', {call_id, call_file});
+                    sUID = 'N/A';
+                    sType = 'N/A';
+                    sD2C = 'N/A';
+                    sI = 'N/A';
+                    sSil = 'N/A';
+                    
+                    if ismember('UserID',obj.ClusteringData.Properties.VariableNames)
+                        sUID = obj.ClusteringData.UserID(clustIndex(callID));
+                    end
+                    if ismember('Type',obj.ClusteringData.Properties.VariableNames)
+                        sType = obj.ClusteringData.Type(clustIndex(callID));
+                    end
+                    if ismember('DistToCen',obj.ClusteringData.Properties.VariableNames)
+                        sD2C = obj.ClusteringData.DistToCen(clustIndex(callID));
+                    end
+                    if ismember('NumInflPts',obj.ClusteringData.Properties.VariableNames)
+                        sI = obj.ClusteringData.NumInflPts(clustIndex(callID));
+                    end
+                    if ismember('Silhouette',obj.ClusteringData.Properties.VariableNames)
+                        sSil = obj.ClusteringData.Silhouette(clustIndex(callID));
+                    end
+
+                    call_id = sprintf('Call: %u  UserID: %s  Type: %s', ...
+                        obj.ClusteringData.callID(clustIndex(callID)), ...
+                        sUID, ...
+                        sType);
+                    call_stats = sprintf('Dist to Cent: %0.5f  Silhouette Val: %0.5f  Num Infl Pts: %d', ...
+                        sD2C, ...
+                        sSil, ...
+                        sI);
+%                     if any(strcmp('Type', obj.ClusteringData.Properties.VariableNames))
+%                             if any(strcmp('UserID', obj.ClusteringData.Properties.VariableNames))
+%                                 call_id = sprintf('Call: %u  UserID: %s  Type: %s', ...
+%                                     obj.ClusteringData.callID(clustIndex(callID)), ...
+%                                     obj.ClusteringData.UserID(clustIndex(callID)), ...
+%                                     obj.ClusteringData.Type(clustIndex(callID)));
+%                             else
+%                                 call_id = sprintf('Call: %u  Type: %s', ...
+%                                     obj.ClusteringData.callID(clustIndex(callID)), ...
+%                                     obj.ClusteringData.Type(clustIndex(callID)));
+%                             end
+%                     else
+%                         call_id = sprintf('Call: %u', obj.ClusteringData.callID(clustIndex(callID)));
+%                     end
+%                     if any(strcmp('DistToCen', obj.ClusteringData.Properties.VariableNames)) 
+%                         if any(strcmp('Silhouette', obj.ClusteringData.Properties.VariableNames)) 
+%                             call_stats = sprintf('Dist to Cent: %0.5f  Silhouette Val: %0.5f  Num Infl Pts: %d', ...
+%                                 obj.ClusteringData.DistToCen(clustIndex(callID)), ...
+%                                 obj.ClusteringData.Silhouette(clustIndex(callID)), ...
+%                                 obj.ClusteringData.NumInflPts(clustIndex(callID)));
+%                         else 
+%                             call_stats = sprintf('Dist to Cent: %0.5f  Num Infl Pts: %d', ...
+%                                 obj.ClusteringData.DistToCen(clustIndex(callID)), ...
+%                                 obj.ClusteringData.NumInflPts(clustIndex(callID)));
+%                         end
+%                     else
+%                         call_stats = '';
+%                     end
+                    pointerBehavior.enterFcn = @(~,~) set(obj.call_id_text, 'string', {call_id, call_stats, call_file});
                     pointerBehavior.traverseFcn = [];
                     pointerBehavior.exitFcn = @(~,~) set(obj.call_id_text, 'string', '');
                     iptSetPointerBehavior(obj.handle_image(i), pointerBehavior);
@@ -404,6 +561,52 @@ classdef clusteringGUI < handle
                     switch hObject.String
                         case 'Save'
                             obj.finished = 1;
+                            
+                            % Save the cluster images
+                            saveChoice =  questdlg('Save file with Cluster Images? (NOT recommended for big datasets)','Save images','Yes','No','No');
+                            switch saveChoice
+                                case 'Yes'
+                                    % Start at beginning
+                                    obj.currentCluster = 1;
+                                    obj.page = 1;
+                                    obj.plotimages();
+                                    %montarr = {};
+                                    
+                                    % Cycle through all clusters
+                                    numclusts = length(obj.clusterName);
+                                    for i = 1:numclusts
+                                    %while obj.currentCluster <= length(obj.clusterName)
+                                        % Save current display
+%                                         [thisim,~] = frame2im(getframe(obj.fig));
+%                                         montarr = [montarr, thisim];
+                                        thisfnm = ['ClusteringImg_',sprintf('%03d',obj.currentCluster),'_',sprintf('%03d',obj.page),'.png'];
+                                        pind = regexp(char(obj.ClusteringData{1,'Filename'}),'\');
+                                        pind = pind(end);
+                                        pname = char(obj.ClusteringData{1,'Filename'});
+                                        pname = pname(1:pind);
+                                        saveas(obj.fig,fullfile(pname,thisfnm));
+                                        % Cycle through all pages for that
+                                        % cluster
+                                        numpgs = ceil(obj.count(obj.currentCluster) / length(obj.image_axes));
+                                        for j = 1:numpgs-1
+                                        %while obj.page < ceil(obj.count(obj.currentCluster) / length(obj.image_axes))
+                                            % Next page
+                                            nextpage_Callback(obj, hObject, eventdata);
+                                            % Save current display
+%                                             [thisim,~] = frame2im(getframe(obj.fig));
+%                                             montarr = [montarr, thisim];
+                                            thisfnm = ['ClusteringImg_',sprintf('%03d',obj.currentCluster),'_',sprintf('%03d',obj.page),'.png'];
+                                            pind = regexp(char(obj.ClusteringData{1,'Filename'}),'\');
+                                            pind = pind(end);
+                                            pname = char(obj.ClusteringData{1,'Filename'});
+                                            pname = pname(1:pind);
+                                            saveas(obj.fig,fullfile(pname,thisfnm));
+                                        end
+                                        % Next cluster
+                                        next_Callback(obj, hObject, eventdata);
+                                    end
+                                case 'No'
+                            end
                         case 'Redo'
                             obj.finished = 0;
                     end

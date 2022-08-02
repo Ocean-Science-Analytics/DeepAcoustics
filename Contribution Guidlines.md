@@ -1,4 +1,4 @@
-# Contributing to DeepSqueak
+# Contributing to DeepWaves
 We want to make contributing to this project as easy and transparent as possible.
 
 ## Our Development Process
@@ -19,7 +19,7 @@ We use GitHub issues to track public bugs. Please ensure your description is cle
 * Please annotate all changes with comments.  
 
 ## License
-By contributing to DeepSqueak, you agree that your contributions will be licensed under its BSD license.
+By contributing to DeepWaves, you agree that your contributions will be licensed under its BSD license.
 
 ## References
 This document was adapted from the open-source contribution guidelines for [Facebook's Draft](https://github.com/facebook/draft-js/blob/a9316a723f9e918afde44dea68b5f9f39b7d9b00/CONTRIBUTING.md)

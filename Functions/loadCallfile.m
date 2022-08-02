@@ -1,4 +1,4 @@
-function [Calls,audiodata,ClusteringData] = loadCallfile(filename,handles)
+function [Calls,audiodata,ClusteringData,data] = loadCallfile(filename,handles)
 
 data = load(filename);
 
@@ -6,21 +6,40 @@ Calls = table();
 audiodata = struct();
 ClusteringData = table();
 
+if isfield(data, 'audiodata')
+    audiodata = data.audiodata;
+end
+
 %% Unpack the data
 if isfield(data, 'Calls')
     Calls = data.Calls;
+
+    %% Supply defaults for any misc missing variables
+    if ~any(strcmp('CallID', Calls.Properties.VariableNames)) || length(unique(Calls.CallID)) ~= height(Calls)
+        warning('CallID non-existent or not unique - replacing with 1:height(Calls)')
+        Calls.CallID = categorical(1:height(Calls))';
+    end
+    if ~any(strcmp('ClustCat', Calls.Properties.VariableNames))
+        clustcat = cell(1,height(Calls));
+        clustcat(:) = {'None'};
+        Calls.ClustCat = categorical(clustcat)';
+    end
+    if ~any(strcmp('EntThresh', Calls.Properties.VariableNames))
+        Calls.EntThresh(:) = handles.data.settings.EntropyThreshold;
+    end
+    if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames))
+        Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
+    end
+
+    %% Output for detection mat modification check
+    data = data.Calls;
 elseif nargout < 3 % If ClusteringData is requested, we don't need Calls
     error('This doesn''t appear to be a detection file!')
-end
-
-if isfield(data, 'audiodata')
-    audiodata = data.audiodata;
 end
 
 if isfield(data, 'ClusteringData')
     ClusteringData = data.ClusteringData;
 end
-
 
 if nargout < 3
     
@@ -37,7 +56,7 @@ if nargout < 3
         Calls(Calls.Box(:,3) == 0, :) = [];
         
         % Remove any old variables that we don't use anymore
-        Calls = removevars(Calls, intersect(Calls.Properties.VariableNames, {'RelBox', 'Rate', 'Audio'}));
+        Calls = removevars(Calls, intersect(Calls.Properties.VariableNames, {'RelBox', 'Rate', 'Audio','Power'}));
         
         % Sort calls by time
         Calls = sortrows(Calls, 'Box');
@@ -70,10 +89,10 @@ if nargout < 3
                 '*.aifc', 'AIFC'
                 '*.mp3', 'MP3 (it''s probably a bad idea to record in MP3'
                 '*.m4a;*.mp4' 'MPEG-4 AAC'
-                }, sprintf('Importing from standard DeepSquek. Select audio matching the detection file %s',detection_name), detection_name);
+                }, sprintf('Importing from standard DeepWaves. Select audio matching the detection file %s',detection_name), detection_name);
             audio_file = fullfile(path, file);
             if isequal(file,0) % If user pressed cancel
-                errordlg('DeepSqueak 3.0+ requires the audio file accompanying the detection file.')
+                errordlg('DeepWaves requires the audio file accompanying the detection file.')
                 return
             end
         end

@@ -54,7 +54,7 @@ for j = 1:length(fileName)
     else
         % Remove calls that aren't accepted
         if ~p.Results.for_denoise
-        % Calls_tmp = Calls_tmp(Calls_tmp.Accept == 1 & ~ismember(Calls_tmp.Type,'Noise'), :);
+            Calls_tmp = Calls_tmp(Calls_tmp.Accept == 1 & ~ismember(Calls_tmp.Type,'Noise'), :);
         end
         % Create a variable that contains the index of audiodata to use
         Calls_tmp.audiodata_index = repmat(j, height(Calls_tmp), 1);
@@ -94,7 +94,7 @@ for i = 1:height(Calls)
     waitbar(i/height(Calls),h, sprintf('Loading File %u of %u', Calls.audiodata_index(i), length(fileName)));
     
     % Change the audio file if needed
-    if Calls.audiodata_index(i) ~= currentAudioFile;
+    if Calls.audiodata_index(i) ~= currentAudioFile
         audioReader.audiodata = audiodata{Calls.audiodata_index(i)};
         currentAudioFile = Calls.audiodata_index(i);
         perFileCallID = 0;
@@ -115,12 +115,22 @@ for i = 1:height(Calls)
     else
     im = adapthisteq(flipud(pow),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
     end
+    
+    spectrange = audioReader.audiodata.SampleRate / 2000; % get frequency range of spectrogram in KHz
+    FreqScale = spectrange / (1 + floor(nfft / 2)); % size of frequency pixels
+    TimeScale = (wind - noverlap) / audioReader.audiodata.SampleRate; % size of time pixels
 
     if p.Results.forClustering
-        stats = CalculateStats(I,wind,noverlap,nfft,rate,box,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
-        spectrange = audioReader.audiodata.SampleRate / 2000; % get frequency range of spectrogram in KHz
-        FreqScale = spectrange / (1 + floor(nfft / 2)); % size of frequency pixels
-        TimeScale = (wind - noverlap) / audioReader.audiodata.SampleRate; % size of time pixels
+        % If each call was saved with its own Entropy and Amplitude
+        % Threshold, run CalculateStats with those values,
+        % otherwise run with global settings
+        if any(strcmp('EntThresh',Calls.Properties.VariableNames)) && ...
+            ~isempty(Calls.EntThresh(i))
+            % Calculate statistics
+            stats = CalculateStats(I,wind,noverlap,nfft,rate,box,Calls.EntThresh(i),Calls.AmpThresh(i));
+        else
+            stats = CalculateStats(I,wind,noverlap,nfft,rate,box,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
+        end
         xFreq = FreqScale * (stats.ridgeFreq_smooth) + Calls.Box(i,2);
         xTime = stats.ridgeTime * TimeScale;
     else
@@ -137,18 +147,28 @@ for i = 1:height(Calls)
         {perFileCallID} % Call ID in file
         {stats.Power}
         {box(4)}
+        {FreqScale}
+        {TimeScale}
+        {0}
+        {Calls.Type(i)}
+        {Calls.CallID(i)}
+        {Calls.ClustCat(i)}
         ]'];
     
     clustAssign = [clustAssign; Calls.Type(i)];
 end
 
 
-ClusteringData = cell2table(ClusteringData, 'VariableNames', {'Spectrogram', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth'});
+ClusteringData = cell2table(ClusteringData(:,1:15), 'VariableNames', {'Spectrogram', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign'});
 
 close(h)
 
 if p.Results.save_data && ~all(cellfun(@(x) isempty(fields(x)), audiodata)) % If audiodata has no fields, then only extracted contours were used, so don't ask to save them again
-    [FileName,PathName] = uiputfile('Extracted Contours.mat','Save extracted data for faster loading (optional)');
+    pind = regexp(char(ClusteringData{1,'Filename'}),'\');
+    pind = pind(end);
+    pname = char(ClusteringData{1,'Filename'});
+    pname = pname(1:pind);
+    [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save extracted data for faster loading (optional)');
     if FileName ~= 0
         save(fullfile(PathName,FileName),'ClusteringData','-v7.3');
     end

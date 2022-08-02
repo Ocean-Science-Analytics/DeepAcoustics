@@ -29,11 +29,27 @@ for i = 1:length(files)
     % Find the index of the clustering data that belongs to the file
     cluster_idx = find(file_idx == i);
 
-    % Find the index of the calls in the file that correspond the the clustering data
-    call_idx = [ClusteringData{cluster_idx, 7}];
+    if ismember('UserID',ClusteringData.Properties.VariableNames)
+        % Find the index of the calls in the file that correspond the the clustering data
+        [~,call_idx] = ismember(ClusteringData{cluster_idx, 'UserID'},Calls.CallID);
+    else
+        warning('This will not assign clusters correctly if rejected Calls were not removed from your detections file.')
+        [~,call_idx] = ismember(ClusteringData{cluster_idx, 'callID'},Calls.CallID);
+    end
 
     % Update call type with cluster names
-    Calls.Type(call_idx) = clustAssign(cluster_idx);
+    Calls.ClustCat(call_idx) = clustAssign(cluster_idx);
+    answer = questdlg('Cluster assignments saved to Calls.ClustCat.  Do you also want to overwrite the "Type" column with the cluster assignments?', ...
+	'Overwrite "Type"', ...
+	'Yes','No','No');
+    % Handle response
+    switch answer
+        case 'Yes'
+            Calls.Type(call_idx) = clustAssign(cluster_idx);
+        case 'No'
+        case ''
+            error('You chose to cancel the operation.')
+    end
 
     % Reject calls classified as 'Noise'
     Calls.Accept(call_idx(rejected(cluster_idx))) = 0;

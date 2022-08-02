@@ -19,19 +19,18 @@ if FileName == 0
 end
 audiodata = audioinfo([audiopath audioname]);
 
-Calls = struct('Box',struct,'Score',struct,'Accept',struct,'Type',struct,'Power',struct);
+Calls = struct('Box',struct,'Score',struct,'Accept',struct,'Type',struct);
 hc = waitbar(0,'Importing Calls from MUPET Log');
 for i=1:length(MUPET.SyllableNumber)
     waitbar(i/length(MUPET.SyllableNumber),hc);
     Calls(i).Box = [MUPET.SyllableStartTime_sec_(i), MUPET.minimumFrequency_kHz_(i), MUPET.syllableDuration_msec_(i)/1000, MUPET.frequencyBandwidth_kHz_(i)];
     Calls(i).Score = 1;
     Calls(i).Accept=1;
-    Calls(i).Type=categorical({'USV'});
-    Calls(i).Power = 1;
+    Calls(i).Type=categorical({'Call'});
 end
 Calls = struct2table(Calls);
 [~, name] = fileparts(mupetname);
-[FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [name '.mat']),'Save Call File');
+[FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [name '_Detections.mat']),'Save Call File');
 save([PathName, FileName],'Calls', 'audiodata', '-v7.3');
 close(hc);
 update_folders(hObject, eventdata, handles);

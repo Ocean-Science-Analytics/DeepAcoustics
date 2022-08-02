@@ -43,7 +43,7 @@ CallBandwidth = str2double(CallBandwidth);
 
 audiodata = audioinfo(AudioFile);
 
-Calls = struct('Box',struct,'Score',struct,'Accept',struct,'Type',struct,'Power',struct);
+Calls = struct('Box',struct,'Score',struct,'Accept',struct,'Type',struct);
 hc = waitbar(0,'Importing Calls from Ultravox Log');
 
 for i=1:length(ultravox.Call)
@@ -58,12 +58,11 @@ for i=1:length(ultravox.Call)
     Calls(i).Score = 1;
     Calls(i).Accept = 1;
     Calls(i).Type = categorical(ultravox.PatternLabel(i));
-    Calls(i).Power = 0;
 end
 close(hc);
 Calls = struct2table(Calls);
 
-[FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, '*.mat'), 'Save Call File');
+[FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, strrep(ultravoxName,'.txt','_Detections.mat')), 'Save Call File');
 filename = fullfile(PathName,FileName);
 
 Calls = merge_boxes(Calls.Box, Calls.Score, Calls.Type, audiodata, 1, 0, 0);

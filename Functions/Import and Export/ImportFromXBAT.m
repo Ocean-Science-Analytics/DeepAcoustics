@@ -56,13 +56,13 @@ for file = fname
             Calls(i).Accept=1;
         else
             Calls(i).Accept=0;
+            Calls(i).Type = categorical({'Noise'});
         end
         Calls(i).Type=data.event(i).annotation.name;
-        Calls(i).Power = 0;
         
     end
     Calls = struct2table(Calls);
-    save(fullfile(outpath, data.file), 'Calls', 'audiodata', '-v7.3');
+    save(fullfile(outpath, [data.file(end-4:end) '_Detections.mat']), 'Calls', 'audiodata', '-v7.3');
 end
 close(hc);
 update_folders(hObject, eventdata, handles);

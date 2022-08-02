@@ -26,12 +26,12 @@ end
 iter = 1;
 greaterthannoise = false(1, size(I, 2));
 while sum(greaterthannoise)<5
-    if iter==1;
-    greaterthannoise = greaterthannoise | amplitude  > brightThreshold;
-    greaterthannoise = greaterthannoise & 1-stats.Entropy  > EntropyThreshold;
+    if iter==1
+        greaterthannoise = greaterthannoise | amplitude  > brightThreshold;
+        greaterthannoise = greaterthannoise & 1-stats.Entropy  > EntropyThreshold;
     else
-    greaterthannoise = greaterthannoise | amplitude  > brightThreshold / 1.1 ^ iter;
-    greaterthannoise = greaterthannoise & 1-stats.Entropy  > EntropyThreshold / 1.1 ^ iter;
+        greaterthannoise = greaterthannoise | amplitude  > brightThreshold / 1.1 ^ iter;
+        greaterthannoise = greaterthannoise & 1-stats.Entropy  > EntropyThreshold / 1.1 ^ iter;
     end
     iter = iter + 1;
     if iter > 2
@@ -49,7 +49,10 @@ stats.ridgeTime = find(greaterthannoise);
 stats.ridgeFreq = ridgeFreq(greaterthannoise);
 % Smoothed frequency of the call contour
 try
-    stats.ridgeFreq_smooth = smooth(stats.ridgeTime,stats.ridgeFreq,0.05,'rlowess');
+    %GA211211: the "r" in "rlowess" is messing up when it is fed our
+    %too-perfect artificial whistles
+    %stats.ridgeFreq_smooth = smooth(stats.ridgeTime,stats.ridgeFreq,0.1,'rlowess');
+    stats.ridgeFreq_smooth = smooth(stats.ridgeTime,stats.ridgeFreq,0.1,'lowess');
     %stats.ridgeFreq_smooth = stats.ridgeFreq;
 catch
     disp('Cannot apply smoothing. The line is probably too short');
@@ -104,11 +107,13 @@ ridgePower = amplitude(stats.ridgeTime);
 % Magnitude sqaured divided by sum of squares of hamming window
 ridgePower = ridgePower.^2 / sum(hamming(windowsize).^2);
 ridgePower = 2*ridgePower / SampleRate;
+% Mean power of the call contour (mean needs to be before log)
+stats.MeanPower = 10 * log10(mean(ridgePower));
 % Convert power to db
 ridgePower = 10 * log10(ridgePower);
 
-% Mean power of the call contour
-stats.MeanPower = mean(ridgePower);
+% Max power of the call contour
+stats.MaxPower = max(ridgePower);
 % Power of the call contour
 stats.Power = ridgePower;
 

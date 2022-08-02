@@ -9,6 +9,10 @@ wind = [];
 waitfor(msgbox('Select Image Tables'))
 [trainingdata, trainingpath] = uigetfile(['Training/*.mat'],'Select Training File(s) for Training ','MultiSelect', 'on');
 TrainingTables = [];
+%Return if cancel
+if trainingdata == 0
+    return
+end
 trainingdata = cellstr(trainingdata);
 
 
@@ -35,9 +39,20 @@ switch choice
     case 'Yes'
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
         load([NetPath NetName],'detector');
-        [detector, layers, options] = TrainSqueakDetector(TrainingTables,detector);
+        if (~any(strcmp(TTable.Properties.VariableNames,'USV')) && detector.Network.Layers(end).Classes==categorical({'USV'}))
+            choice = questdlg('It looks like you are trying to build on an older USV model.  Do you want to make sure new detections are also labelled USV? (Recommend Yes unless you know what you are doing.)', 'Yes', 'No');
+            switch choice
+                case 'Yes'
+                    if length(TTable.Properties.VariableNames) ~= 2
+                        error('Cannot proceed as desired - talk to Gabi.')
+                    else
+                        TTable.Properties.VariableNames{2} = 'USV';
+                    end
+            end
+        end
+        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector);
     case 'No'
-        [detector, layers, options] = TrainSqueakDetector(TrainingTables);
+        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables);
 end
 
 %% Save the new network
@@ -47,7 +62,7 @@ noverlap = max(AllSettings(:,2));
 nfft = max(AllSettings(:,3));
 
 version = handles.DSVersion;
-save(fullfile(PathName,FileName),'detector','layers','options','wind','noverlap','nfft','version','imLength');
+save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength');
 
 %% Update the menu
 update_folders(hObject, eventdata, handles);

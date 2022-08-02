@@ -12,10 +12,7 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
     
     %Check if detection file has changed to save file before loading a new one.
     if ~isempty(handles.data.calls)
-        [tmpcalls, ~] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
-        if ismember('Power',tmpcalls.Properties.VariableNames)
-            tmpcalls = removevars(tmpcalls,'Power');
-        end
+        [~, ~, ~, tmpcalls] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
         if ~isequal(tmpcalls, handles.data.calls)
             opts.Interpreter = 'tex';
             opts.Default='Yes';
@@ -36,11 +33,6 @@ h = waitbar(0,'Loading Calls Please wait...');
 handles.data.calls = [];
 handles.data.audiodata = [];
 [handles.data.calls, handles.data.audiodata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
-
-%% Back Compatability for Files with Power in The Detection File.
-if ismember('Power',handles.data.calls.Properties.VariableNames)
-   handles.data.calls = removevars(handles.data.calls,'Power');
-end
 
 % Position of the focus window to the first call in the file
 handles.data.focusCenter = handles.data.calls.Box(1,1) + handles.data.calls.Box(1,3)/2;

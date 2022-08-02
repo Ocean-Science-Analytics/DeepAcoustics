@@ -13,8 +13,8 @@ calls_in_page = find( (handles.data.calls.Box(:,1) >= axis_xlim(1) & handles.dat
 
 boxes = handles.data.calls.Box(calls_in_page,:);
 
-% Draw labels if there are any labels other than 'USV'
-% if ~isempty(calls_in_page) any(handles.data.calls.Type ~= 'USV')
+% Draw labels if there are any labels other than 'Call'
+% if ~isempty(calls_in_page) any(handles.data.calls.Type ~= 'Call')
     LabelVisible = 'on'; % use 'hover' to only display labels on mouse over2
 % else
 %     LabelVisible = 'off';
@@ -43,8 +43,8 @@ for box_number = 1:length(calls_in_page)
     
     if roi
         
-        % Only display a label if it isn't just "USV"
-        if handles.data.calls.Type(calls_in_page(box_number)) == {'USV'}
+        % Only display a label if it isn't just "Call"
+        if handles.data.calls.Type(calls_in_page(box_number)) == {'Call'}
             label = '';
         else
             label = char(handles.data.calls.Type(calls_in_page(box_number)));

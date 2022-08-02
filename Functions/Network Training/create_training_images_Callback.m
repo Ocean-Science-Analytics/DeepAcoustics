@@ -26,7 +26,7 @@ StretchRange = [0.75, 1.25];
 h = waitbar(0,'Initializing');
 
 for k = 1:length(trainingdata)
-    TTable = table({},{},'VariableNames',{'imageFilename','USV'});
+    TTable = table({},{},'VariableNames',{'imageFilename','Call'});
     
     % Load the detection and audio files
     audioReader = squeakData();
@@ -56,11 +56,15 @@ for k = 1:length(trainingdata)
     % Create chuncks of audio file that contain non-overlapping call bouts
     bn=1;
     while bn<height(Distance)
-        lst=find(Distance(bn,:)>0,1,'last');
+        lst=find(Distance(bn,bn:end)>0,1,'last')+bn-1;
         for ii=bn+1:lst
             Distance(ii,lst+1:end)=zeros(length(Distance(ii,lst+1:end)),1);
         end
-        bn=lst+1;
+        if isempty(lst)
+            bn = bn+1;
+        else
+            bn = lst+1;
+        end
     end
     
     G = graph(Distance,'upper');
@@ -69,6 +73,8 @@ for k = 1:length(trainingdata)
     for bin = 1:length(unique(bins))
         BoutCalls = Calls(bins == bin, :);
         
+        %Center audio on middle of call bout and extract clip imLength in
+        %length
         StartTime = max(min(BoutCalls.Box(:,1)), 0);
         FinishTime = max(BoutCalls.Box(:,1) + BoutCalls.Box(:,3));
         CenterTime = (StartTime+(FinishTime-StartTime)/2);
@@ -80,6 +86,21 @@ for k = 1:length(trainingdata)
         
         % Subtract the start of the bout from the box times
         BoutCalls.Box(:,1) = BoutCalls.Box(:,1) - StartTime;
+        
+        % If imLength < duration of a call, beginning and/or end will clip!
+        % Clip beg of call
+        if any(BoutCalls.Box(:,1) < 0)
+            warning("Your Image Length is probably too low - beg of call not captured")
+            % Adjust duration accordingly
+            BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) = BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) + BoutCalls.Box(BoutCalls.Box(:,1) < 0,1);
+            BoutCalls.Box(BoutCalls.Box(:,1) < 0,1) = 0;
+        end
+        
+        % Clip end of call
+        if any(BoutCalls.Box(:,3) > imLength)
+            warning("Your Image Length is probably too low - end of call not captured")
+            BoutCalls.Box(BoutCalls.Box(:,3) > imLength, 3) = imLength;
+        end
         
         try
         for replicatenumber = 1:repeats
@@ -102,7 +123,7 @@ for k = 1:length(trainingdata)
         waitbar(bin/length(unique(bins)), h, sprintf('Processing File %g of %g', k, length(trainingdata)));        
         
     end
-    save(fullfile(handles.data.squeakfolder,'Training',[filename '.mat']),'TTable','wind','noverlap','nfft','imLength');
+    save(fullfile(handles.data.squeakfolder,'Training',[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
     disp(['Created ' num2str(height(TTable)) ' Training Images']);
 end
 close(h)
@@ -173,6 +194,11 @@ y1 = axes2pix(length(fr), fr./1000, Calls.Box(:,2));
 y2 = axes2pix(length(fr), fr./1000, Calls.Box(:,4));
 box = ceil([x1, length(fr)-y1-y2, x2, y2]);
 box = box(Calls.Accept == 1, :);
+box(box == 0) = 1;
+box(box(:,1) > length(ti),1) = length(ti);
+box(box(:,3) > length(ti),3) = length(ti);
+box(box(:,2) > length(fr),2) = length(fr);
+box(box(:,4) > length(fr),4) = length(fr);
 
 % resize images for 300x300 YOLO Network (Could be bigger but works nice)
 targetSize = [300 300];

@@ -141,7 +141,7 @@ for i=1:size(newBoxes,1)
     % Final Structure
     NewCalls(i).Box=newBoxes(i,:);
     NewCalls(i).Score=newScores(i);
-    NewCalls(i).Type=categorical({'USV'});
+    NewCalls(i).Type=categorical({'Call'});
     NewCalls(i).Accept=1;
 
 end

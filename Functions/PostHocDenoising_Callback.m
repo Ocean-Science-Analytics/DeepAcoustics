@@ -6,7 +6,7 @@ function PostHocDenoising_Callback(hObject, eventdata, handles)
 % Load the network
 [FileName,PathName] = uigetfile(fullfile(handles.data.squeakfolder,'Denoising Network','*.mat'),'Select Denoising Network');
 try
-    net=load(fullfile(PathName,FileName),'DenoiseNet','imageSize');
+    net=load(fullfile(PathName,FileName),'DenoiseNet');
 catch
     errordlg(sprintf('Denoising network not found'))
     return
@@ -20,23 +20,24 @@ if exist(handles.data.settings.detectionfolder,'dir') == 0
 end
 
 options.imageSize = [128, 128, 1];
-[ClusteringData, Class, options.freqRange, options.maxDuration, options.spectrogram] = CreateClusteringData(handles, 'scale_duration', true, 'fixed_frequency', true);
+[ClusteringData, ~, ~, ~, ~] = CreateClusteringData(handles, 'scale_duration', true, 'fixed_frequency', true);
+
+%Return on cancel
+if isempty(ClusteringData); return; end
 
 % Resize the images to match the input image size
 images = zeros([options.imageSize, size(ClusteringData, 1)]);
 for i = 1:size(ClusteringData, 1)
     images(:,:,:,i) = imresize(ClusteringData.Spectrogram{i}, options.imageSize(1:2));
 end
-% wind=options.spectrogram.windowsize;
-% noverlap=options.spectrogram.overlap;
-% nfft=options.spectrogram.nfft;
-imageSize=options.imageSize;
 
 h = waitbar(0,'Initializing');
-for j=1:height(ClusteringData);
-    waitbar(j/height(ClusteringData), h, ['Classifying Image ' num2str(j) ' of ' num2str(height(ClusteringData))]);
+%Iterate backwards for better performance (dynamically pre-allocate)
+for j=height(ClusteringData):-1:1
+    progj = height(ClusteringData)-j+1;
+    waitbar(progj/height(ClusteringData), h, ['Classifying Image ' num2str(progj) ' of ' num2str(height(ClusteringData))]);
     X = images(:,:,:,j) ./ 256;
-    [Cl, sc] = classify(net.DenoiseNet, X);
+    [Cl, ~] = classify(net.DenoiseNet, X);
     clustAssign(j,1)=Cl;
 end
 close(h);

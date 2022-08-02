@@ -18,7 +18,7 @@ sv_table = readtable([svpath svname],'Delimiter', ',');
     }, ['Select Audio File for ' svname],handles.data.settings.audiofolder);
 
 
-Calls  = cell2table(cell(0,6), 'VariableNames', {'Box', 'Score', 'Accept', 'Type', 'Power', 'Tag'});
+Calls  = cell2table(cell(0,5), 'VariableNames', {'Box', 'Score', 'Accept', 'Type', 'Tag'});
 hc = waitbar(0,'Importing Calls from Sonic Visualizer');
 n_rows = size(sv_table,1);
 for i=1:n_rows
@@ -27,7 +27,7 @@ for i=1:n_rows
     call_duration = sv_table{i,2} - call_start;
     call_frequency_start = sv_table{i,3};
     call_frequency_length = sv_table{i,4} - call_frequency_start;
-    call_label = 'USV';
+    call_label = 'Call';
     if size(sv_table,2) == 5
        call_label = cellstr(sv_table{i,5});     
     end
@@ -45,7 +45,7 @@ audiodata = audioinfo(fullfile(audiopath, audioname));
 
 % FileName = [audio_file_name, datestr(datetime('now'),'mmm-dd-yyyy hh_MM AM'), ' ',box_file_name, '.mat'];
 % FilePath = [handles.data.settings.detectionfolder, FileName];
-[FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [box_file_name '.mat']),'Save Call File');
+[FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [box_file_name '_Detections.mat']),'Save Call File');
 FilePath = [handles.data.settings.detectionfolder, FileName];
 save(FilePath,'Calls','audiodata','-v7.3');
 close(hc);

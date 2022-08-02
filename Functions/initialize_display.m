@@ -102,4 +102,15 @@ handles = guidata(hObject);
 %% Find the color scale limits
 %handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
 handles.data.clim = prctile(handles.data.page_spect.s_display,[10,90], 'all')';
+if handles.data.clim(2) == 0
+    if prctile(handles.data.page_spect.s_display,95, 'all') ~= 0
+        handles.data.clim(2) = prctile(handles.data.page_spect.s_display,95, 'all');
+    elseif prctile(handles.data.page_spect.s_display,99, 'all') ~= 0
+        handles.data.clim(2) = prctile(handles.data.page_spect.s_display,99, 'all');
+    elseif max(handles.data.page_spect.s_display,[],'all') ~= 0
+        handles.data.clim(2) = max(handles.data.page_spect.s_display,[],'all');
+    else
+        handles.data.clim(2) = 1;
+    end
+end
 change_spectogram_contrast_Callback(hObject,[],handles);
