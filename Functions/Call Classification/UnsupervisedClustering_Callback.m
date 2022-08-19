@@ -17,7 +17,7 @@ switch SuperBatch
         choice = 'K-means (recommended)';
         FromExisting = 'No';
         saveChoice = 'No';
-        bJen = 'Yes';
+        %bJen = 'Yes';
         bUpdate = 'No';
         
         % Load data for clustering
@@ -52,8 +52,8 @@ for j = 1:nruns
                                 if ~bSuperBatch
                                     [ClusteringData, ~, ~, ~, spectrogramOptions] = CreateClusteringData(handles, 'forClustering', true, 'save_data', true);
                                     if isempty(ClusteringData); return; end
-                                    clusterParameters= inputdlg({'Number of Contour Pts','Slope weight','Concavity weight','Frequency weight', ...
-                                        'Relative Frequency weight','Duration weight','Infl Pt weight','Parsons weight','Parsons Resolution'}, ...%,'Parsons2 weight'},
+                                    clusterParameters= inputdlg({'Number of Contour Pts','Slope Weight','Concavity Weight','Frequency Weight', ...
+                                        'Relative Frequency Weight','Duration Weight','Infl Pt Weight','Parsons Weight','Parsons Resolution'}, ...%,'Parsons2 weight'},
                                         'Choose cluster parameters:',[1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 15],{'20','0','0','0','1','0','0','0','4'});%,'0'});
                                     if isempty(clusterParameters); return; end
                                     num_pts = str2double(clusterParameters{1});
@@ -279,27 +279,6 @@ for j = 1:nruns
                 
                 ClusteringData(:,'Silhouette') = num2cell(s);
 
-                %% Save the cluster assignments & silhoutte values
-                if ~bSuperBatch
-                    saveChoice =  questdlg('Save Extracted Contours with Cluster Assignments?','Save cluster assignments','Yes','No','No');
-                end
-                switch saveChoice
-                    case 'Yes'
-                        CDBU = ClusteringData;
-                        ClusteringData{:,'ClustAssign'} = clustAssign;
-                        pind = regexp(char(ClusteringData{1,'Filename'}),'\');
-                        pind = pind(end);
-                        pname = char(ClusteringData{1,'Filename'});
-                        pname = pname(1:pind);
-                        [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save contours with cluster assignments');
-                        if FileName ~= 0
-                            save(fullfile(PathName,FileName),'ClusteringData','-v7.3');
-                        end
-                        ClusteringData = CDBU;
-                        clear CDBU
-                    case 'No'
-                end
-
                 %% Sort the calls by how close they are to the cluster center
                 [~,idx] = sort(D);
                 clustAssign = clustAssign(idx);
@@ -413,15 +392,15 @@ for j = 1:nruns
         ClusteringData = ClusteringData(idx,:);
 
         %% Jen Res Settings
-        if ~bSuperBatch
-            bJen =  questdlg('Are you Jen?','Ultrawide Resolution Quick Fix','Yes','No','No');
-        end
-        switch bJen
-            case 'Yes'
-                ClusteringData(:,'IsJen') = num2cell(ones(height(ClusteringData),1));
-            case 'No'
-                ClusteringData(:,'IsJen') = num2cell(zeros(height(ClusteringData),1));
-        end
+%         if ~bSuperBatch
+%             bJen =  questdlg('Are you Jen?','Ultrawide Resolution Quick Fix','Yes','No','No');
+%         end
+%         switch bJen
+%             case 'Yes'
+%                 ClusteringData(:,'IsJen') = num2cell(ones(height(ClusteringData),1));
+%             case 'No'
+%                 ClusteringData(:,'IsJen') = num2cell(zeros(height(ClusteringData),1));
+%         end
 
         if ~bSuperBatch
             [~, clusterName, rejected, finished, clustAssign] = clusteringGUI(clustAssign, ClusteringData);
@@ -468,7 +447,7 @@ for j = 1:nruns
     end
     %% Update Files
     % Save the clustering model
-    if FromExisting(1) == 'N'
+    if finished == 1 && FromExisting(1) == 'N'
         switch choice
             case 'K-means (recommended)'
                 if ~bSuperBatch
@@ -507,20 +486,41 @@ for j = 1:nruns
     end
 end
 
-% Save the clusters
-if ~bSuperBatch
-    bUpdate =  questdlg('Update detections .mat files (variable ClustCat) with new clusters?','Save clusters','Yes','No','No');
-end
-switch bUpdate
-    case 'Yes'
-        UpdateCluster(ClusteringData, clustAssign, clusterName, rejected)
-        update_folders(hObject, eventdata, handles);
-        if isfield(handles,'current_detection_file')
-            loadcalls_Callback(hObject, eventdata, handles, true)
-        end
-    case 'No'
-        return
-end
+% Only Save if Save selected in Clustering GUI
+if finished == 1
+    %% Save the cluster assignments & silhoutte values
+    if ~bSuperBatch
+        saveChoice =  questdlg('Append Cluster Assignments to Extracted Contours file? If Yes, this will open a save dialog. If you then save to a file with the same name, this will overwrite previously saved Cluster Assignments.',...
+            'Save cluster assignments','Yes','No','No');
+    end
+    switch saveChoice
+        case 'Yes'
+            ClusteringData{:,'ClustAssign'} = clustAssign;
+            pind = regexp(char(ClusteringData{1,'Filename'}),'\');
+            pind = pind(end);
+            pname = char(ClusteringData{1,'Filename'});
+            pname = pname(1:pind);
+            [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save contours with cluster assignments');
+            if FileName ~= 0
+                save(fullfile(PathName,FileName),'ClusteringData','-v7.3');
+            end
+        case 'No'
+    end
+    
+    % Save the clusters
+    if ~bSuperBatch
+        bUpdate =  questdlg('Update Detections .mat files (variable ClustCat) with new clusters?','Save clusters','Yes','No','No');
+    end
+    switch bUpdate
+        case 'Yes'
+            UpdateCluster(ClusteringData, clustAssign, clusterName, rejected)
+            update_folders(hObject, eventdata, handles);
+            if isfield(handles,'current_detection_file')
+                loadcalls_Callback(hObject, eventdata, handles, true)
+            end
+        case 'No'
+            return
+    end
 end
 
 %% Dyanamic Time Warping
@@ -641,7 +641,7 @@ function C = get_kmeans_centroids(data,varargin)
 % Make a k-means model and return the centroids
 if nargin == 1
     list = {'Elbow Optimized','Elbow w/ Min Clust Size','User Defined','Silhouette Batch'};
-    [optimize,tf] = listdlg('PromptString','Choose a clustering method','ListString',list,'SelectionMode','single');
+    [optimize,tf] = listdlg('PromptString','Choose a clustering method','ListString',list,'SelectionMode','single','Name','Clustering Method');
 elseif nargin == 3
     batchtable = varargin{1};
     exportpath = varargin{2};

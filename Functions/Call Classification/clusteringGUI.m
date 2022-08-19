@@ -275,13 +275,13 @@ classdef clusteringGUI < handle
                 ploty = size(colorIM,1)-ploty;
                 plotx = resz(2)*contourtime/ClusteringData.TimeScale(clustIndex(callID))+pad(2);
                 
-                dotheight = 1;
-                dotlength = 5;
-                
-                if ClusteringData.IsJen(clustIndex(callID)) == 1
+%                 dotheight = 1;
+%                 dotlength = 5;
+%                 
+%                 if ClusteringData.IsJen(clustIndex(callID)) == 1
                     dotheight = 2;
                     dotlength = 1;
-                end
+%                 end
                 
                 %Limit values for boundary/indexing issues
                 plotx(plotx<1) = 1;

@@ -22,6 +22,16 @@ clustAssign(rejected) = 'Noise';
 % Reject all calls classified as 'Noise'
 rejected(clustAssign == 'Noise') = 1;
 
+answer = questdlg('Cluster assignments will be saved to Calls.ClustCat.  Do you also want to overwrite the "Type" column with the cluster assignments?', ...
+    'Overwrite "Type"', ...
+    'Yes','No','No');
+switch answer
+    case 'Yes'
+    case 'No'
+    case ''
+        error('You chose to cancel the operation.')
+end
+
 for i = 1:length(files)
 
     Calls = loadCallfile(files{i},[]);
@@ -39,16 +49,12 @@ for i = 1:length(files)
 
     % Update call type with cluster names
     Calls.ClustCat(call_idx) = clustAssign(cluster_idx);
-    answer = questdlg('Cluster assignments saved to Calls.ClustCat.  Do you also want to overwrite the "Type" column with the cluster assignments?', ...
-	'Overwrite "Type"', ...
-	'Yes','No','No');
+
     % Handle response
     switch answer
         case 'Yes'
             Calls.Type(call_idx) = clustAssign(cluster_idx);
         case 'No'
-        case ''
-            error('You chose to cancel the operation.')
     end
 
     % Reject calls classified as 'Noise'
