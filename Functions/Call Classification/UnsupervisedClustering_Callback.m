@@ -277,7 +277,7 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                     uniqCA = unique(clustAssign);
                     for i=1:length(uniqCA)
                         accummu = accummu + mean(s(clustAssign==uniqCA(i)));
-                        if sum(clust==uniqCA(i)) == 1
+                        if sum(clustAssign==uniqCA(i)) == 1
                             propsing = propsing+1;
                         end
                     end
