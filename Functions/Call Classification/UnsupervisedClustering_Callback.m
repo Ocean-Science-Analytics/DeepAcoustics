@@ -1,8 +1,9 @@
 function UnsupervisedClustering_Callback(hObject, eventdata, handles)
     % Cluster with k-means or adaptive
     
-    SuperBatch = questdlg({'Do you want to do a super batch run using a special mat?'; ...
-        'If you do not know what this is, say No.'},'Super Batch','Yes','No','No');
+%     SuperBatch = questdlg({'Do you want to do a super batch run using a special mat?'; ...
+%         'If you do not know what this is, say No.'},'Super Batch','Yes','No','No');
+    SuperBatch = 'No';
     bSuperBatch = false;
     nruns = 1;
     switch SuperBatch                         
@@ -846,7 +847,7 @@ function C = get_kmeans_centroids(data,varargin)
                 %plot(xvals, meanAbv_zero, 'Color', 'magenta');
                 plot(xvals, propCAbMean1, 'Color', 'magenta');
                 plot(xvals, propCAbMean2, 'Color', 'cyan');
-                plot(xcals, propsing, 'Color', 'black');
+                plot(xvals, propsing, 'Color', 'black');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
                 legend('Mean1', 'Mean2', 'Max S', 'Median S', 'Prop Silhouettes Values < Zero', 'Prop > Mean1', 'Prop > Mean2',...
