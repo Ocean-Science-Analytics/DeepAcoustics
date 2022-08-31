@@ -266,11 +266,37 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
     
                     % clusters with zero negative members
                     greater0 = length(s(s>0))/length(s);
+                    
+                    % Calc proportion of clusters > mean S value
+                    ct1 = 0;
+                    ct2 = 0;
+                    accummu = 0;
+                    uniqCA = unique(clustAssign);
+                    for i=1:length(uniqCA)
+                        accummu = accummu + mean(s(clustAssign==uniqCA(i)));
+                    end
+                    accummu = accummu/length(uniqCA);
+                    for i=1:length(uniqCA)
+                        if mean(s(clustAssign==uniqCA(i)))>=meanS
+                            ct1 = ct1+1;
+                        end
+                        if mean(s(clustAssign==uniqCA(i)))>=accummu
+                            ct2 = ct2+1;
+                        end
+                    end
+                    propCAbMean1 = ct1/length(uniqCA);
+                    propCAbMean2 = ct2/length(uniqCA);
+
+                    xline(meanS,'--r','LineWidth',3);
+                    xline(accummu,':g','LineWidth',3);
                     xlim([-1 1])
                     yticklabels(1:size(C,1))
                     title(sprintf('Silhouettes of Clusters - %d Clusters',size(C,1)),...
-                        sprintf('Mean = %0.2f  Med = %0.2f  Max = %0.2f  Prop<=0 = %0.2f  Mean>0 = %0.2f  Prop>0.8 = %0.2f', ...
-                        meanS, medianS, maxS, below_zero, meanAbv_zero, greater8))
+                        {sprintf('Mean1 (all whis, red dashed) = %0.2f  Mean2 (by clust, green dotted) = %0.2f',meanS, accummu),...
+                        sprintf('Med = %0.2f  Max = %0.2f  Prop<=0 = %0.2f',...
+                        medianS, maxS, below_zero),...
+                        sprintf('Prop of Cl>Mean1 = %0.2f  Prop of Cl>Mean2 = %0.2f', ...
+                        propCAbMean1,propCAbMean2)})
                     if bSuperBatch
                         figfilename = sprintf('SingleSilhouette_%s_%dClusters.png',batchtable.modelname{j},size(C,1));
                         saveas(gcf, fullfile(exportpath,figfilename));
@@ -727,15 +753,18 @@ function C = get_kmeans_centroids(data,varargin)
                 % Preallocate
                 maxS = zeros(1,(maxclust-minclust+1));
                 %minS = zeros(1,(maxclust-minclust+1));
-                %meanS = zeros(1,(maxclust-minclust+1));
+                meanS = zeros(1,(maxclust-minclust+1));
                 medianS = zeros(1,(maxclust-minclust+1));
                 below_zero = zeros(1,(maxclust-minclust+1));
                 meanAbv_zero = zeros(1,(maxclust-minclust+1));
                 greater8 = zeros(1,(maxclust-minclust+1));
                 greater0 = zeros(1,(maxclust-minclust+1));
+                accummu = zeros(1,(maxclust-minclust+1));
+                propCAbMean1 = zeros(1,(maxclust-minclust+1));
+                propCAbMean2 = zeros(1,(maxclust-minclust+1));
                 
                 fig = uifigure;
-                d = uiprogressdlg(fig,'Silhouette Loop','Please Wait',...
+                d = uiprogressdlg(fig,'Title','Silhouette Loop - Please Wait',...
                     'Message','Running silhouettes...');
                 drawnow
                 
@@ -752,7 +781,7 @@ function C = get_kmeans_centroids(data,varargin)
                     % Making numeric vectors for line plots         
                     maxS(ind) = max(s);
                     %minS(ind) = min(s);
-                    %meanS(ind) = mean(s);
+                    meanS(ind) = mean(s);
                     medianS(ind) = median(s);
     
                     % Prop of k that fall below zero (total N that fall below zero/N)
@@ -766,6 +795,26 @@ function C = get_kmeans_centroids(data,varargin)
     
                     % clusters with zero negative members
                     greater0(ind) = length(s(s>0))/length(s);
+
+                    % Calc proportion of clusters > mean S value
+                    ct1 = 0;
+                    ct2 = 0;
+                    thisaccummu = 0;
+                    uniqCA = unique(clust);
+                    for i=1:length(uniqCA)
+                        thisaccummu = thisaccummu + mean(s(clust==uniqCA(i)));
+                    end
+                    accummu(ind) = thisaccummu/length(uniqCA);
+                    for i=1:length(uniqCA)
+                        if mean(s(clust==uniqCA(i)))>=meanS(ind)
+                            ct1 = ct1+1;
+                        end
+                        if mean(s(clust==uniqCA(i)))>=accummu(ind)
+                            ct2 = ct2+1;
+                        end
+                    end
+                    propCAbMean1(ind) = ct1/length(uniqCA);
+                    propCAbMean2(ind) = ct2/length(uniqCA);
                 end
                 close(d)
                 delete(fig)
@@ -773,16 +822,20 @@ function C = get_kmeans_centroids(data,varargin)
                 %% Silhouettes Plot
                 figure()
                 xvals = minclust:maxclust;
-                plot(xvals, greater8, 'Color', 'blue');
+                %plot(xvals, greater8, 'Color', 'blue');
+                plot(xvals, meanS, 'Color', 'blue');
                 hold on;
-                plot(xvals, greater0, 'Color', 'red');
+                %plot(xvals, greater0, 'Color', 'red');
+                plot(xvals, accummu, 'Color', 'red');
                 plot(xvals, maxS, 'Color', 'green');
                 plot(xvals, medianS, 'Color', 'black');
                 plot(xvals, below_zero, 'Color', 'cyan');
-                plot(xvals, meanAbv_zero, 'Color', 'magenta');
+                %plot(xvals, meanAbv_zero, 'Color', 'magenta');
+                plot(xvals, propCAbMean1, 'Color', 'magenta');
+                plot(xvals, propCAbMean2, 'Color', 'yellow');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
-                legend('Prop Greater 0.8', 'Prop Greater 0', 'Max S', 'Median S', 'Prop Silhouettes Values < Zero', 'Mean S Above Zero',...
+                legend('Mean1', 'Mean2', 'Max S', 'Median S', 'Prop Silhouettes Values < Zero', 'Prop > Mean1', 'Prop > Mean2',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
