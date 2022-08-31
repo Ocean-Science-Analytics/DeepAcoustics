@@ -850,7 +850,7 @@ function C = get_kmeans_centroids(data,varargin)
                 plot(xvals, propsing, 'Color', 'black');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
-                legend('Mean1', 'Mean2', 'Max S', 'Median S', 'Prop Silhouettes Values < Zero', 'Prop > Mean1', 'Prop > Mean2',...
+                legend('Mean1', 'Mean2', 'Max S', 'Median S', 'Prop > Mean1', 'Prop > Mean2', 'Prop Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
