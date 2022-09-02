@@ -674,7 +674,7 @@ end
 function C = get_kmeans_centroids(data,varargin)
     % Make a k-means model and return the centroids
     if nargin == 1
-        list = {'Elbow Optimized','Elbow w/ Min Clust Size','User Defined','Silhouette Batch'};
+        list = {'Elbow Optimized','Elbow w/ Min Clust Size','User Defined','User Defined w/ Min Clust Size','Silhouette Batch'};
         [optimize,tf] = listdlg('PromptString','Choose a clustering method','ListString',list,'SelectionMode','single','Name','Clustering Method');
     elseif nargin == 3
         batchtable = varargin{1};
@@ -683,7 +683,7 @@ function C = get_kmeans_centroids(data,varargin)
         if strcmp(batchtable.runtype{:},'User Defined')
             optimize = 3;
         elseif strcmp(batchtable.runtype{:},'Silhouette Batch')
-            optimize = 4;
+            optimize = 5;
         else
             error('Something wrong with runtype in batch file')
         end
@@ -707,24 +707,27 @@ function C = get_kmeans_centroids(data,varargin)
     
             %case 'Elbow w/ Min Clust Size'
             case 2
-                opt_options = inputdlg({'Max Clusters','Replicates','Min Clust Size'},'Cluster Optimization',[1 50; 1 50; 1 50],{'100','3','1'});
+                opt_options = inputdlg({'Max Clusters','Replicates','Min Clust Size'},'Cluster Optimization',[1 50; 1 50; 1 50],{'100','10','1'});
                 if isempty(opt_options); return; end
+                k = str2double(opt_options{1});
+                nReps = str2double(opt_options{2});
+                minclsz = str2double(opt_options{3});
     
                 %Cap the max clusters to the number of samples.
-                if size(data,1) < str2double(opt_options{1})
-                    opt_options{1} = num2str(size(data,1));
+                if size(data,1) < k
+                    k = size(data,1);
                 end
-                [IDX,C] = kmeans_opt(data, str2double(opt_options{1}), 0, str2double(opt_options{2}));
+                [IDX,C] = kmeans_opt(data, k, 0, nReps);
                 Celb = C;
                 [GC,~] = groupcounts(IDX);
                 numcl = length(GC);
-                while min(GC) < str2double(opt_options{3})
+                while min(GC) < minclsz
                     numcl = numcl - 1;
-                    [IDX,C] = kmeans(data,numcl,'Distance','sqeuclidean','Replicates',str2double(opt_options{2}));
+                    [IDX,C] = kmeans(data,numcl,'Distance','sqeuclidean','Replicates',nReps);
                     [GC,~] = groupcounts(IDX);
                 end
                 if numcl == 1
-                    warning('Unable to find more than one cluster >= the min cluster size. Proceeding with basic elbow-optimized method.')
+                    warning('Reached a single cluster. Proceeding with basic elbow-optimized method.')
                     C = Celb;
                 end
     
@@ -732,7 +735,6 @@ function C = get_kmeans_centroids(data,varargin)
             case 3
                 if nargin == 1
                     opt_options = inputdlg({'# of Clusters','Replicates'},'Choose Model Options',[1; 1],{'15','10'});
-                    %k = inputdlg({'Choose number of k-means:'},'Cluster with k-means',1,{'15'});
                     if isempty(opt_options); return; end
                     k = str2double(opt_options{1});
                     nReps = str2double(opt_options{2});
@@ -741,9 +743,31 @@ function C = get_kmeans_centroids(data,varargin)
                     nReps = 1000;
                 end
                 [~, C] = kmeans(data,k,'Distance','sqeuclidean','Replicates',nReps);
-    
-            %case 'Silhouette Batch'
+
+            %case 'User Defined w/ Min Clust Size'
             case 4
+                opt_options = inputdlg({'Starting # of Clusters','Replicates','Min Clust Size'},'Choose Model Options',[1; 1; 1],{'15','10','1'});
+                if isempty(opt_options); return; end
+                k = str2double(opt_options{1});
+                nReps = str2double(opt_options{2});
+                minclsz = str2double(opt_options{3});
+
+                [IDX, C] = kmeans(data,k,'Distance','sqeuclidean','Replicates',nReps);
+                Cog = C;
+                [GC,~] = groupcounts(IDX);
+                numcl = length(GC);
+                while min(GC) < minclsz
+                    numcl = numcl - 1;
+                    [IDX,C] = kmeans(data,numcl,'Distance','sqeuclidean','Replicates',nReps);
+                    [GC,~] = groupcounts(IDX);
+                end
+                if numcl == 1
+                    warning('Reached a single cluster. Proceeding with the specified starting # of clusters.')
+                    C = Cog;
+                end
+
+            %case 'Silhouette Batch'
+            case 5
                 %% User options
                 if nargin == 1
                     opt_options = inputdlg({'Min # of Clusters','Max # of Clusters','Replicates'},'Batch Options',[1; 1; 1],{'2','30','10'});
