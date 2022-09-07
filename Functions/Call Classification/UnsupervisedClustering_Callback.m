@@ -269,7 +269,7 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                     greater0 = length(s(s>0))/length(s);
 
                     % Count singleton clusters
-                    propsing = 0;
+                    ctsing = 0;
                     % Calc proportion of clusters > mean S value
                     ct1 = 0;
                     ct2 = 0;
@@ -278,10 +278,9 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                     for i=1:length(uniqCA)
                         accummu = accummu + mean(s(clustAssign==uniqCA(i)));
                         if sum(clustAssign==uniqCA(i)) == 1
-                            propsing = propsing+1;
+                            ctsing = ctsing+1;
                         end
                     end
-                    propsing = propsing/length(uniqCA);
                     accummu = accummu/length(uniqCA);
                     for i=1:length(uniqCA)
                         if mean(s(clustAssign==uniqCA(i)))>=meanS
@@ -302,8 +301,8 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                         {sprintf('Mean1 (all whis, red dashed) = %0.2f  Mean2 (by clust, green dotted) = %0.2f',meanS, accummu),...
                         sprintf('Med = %0.2f  Max = %0.2f  Prop<=0 = %0.2f',...
                         medianS, maxS, below_zero),...
-                        sprintf('Prop of Cl>Mean1 = %0.2f  Prop of Cl>Mean2 = %0.2f  Prop Sngtons = %0.2f', ...
-                        propCAbMean1,propCAbMean2,propsing)})
+                        sprintf('Prop of Cl>Mean1 = %0.2f  Prop of Cl>Mean2 = %0.2f  # Sngtons = %d', ...
+                        propCAbMean1,propCAbMean2,ctsing)})
                     if bSuperBatch
                         figfilename = sprintf('SingleSilhouette_%s_%dClusters.png',batchtable.modelname{j},size(C,1));
                         saveas(gcf, fullfile(exportpath,figfilename));
@@ -790,7 +789,7 @@ function C = get_kmeans_centroids(data,varargin)
                 meanAbv_zero = zeros(1,(maxclust-minclust+1));
                 greater8 = zeros(1,(maxclust-minclust+1));
                 greater0 = zeros(1,(maxclust-minclust+1));
-                propsing = zeros(1,(maxclust-minclust+1));
+                ctsing = zeros(1,(maxclust-minclust+1));
                 accummu = zeros(1,(maxclust-minclust+1));
                 propCAbMean1 = zeros(1,(maxclust-minclust+1));
                 propCAbMean2 = zeros(1,(maxclust-minclust+1));
@@ -829,7 +828,7 @@ function C = get_kmeans_centroids(data,varargin)
                     greater0(ind) = length(s(s>0))/length(s);
                     
                     % Count singleton clusters
-                    ctsing = 0;
+                    thisctsing = 0;
                     % Calc proportion of clusters > mean S value
                     ct1 = 0;
                     ct2 = 0;
@@ -838,10 +837,10 @@ function C = get_kmeans_centroids(data,varargin)
                     for i=1:length(uniqCA)
                         thisaccummu = thisaccummu + mean(s(clust==uniqCA(i)));
                         if sum(clust==uniqCA(i)) == 1
-                            ctsing = ctsing+1;
+                            thisctsing = thisctsing+1;
                         end
                     end
-                    propsing(ind) = ctsing/length(uniqCA);
+                    ctsing(ind) = thisctsing;
                     accummu(ind) = thisaccummu/length(uniqCA);
                     for i=1:length(uniqCA)
                         if mean(s(clust==uniqCA(i)))>=meanS(ind)
@@ -859,6 +858,7 @@ function C = get_kmeans_centroids(data,varargin)
     
                 %% Silhouettes Plot
                 figure()
+                yyaxis left
                 xvals = minclust:maxclust;
                 %plot(xvals, greater8, 'Color', 'blue');
                 plot(xvals, meanS, 'Color', 'blue');
@@ -871,14 +871,16 @@ function C = get_kmeans_centroids(data,varargin)
                 %plot(xvals, meanAbv_zero, 'Color', 'magenta');
                 plot(xvals, propCAbMean1, 'Color', 'magenta');
                 plot(xvals, propCAbMean2, 'Color', 'cyan');
-                plot(xvals, propsing, 'Color', 'black');
+                ylabel('Silhouette Value')
+                yyaxis right
+                plot(xvals, ctsing, 'Color', 'black');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
                 legend('Mean1', 'Mean2', 'Max S', 'Median S', 'Prop > Mean1', 'Prop > Mean2', 'Prop Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
-                ylabel('Silhouette Value')
+                ylabel('# of Singleton Clusters')
                 
                 if nargin == 3
                     figfilename = sprintf('BatchSilhouette_%s_%dClusters.png',batchtable.modelname{:},k);
