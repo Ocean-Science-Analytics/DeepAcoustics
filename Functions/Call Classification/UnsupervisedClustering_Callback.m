@@ -91,10 +91,10 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
     
                             % Make a k-means model and return the centroids
                             if ~bSuperBatch
-                                C = get_kmeans_centroids(data);
+                                [C,clustAssign] = get_kmeans_centroids(data);
                                 if isempty(C); return; end
                             else
-                                C = get_kmeans_centroids(data,batchtable(j,:),exportpath);
+                                [C,clustAssign] = get_kmeans_centroids(data,batchtable(j,:),exportpath);
                                 if isempty(C)
                                     finished = 1;
                                     continue;
@@ -138,12 +138,11 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
     
                                     % If the model was created through create_tsne_Callback, C won't exist, so make it.
                                     if isempty(C)
-                                        C = get_kmeans_centroids(data);
+                                        [C,clustAssign] = get_kmeans_centroids(data);
                                     end
                             end
                     end
-    
-                    [clustAssign,D] = knnsearch(C,data,'Distance','euclidean');
+                    [~,D] = knnsearch(C,data,'Distance','euclidean');
     
                     ClusteringData.DistToCen = D;
                     ClusteringData.ClustAssign = clustAssign;
@@ -670,10 +669,10 @@ function ninflpt = get_infl_pts(cont_concav,thresh_pos,thresh_neg)
     ninflpt = length(find(diff(ninflpt(ninflpt~=0))));
 end
 
-function C = get_kmeans_centroids(data,varargin)
+function [C,clustAssign] = get_kmeans_centroids(data,varargin)
     % Make a k-means model and return the centroids
     if nargin == 1
-        list = {'Elbow Optimized','Elbow w/ Min Clust Size','User Defined','User Defined w/ Min Clust Size','Silhouette Batch'};
+        list = {'Elbow Optimized','Elbow w/ Min Clust Size','User Defined','User Defined w/ Min Clust Size','Optimization w/ KnKm','Silhouette Batch'};
         [optimize,tf] = listdlg('PromptString','Choose a clustering method','ListString',list,'SelectionMode','single','Name','Clustering Method');
     elseif nargin == 3
         batchtable = varargin{1};
@@ -702,7 +701,7 @@ function C = get_kmeans_centroids(data,varargin)
                 if size(data,1) < str2double(opt_options{1})
                     opt_options{1} = num2str(size(data,1));
                 end
-                [~,C] = kmeans_opt(data, str2double(opt_options{1}), 0, str2double(opt_options{2}));
+                [clustAssign,C] = kmeans_opt(data, str2double(opt_options{1}), 0, str2double(opt_options{2}));
     
             %case 'Elbow w/ Min Clust Size'
             case 2
@@ -718,6 +717,7 @@ function C = get_kmeans_centroids(data,varargin)
                 end
                 [IDX,C] = kmeans_opt(data, k, 0, nReps);
                 Celb = C;
+                IDXelb = IDX;
                 [GC,~] = groupcounts(IDX);
                 numcl = length(GC);
                 while min(GC) < minclsz
@@ -728,7 +728,9 @@ function C = get_kmeans_centroids(data,varargin)
                 if numcl == 1
                     warning('Reached a single cluster. Proceeding with basic elbow-optimized method.')
                     C = Celb;
+                    IDX = IDXelb;
                 end
+                clustAssign = IDX;
     
             %case 'User Defined'
             case 3
@@ -741,7 +743,7 @@ function C = get_kmeans_centroids(data,varargin)
                     k = batchtable.k;
                     nReps = 1000;
                 end
-                [~, C] = kmeans(data,k,'Distance','sqeuclidean','Replicates',nReps);
+                [clustAssign, C] = kmeans(data,k,'Distance','sqeuclidean','Replicates',nReps);
 
             %case 'User Defined w/ Min Clust Size'
             case 4
@@ -753,6 +755,7 @@ function C = get_kmeans_centroids(data,varargin)
 
                 [IDX, C] = kmeans(data,k,'Distance','sqeuclidean','Replicates',nReps);
                 Cog = C;
+                IDXog = IDX;
                 [GC,~] = groupcounts(IDX);
                 numcl = length(GC);
                 while min(GC) < minclsz
@@ -763,10 +766,47 @@ function C = get_kmeans_centroids(data,varargin)
                 if numcl == 1
                     warning('Reached a single cluster. Proceeding with the specified starting # of clusters.')
                     C = Cog;
+                    IDX = IDXog;
                 end
+                clustAssign = IDX;
+
+            %case 'Optimization with KnKm'
+            case 5
+                % User options = max # of clusters and k-means
+                opt_options = inputdlg({'Max Clusters','Replicates'},'Cluster Optimization',[1 50; 1 50],{'100','3'});
+                if isempty(opt_options); return; end
+    
+                %Cap the max clusters to the number of samples.
+                if size(data,1) < str2double(opt_options{1})
+                    opt_options{1} = num2str(size(data,1));
+                end
+                k = str2double(opt_options{1});
+                nReps = str2double(opt_options{2});
+                % Transpose kernel k-means input data matrix
+                X = data';
+                % Find minimum mse in nReps
+                minmse = Inf;
+                for i=1:nReps
+                    % Run kernel k-means
+                    [y,~,mse] = knKmeans(X,k);
+                    if mse < minmse
+                        clustAssign = y;
+                        minmse = mse;
+                    end
+                end
+                % Preallocate C (# of centroids x # of variables)
+                C = zeros(length(unique(clustAssign)),size(data,2));
+                % Calculate the means for each variable in each cluster to
+                % form the centroids matrix C
+                for i=1:length(unique(clustAssign))
+                    subdata = data(clustAssign==i,:);
+                    subdata = mean(subdata,1);
+                    C(i,:) = subdata;
+                end
+                clustAssign = clustAssign';
 
             %case 'Silhouette Batch'
-            case 5
+            case 6
                 %% User options
                 if nargin == 1
                     opt_options = inputdlg({'Min # of Clusters','Max # of Clusters','Replicates'},'Batch Options',[1; 1; 1],{'2','30','10'});
