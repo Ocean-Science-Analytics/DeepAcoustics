@@ -2,6 +2,16 @@ function  handles = renderEpochSpectogram(hObject, handles)
 %Plot current spectogram window
 
 handles.data.lastWindowPosition = handles.data.windowposition;
+
+if handles.data.settings.spect.nfft == 0
+    handles.data.settings.spect.nfft = handles.data.settings.spect.nfftsmp/handles.data.audiodata.SampleRate;
+    handles.data.settings.spect.windowsize = handles.data.settings.spect.windowsizesmp/handles.data.audiodata.SampleRate;
+    handles.data.settings.spect.noverlap = handles.data.settings.spect.noverlap/handles.data.audiodata.SampleRate;
+elseif handles.data.settings.spect.nfftsmp == 0
+    handles.data.settings.spect.nfft = handles.data.settings.spect.nfft*handles.data.audiodata.SampleRate;
+    handles.data.settings.spect.windowsize = handles.data.settings.spect.windowsize*handles.data.audiodata.SampleRate;
+end
+handles.data.saveSettings();
 windowsize = round(handles.data.audiodata.SampleRate * handles.data.settings.spect.windowsize);
 noverlap = round(handles.data.audiodata.SampleRate * handles.data.settings.spect.noverlap);
 nfft = round(handles.data.audiodata.SampleRate * handles.data.settings.spect.nfft);

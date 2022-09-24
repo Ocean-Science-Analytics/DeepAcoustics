@@ -29,8 +29,8 @@ if FileName == 0
 end
 h = waitbar(0.5, 'saving');
 
-
-save(fullfile(PathName, FileName), 'Calls','audiodata', '-v7.3');
+spect = handles.data.settings.spect;
+save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7.3');
 % handles.data.audiodata.samples = temp;
 update_folders(hObject, eventdata, handles);
 guidata(hObject, handles);

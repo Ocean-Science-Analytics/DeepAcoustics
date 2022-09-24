@@ -534,7 +534,8 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                 pname = pname(1:pind);
                 [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save contours with cluster assignments');
                 if FileName ~= 0
-                    save(fullfile(PathName,FileName),'ClusteringData','-v7.3');
+                    spect = handles.data.settings.spect;
+                    save(fullfile(PathName,FileName),'ClusteringData','spect','-v7.3');
                 end
             case 'No'
         end

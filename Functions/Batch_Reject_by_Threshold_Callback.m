@@ -153,7 +153,8 @@ for currentfile = selections % Do this for each file
     Calls.Accept(reject) = false;
     Calls.Type(reject) = categorical({'Noise'});
     Calls.Accept(accept) = true;
-    save(fullfile(handles.detectionfiles(currentfile).folder,handles.detectionfiles(currentfile).name),'Calls','audiodata', '-v7.3');
+    spect = handles.data.settings.spect;
+    save(fullfile(handles.detectionfiles(currentfile).folder,handles.detectionfiles(currentfile).name),'Calls','audiodata','spect','-v7.3');
 
 end
 close(h);

@@ -1,5 +1,6 @@
-function [Calls,audiodata,ClusteringData,data] = loadCallfile(filename,handles)
+function [Calls,audiodata,ClusteringData,modcheck] = loadCallfile(filename,handles)
 
+modcheck = struct();
 data = load(filename);
 
 Calls = table();
@@ -31,14 +32,33 @@ if isfield(data, 'Calls')
         Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
     end
 
-    %% Output for detection mat modification check
-    data = data.Calls;
+    if ~isfield(data,'spect')
+        warning('Spect settings not previously saved; appending to detections.mat now.')
+        spect = handles.data.settings.spect;
+        save(filename,'spect','-append');
+    else
+        spect = data.spect;
+    end
+    if nargout == 4
+        %% Output for detection mat modification check
+        modcheck.calls = data.Calls;
+        modcheck.spect = spect;
+    else
+        handles.data.settings.spect = spect;
+    end
 elseif nargout < 3 % If ClusteringData is requested, we don't need Calls
     error('This doesn''t appear to be a detection file!')
 end
 
 if isfield(data, 'ClusteringData')
     ClusteringData = data.ClusteringData;
+    if isfield(data, 'spect')
+        handles.data.settings.spect = spect;
+    else
+        warning('Spect settings not previously saved; appending to detections.mat now.')
+        spect = handles.data.settings.spect;
+        save(filename,'spect','-append');
+    end
 end
 
 if nargout < 3

@@ -12,11 +12,15 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
     
     %Check if detection file has changed to save file before loading a new one.
     if ~isempty(handles.data.calls)
-        [~, ~, ~, tmpcalls] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
-        if ~isequal(tmpcalls, handles.data.calls)
+        [~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
+        if ~isequal(modcheck.calls, handles.data.calls) || ~isequal(modcheck.spect, handles.data.settings.spect)
             opts.Interpreter = 'tex';
             opts.Default='Yes';
-            saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Detection file has been modified. Would you like to save changes?','Save Detection File?','Yes','No',opts);
+            if ~isequal(modcheck.calls, handles.data.calls) 
+                saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Detection file has been modified. Would you like to save changes?','Save Detection File?','Yes','No',opts);
+            elseif ~isequal(modcheck.spect, handles.data.settings.spect)
+                saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Spectrogram settings have been modified. Would you like to save changes in the det file (spect variable)?','Save Detection File?','Yes','No',opts);
+            end
             switch saveChanges
                 case 'Yes'
                     savesession_Callback(hObject, eventdata, handles);

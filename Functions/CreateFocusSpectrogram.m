@@ -5,6 +5,8 @@ if nargin < 3
     make_spectrogram = true;
 end
 
+rate = audioReader.audiodata.SampleRate;
+
 if nargin < 4 || isempty(options)
 %     yRange = mean(call.Box(1,4));
 %     xRange = mean(call.Box(1,3));
@@ -16,6 +18,15 @@ if nargin < 4 || isempty(options)
 %     options.overlap = optimalWindow .* noverlap;
 %     options.nfft = optimalWindow;
     options.frequency_padding = 0;
+    if handles.data.settings.spect.nfft == 0
+        handles.data.settings.spect.nfft = handles.data.settings.spect.nfftsmp/rate;
+        handles.data.settings.spect.windowsize = handles.data.settings.spect.windowsizesmp/rate;
+        handles.data.settings.spect.noverlap = handles.data.settings.spect.noverlap/rate;
+    elseif handles.data.settings.spect.nfftsmp == 0
+        handles.data.settings.spect.nfft = handles.data.settings.spect.nfft*rate;
+        handles.data.settings.spect.windowsize = handles.data.settings.spect.windowsize*rate;
+    end
+    handles.data.saveSettings();
     options.nfft = handles.data.settings.spect.nfft;
     options.overlap = handles.data.settings.spect.noverlap;
     options.windowsize = handles.data.settings.spect.windowsize;
@@ -29,7 +40,6 @@ if isfield(options, 'freq_range') && ~isempty(options.freq_range)
     box(4) = options.freq_range(2) - options.freq_range(1);
 end
 
-rate = audioReader.audiodata.SampleRate;
 if (1/options.nfft > (box(4)*1000))
     warning('Spectrogram settings may not be ideal for this call - suggest adjusting Display Settings and increasing NFFT')
 end

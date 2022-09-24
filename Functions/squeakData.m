@@ -51,6 +51,9 @@ classdef squeakData < handle
             obj.defaultSettings.spect.windowsize = 0.0032;
             obj.defaultSettings.spect.noverlap = 0.0016;
             obj.defaultSettings.spect.nfft = 0.0032;
+            % Traditional spectrogram fft settings
+            obj.defaultSettings.spect.windowsizesmp = 1024;
+            obj.defaultSettings.spect.nfftsmp = 1024;
             obj.defaultSettings.spect.type = 'Amplitude';
         end
         
@@ -73,6 +76,10 @@ classdef squeakData < handle
             missingSettings = setdiff(fieldnames(obj.defaultSettings), fieldnames(obj.settings));
             for i = missingSettings'
                 obj.settings = setfield(obj.settings, i{:}, getfield(obj.defaultSettings,i{:}));
+            end
+            missingSettings = setdiff(fieldnames(obj.defaultSettings.spect), fieldnames(obj.settings.spect));
+            for i = missingSettings'
+                obj.settings.spect = setfield(obj.settings.spect, i{:}, getfield(obj.defaultSettings.spect,i{:}));
             end
         end
         

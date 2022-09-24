@@ -47,6 +47,7 @@ audiodata = audioinfo(fullfile(audiopath, audioname));
 % FilePath = [handles.data.settings.detectionfolder, FileName];
 [FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [box_file_name '_Detections.mat']),'Save Call File');
 FilePath = [handles.data.settings.detectionfolder, FileName];
-save(FilePath,'Calls','audiodata','-v7.3');
+spect = handles.data.settings.spect;
+save(FilePath,'Calls','audiodata','spect','-v7.3');
 close(hc);
 update_folders(hObject, eventdata, handles);

@@ -170,6 +170,7 @@ if p.Results.save_data && ~all(cellfun(@(x) isempty(fields(x)), audiodata)) % If
     pname = pname(1:pind);
     [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save extracted data for faster loading (optional)');
     if FileName ~= 0
-        save(fullfile(PathName,FileName),'ClusteringData','-v7.3');
+        spect = handles.data.settings.spect;
+        save(fullfile(PathName,FileName),'ClusteringData','spect','-v7.3');
     end
 end
