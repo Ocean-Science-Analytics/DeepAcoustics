@@ -150,7 +150,7 @@ catch
     fprintf(1,'Can''t check for a updates online right now\n');
 end
 
-% set(handles.spectogramWindow,'Visible', 'off');
+% set(handles.spectrogramWindow,'Visible', 'off');
 % set(handles.epochSpect,'Visible', 'off');
 % set(handles.topRightButton, 'Visible', 'off');
 % set(handles.topLeftButton, 'Visible', 'off');
@@ -203,12 +203,12 @@ set(handles.waveformWindow,'XTick',[]);
 set(handles.waveformWindow,'YTick',[]);
 
 C = spatialPattern([1000,10000],-2);
-imagesc(C(1:900,1:10000),'Parent', handles.spectogramWindow);
-colormap(handles.spectogramWindow,inferno);
-set(handles.spectogramWindow,'Color',[0.1 0.1 0.1],'YColor',[1 1 1],'XColor',[1 1 1]);
-set(handles.spectogramWindow,'XTickLabel',[]);
-set(handles.spectogramWindow,'XTick',[]);
-set(handles.spectogramWindow,'YTick',[]);
+imagesc(C(1:900,1:10000),'Parent', handles.spectrogramWindow);
+colormap(handles.spectrogramWindow,inferno);
+set(handles.spectrogramWindow,'Color',[0.1 0.1 0.1],'YColor',[1 1 1],'XColor',[1 1 1]);
+set(handles.spectrogramWindow,'XTickLabel',[]);
+set(handles.spectrogramWindow,'XTick',[]);
+set(handles.spectrogramWindow,'YTick',[]);
 
 % imagesc(C(900:1000,1:10000),'Parent', handles.detectionAxes);
 % colormap(handles.detectionAxes,inferno);
@@ -216,7 +216,7 @@ set(handles.detectionAxes,'Color',[64/255 10/255 103/255],'YColor',[1 1 1],'XCol
 set(handles.detectionAxes,'XTickLabel',[]);
 set(handles.detectionAxes,'XTick',[]);
 set(handles.detectionAxes,'YTick',[]);
-set(handles.spectogramWindow,'Parent',handles.hFig);
+set(handles.spectrogramWindow,'Parent',handles.hFig);
 
 
 % Set the list of colormaps
@@ -859,19 +859,19 @@ seconds = str2num(seconds{1});
 handles.data.settings.pageSize = seconds;
 guidata(hObject, handles);
 
-% --- Executes on selection change in spectogramScalePopup.
-function spectogramScalePopup_Callback(hObject, eventdata, handles)
-% hObject    handle to spectogramScalePopup (see GCBO)
+% --- Executes on selection change in spectrogramScalePopup.
+function spectrogramScalePopup_Callback(hObject, eventdata, handles)
+% hObject    handle to spectrogramScalePopup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns spectogramScalePopup contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from spectogramScalePopup
+% Hints: contents = cellstr(get(hObject,'String')) returns spectrogramScalePopup contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from spectrogramScalePopup
 update_fig(hObject, [], handles);
 
 % --- Executes during object creation, after setting all properties.
-function spectogramScalePopup_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to spectogramScalePopup (see GCBO)
+function spectrogramScalePopup_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to spectrogramScalePopup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -881,17 +881,17 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function SpectogramMax_Callback(hObject, eventdata, handles)
-% hObject    handle to SpectogramMax (see GCBO)
+function SpectrogramMax_Callback(hObject, eventdata, handles)
+% hObject    handle to SpectrogramMax (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-    set(hObject, 'String', num2str(get_spectogram_max(hObject, handles))); 
+    set(hObject, 'String', num2str(get_spectrogram_max(hObject, handles))); 
     guidata(hObject,handles);
     update_fig(hObject, [], handles);
 
 % --- Executes during object creation, after setting all properties.
-function SpectogramMax_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SpectogramMax (see GCBO)
+function SpectrogramMax_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to SpectrogramMax (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -976,7 +976,7 @@ function Untitled_2_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in invert_cmap.
 function invert_cmap_Callback(hObject, eventdata, handles)
-colormap(handles.spectogramWindow, flipud(colormap(handles.spectogramWindow)))
+colormap(handles.spectrogramWindow, flipud(colormap(handles.spectrogramWindow)))
 colormap(handles.focusWindow, flipud(colormap(handles.focusWindow)))
 
 % --- Executes during object creation, after setting all properties.

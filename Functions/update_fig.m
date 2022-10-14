@@ -31,18 +31,18 @@ handles.data.windowposition = jumps*handles.data.settings.pageSize;
 
 
 %% Position of the gray box in the page view
-spectogram_axes_ylim = ylim(handles.focusWindow);
+spectrogram_axes_ylim = ylim(handles.focusWindow);
 handles.currentWindowRectangle.Position = [
     handles.current_focus_position(1)
-    spectogram_axes_ylim(1)
+    spectrogram_axes_ylim(1)
     handles.current_focus_position(3)
-    spectogram_axes_ylim(2)
+    spectrogram_axes_ylim(2)
     ];
 
 
 %% Render the page view if the page changed
 if handles.data.lastWindowPosition ~= handles.data.windowposition || force_render_page
-    handles = renderEpochSpectogram(hObject,handles);
+    handles = renderEpochSpectrogram(hObject,handles);
 end
 
 handles = update_focus_display(handles);
@@ -54,7 +54,7 @@ handles = render_call_position(handles, handles.update_position_axes);
 % profview
 
 %% Plot the boxes on top of the detections
-handles = render_call_boxes(handles.spectogramWindow, handles,false,false);
+handles = render_call_boxes(handles.spectrogramWindow, handles,false,false);
 handles = render_call_boxes(handles.focusWindow, handles, true,false);
 
 % Deals with a random figure popping up rarely.... literally no idea why

@@ -1,5 +1,5 @@
 % --- Executes on button press in LOAD CALLS.
-function loadcalls_Callback(hObject, eventdata, handles, reload_current_file)
+function loadcalls_Callback(hObject, eventdata, handles, ~)
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);
 if nargin == 3 % if "Load Calls" button pressed, load the selected file, else reload the current file
@@ -23,7 +23,7 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
             end
             switch saveChanges
                 case 'Yes'
-                    savesession_Callback(hObject, eventdata, handles);
+                    SaveSession(hObject, eventdata, handles);
                 case 'No'
             end
         end

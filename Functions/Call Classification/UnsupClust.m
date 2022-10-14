@@ -1,4 +1,4 @@
-function UnsupervisedClustering_Callback(hObject, eventdata, handles)
+function UnsupClust(hObject, eventdata, handles)
     % Cluster with k-means or adaptive
     
 %     SuperBatch = questdlg({'Do you want to do a super batch run using a special mat?'; ...
@@ -549,7 +549,7 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                 UpdateCluster(ClusteringData, clustAssign, clusterName, rejected)
                 update_folders(hObject, eventdata, handles);
                 if isfield(handles,'current_detection_file')
-                    loadcalls_Callback(hObject, eventdata, handles, true)
+                    LoadCalls(hObject, eventdata, handles, true)
                 end
             case 'No'
                 return

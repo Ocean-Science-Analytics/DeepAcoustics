@@ -1,6 +1,6 @@
 function handles = update_focus_display(handles)
 
-% Values for the spectrogram are already calculated in renderEpochSpectogram
+% Values for the spectrogram are already calculated in renderEpochSpectrogram
 s_f  = handles.data.page_spect.s_display(:,handles.data.page_spect.t > handles.current_focus_position(1) & handles.data.page_spect.t < sum(handles.current_focus_position([1,3])));
 ti_f = handles.data.page_spect.t(handles.data.page_spect.t > handles.current_focus_position(1) & handles.data.page_spect.t < sum(handles.current_focus_position([1,3])));
 fr_f = handles.data.page_spect.f;
@@ -11,7 +11,7 @@ set(handles.focusWindow,...
     'Xlim', [handles.current_focus_position(1), handles.current_focus_position(1) + handles.current_focus_position(3)],...
     'Ylim',[handles.data.settings.LowFreq, min(handles.data.settings.HighFreq, handles.data.audiodata.SampleRate/2000)]);
 
-%Update spectogram ticks and transform labels to
+%Update spectrogram ticks and transform labels to
 %minutes:seconds.milliseconds
 set_tick_timestamps(handles.focusWindow, true);
 
