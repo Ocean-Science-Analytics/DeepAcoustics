@@ -298,7 +298,7 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                     xlim([-1 1])
                     yticklabels(1:size(C,1))
                     title(sprintf('Silhouettes of Clusters - %d Clusters',size(C,1)),...
-                        {sprintf('Mean1 (all whis, red dashed) = %0.2f  Mean2 (by clust, green dotted) = %0.2f',meanS, accummu),...
+                        {sprintf('Mean1 (overall mean, red dashed) = %0.2f  Mean2 (mean by clust, green dotted) = %0.2f',meanS, accummu),...
                         sprintf('Med = %0.2f  Max = %0.2f  Prop<=0 = %0.2f',...
                         medianS, maxS, below_zero),...
                         sprintf('Prop of Cl>Mean1 = %0.2f  Prop of Cl>Mean2 = %0.2f  # Sngtons = %d', ...
@@ -859,25 +859,26 @@ function C = get_kmeans_centroids(data,varargin)
     
                 %% Silhouettes Plot
                 figure()
+                colororder({'b','k'})
                 yyaxis left
                 xvals = minclust:maxclust;
                 %plot(xvals, greater8, 'Color', 'blue');
-                plot(xvals, meanS, 'Color', 'blue');
+                plot(xvals, meanS, '-b');
                 hold on;
                 %plot(xvals, greater0, 'Color', 'red');
-                plot(xvals, accummu, 'Color', 'red');
-                plot(xvals, maxS, 'Color', 'green');
-                plot(xvals, medianS, 'Color', 'yellow');
+                plot(xvals, accummu, '-r');
+                plot(xvals, maxS, '-g');
+                plot(xvals, medianS, '-y');
                 %plot(xvals, below_zero, 'Color', 'yellow');
                 %plot(xvals, meanAbv_zero, 'Color', 'magenta');
-                plot(xvals, propCAbMean1, 'Color', 'magenta');
-                plot(xvals, propCAbMean2, 'Color', 'cyan');
+                plot(xvals, propCAbMean1, '-m');
+                plot(xvals, propCAbMean2, '-c');
                 ylabel('Silhouette Value')
                 yyaxis right
-                plot(xvals, ctsing, 'Color', 'black');
+                plot(xvals, ctsing, '-k');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
-                legend('Mean1', 'Mean2', 'Max S', 'Median S', 'Prop > Mean1', 'Prop > Mean2', 'Prop Singletons',...
+                legend('Overall Mean', 'Mean by Cluster', 'Max S', 'Median S', 'Prop > Overall Mean', 'Prop > Mean by Cluster', '# Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')

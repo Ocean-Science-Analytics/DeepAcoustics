@@ -53,7 +53,7 @@ end
 if isfield(data, 'ClusteringData')
     ClusteringData = data.ClusteringData;
     if isfield(data, 'spect')
-        handles.data.settings.spect = spect;
+        handles.data.settings.spect = data.spect;
     else
         warning('Spect settings not previously saved; appending to detections.mat now.')
         spect = handles.data.settings.spect;
