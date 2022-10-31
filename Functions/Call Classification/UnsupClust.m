@@ -1,6 +1,6 @@
-function UnsupClust(hObject, eventdata, handles)
-    % Cluster with k-means or adaptive
-    
+function UnsupClust(app,event)
+    [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event);    
+% Cluster with k-means or adaptive
 %     SuperBatch = questdlg({'Do you want to do a super batch run using a special mat?'; ...
 %         'If you do not know what this is, say No.'},'Super Batch','Yes','No','No');
     SuperBatch = 'No';
@@ -17,9 +17,9 @@ function UnsupClust(hObject, eventdata, handles)
             % Default questdlg options
             choice = 'K-means (recommended)';
             FromExisting = 'No';
-            saveChoice = 'No';
+            saveChoice = false;
             %bJen = 'Yes';
-            bUpdate = 'No';
+            bUpdate = false;
             
             % Load data for clustering
             [ClusteringData, ~, ~, ~, spectrogramOptions] = CreateClusteringData(handles, 'forClustering', true, 'save_data', true);
@@ -165,11 +165,11 @@ function UnsupClust(hObject, eventdata, handles)
                         contourfreq = cellfun(@(x,y,z) {interp1(x,y,z{:})},ClusteringData.xTime,contoursmth,contourtime,'UniformOutput',false);
     
                         %Now all based on contoursmth
-                        ClusteringData(:,'xFreq_Smooth') = contoursmth;
-                        ClusteringData(:,'xFreq_Contour_CC') = contourfreqcc;
-                        ClusteringData(:,'xTime_Contour_CC') = contourtimecc;
-                        ClusteringData(:,'xFreq_Contour_Sl') = contourfreqsl;
-                        ClusteringData(:,'xTime_Contour_Sl') = contourtimesl;
+%                         ClusteringData(:,'xFreq_Smooth') = contoursmth;
+%                         ClusteringData(:,'xFreq_Contour_CC') = contourfreqcc;
+%                         ClusteringData(:,'xTime_Contour_CC') = contourtimecc;
+%                         ClusteringData(:,'xFreq_Contour_Sl') = contourfreqsl;
+%                         ClusteringData(:,'xTime_Contour_Sl') = contourtimesl;
                         ClusteringData(:,'xFreq_Contour') = contourfreq;
                         ClusteringData(:,'xTime_Contour') = contourtime;
     
@@ -211,7 +211,7 @@ function UnsupClust(hObject, eventdata, handles)
                         %% Centroid contours
                         if relfreq_weight > 0
                             % Generate relative frequencies
-                            allrelfreq = ClusteringData.xFreq_Contour_Sl;
+                            allrelfreq = cellfun(@(x) x{:},contourfreqsl,'UniformOutput',false);
                             allrelfreq = cell2mat(allrelfreq);
                             allrelfreq = allrelfreq(:,2:end)-allrelfreq(:,1);
                             allrelfreq = zscore(allrelfreq,0,'all');
@@ -220,7 +220,7 @@ function UnsupClust(hObject, eventdata, handles)
                             maxylim = max(allrelfreq,[],'all');
     
                             % Make the figure
-                            figure('Color','w','Position',[50,50,800,800]);
+                            figCentCont = figure('Color','w','Position',[50,50,800,800]);
                             montTile = tiledlayout('flow','TileSpacing','none');
     
                             for i = unique(clustAssign)'
@@ -248,7 +248,7 @@ function UnsupClust(hObject, eventdata, handles)
                     end
     
                     %% Silhouette Graph for This Run
-                    figure()
+                    figSilh = figure();
                     [s,~] = silhouette(data,clustAssign);
                     % Stats         
                     maxS = max(s);
@@ -326,7 +326,7 @@ function UnsupClust(hObject, eventdata, handles)
                         maxBandwidth = round(prctile(maxBandwidth,75));
     
                         % Make the figure
-                        figure('Color','w','Position',[50,50,800,800]);
+                        figClosest = figure('Color','w','Position',[50,50,800,800]);
         %                 ax_montage = axes(f_montage);
                         % Make the image stack
                         %montageI = [];
@@ -435,7 +435,7 @@ function UnsupClust(hObject, eventdata, handles)
     %         end
     
             if ~bSuperBatch
-                [~, clusterName, rejected, finished, clustAssign] = clusteringGUI(clustAssign, ClusteringData);
+                [~, clusterName, rejected, finished, clustAssign] = clusteringGUI(clustAssign, ClusteringData, app, event);
             else
                 finished = 1;
             end
@@ -483,13 +483,8 @@ function UnsupClust(hObject, eventdata, handles)
             switch choice
                 case 'K-means (recommended)'
                     if ~bSuperBatch
-                        pind = regexp(char(ClusteringData{1,'Filename'}),'\');
-                        pind = pind(end);
-                        pname = char(ClusteringData{1,'Filename'});
-                        pname = pname(1:pind);
-                        [FileName, PathName] = uiputfile(fullfile(pname, 'KMeans Model.mat'), 'Save clustering model (centroids and parameters)');
-                        if ~isnumeric(FileName)
-                            save(fullfile(PathName, FileName), 'C', 'num_pts','RES','freq_weight',...
+                        if app.bModel
+                            save(fullfile(app.strUnsupSaveLoc, 'KMeans Model.mat'), 'C', 'num_pts','RES','freq_weight',...
                                 'relfreq_weight', 'slope_weight', 'concav_weight', 'duration_weight', 'pc_weight',... % 'pc2_weight',
                                 'ninflpt_weight','clusterName', 'spectrogramOptions');
                         end
@@ -502,8 +497,6 @@ function UnsupClust(hObject, eventdata, handles)
                                 'ninflpt_weight','spectrogramOptions');
                         end
                     end
-                    %[FileName, PathName] = uiputfile(fullfile(handles.data.squeakfolder, 'Clustering Models', 'K-Means Model.mat'), 'Save clustering model');
-                    
                 case 'ARTwarp'
                     [FileName, PathName] = uiputfile(fullfile(handles.data.squeakfolder, 'Clustering Models', 'ARTwarp Model.mat'), 'Save clustering model');
                     if ~isnumeric(FileName)
@@ -522,37 +515,57 @@ function UnsupClust(hObject, eventdata, handles)
     if finished == 1
         %% Save the cluster assignments & silhoutte values
         if ~bSuperBatch
-            saveChoice =  questdlg('Append Cluster Assignments to Extracted Contours file? If Yes, this will open a save dialog. If you then save to a file with the same name, this will overwrite previously saved Cluster Assignments.',...
-                'Save cluster assignments','Yes','No','No');
+            saveChoice =  app.bEEC;
         end
         switch saveChoice
-            case 'Yes'
+            case true
+                % Set up variables to save
                 ClusteringData{:,'ClustAssign'} = clustAssign;
-                pind = regexp(char(ClusteringData{1,'Filename'}),'\');
-                pind = pind(end);
-                pname = char(ClusteringData{1,'Filename'});
-                pname = pname(1:pind);
-                [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save contours with cluster assignments');
-                if FileName ~= 0
-                    spect = handles.data.settings.spect;
-                    save(fullfile(PathName,FileName),'ClusteringData','spect','-v7.3');
+                spect = handles.data.settings.spect;
+
+                % Set save file name based on user options
+                strFullFile = fullfile(app.strUnsupSaveLoc, 'Extracted Contours.mat');
+                % If user chose not to overwrite, check that file exists and
+                % increment # in file name until a save won't overwrite an
+                % existing file
+                if ~app.bECOverwrite && isfile(strFullFile)
+                    nAddInt = 1;
+                    while isfile(strFullFile)
+                        strReplace = sprintf('Contours(%d).mat',nAddInt);
+                        strFullFile = regexprep(strFullFile,'Contour(\w+).mat',strReplace);
+                        nAddInt = nAddInt + 1;
+                    end
                 end
-            case 'No'
+                save(strFullFile,'ClusteringData','spect','-v7.3');
+            case false
         end
         
         % Save the clusters
         if ~bSuperBatch
-            bUpdate =  questdlg('Update Detections .mat files (variable ClustCat) with new clusters?','Save clusters','Yes','No','No');
+            bUpdate =  app.bUpdateDets;
         end
         switch bUpdate
-            case 'Yes'
+            case true
                 UpdateCluster(ClusteringData, clustAssign, clusterName, rejected)
                 update_folders(hObject, eventdata, handles);
                 if isfield(handles,'current_detection_file')
                     LoadCalls(hObject, eventdata, handles, true)
                 end
-            case 'No'
+            case false
                 return
+        end
+
+        if isvalid(figSilh) && app.bSilh
+            saveas(figSilh,fullfile(app.strUnsupSaveLoc,'Silhouettes.png'));
+            close(figSilh)
+        end
+        if isvalid(figClosest) && app.bClosest
+            saveas(figClosest,fullfile(app.strUnsupSaveLoc,'ClosestCalls.png'));
+            close(figClosest)
+        end
+        if isvalid(figCentCont) && app.bContours
+            saveas(figCentCont,fullfile(app.strUnsupSaveLoc,'CentroidContours.png'));
+            close(figCentCont)
         end
     end
 end
