@@ -552,7 +552,6 @@ function UnsupClust(app,event)
                     LoadCalls(hObject, eventdata, handles, true)
                 end
             case false
-                return
         end
 
         if isvalid(figSilh) && app.bSilh
