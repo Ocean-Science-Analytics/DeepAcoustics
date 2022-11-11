@@ -208,6 +208,10 @@ sz=size(im);
 im = imresize(im,targetSize);
 box = bboxresize(box,targetSize./sz);
 
+if any((box(:,1)+box(:,3)) > 300,'all') || any((box(:,2)+box(:,4)) > 300,'all')
+    error('Training image bounding indices still not working right - talk to Gabi')
+end
+
 % Insert box for testing
 % im = insertShape(im, 'rectangle', box);
 imwrite(im, filename, 'BitDepth', 8);
