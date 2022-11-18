@@ -91,10 +91,10 @@ function UnsupClust(app,event)
     
                             % Make a k-means model and return the centroids
                             if ~bSuperBatch
-                                C = get_kmeans_centroids(data);
+                                [clustAssign,C] = get_kmeans_centroids(data);
                                 if isempty(C); return; end
                             else
-                                C = get_kmeans_centroids(data,batchtable(j,:),exportpath);
+                                [clustAssign,C] = get_kmeans_centroids(data,batchtable(j,:),exportpath);
                                 if isempty(C)
                                     finished = 1;
                                     continue;
@@ -138,12 +138,16 @@ function UnsupClust(app,event)
     
                                     % If the model was created through create_tsne_Callback, C won't exist, so make it.
                                     if isempty(C)
-                                        C = get_kmeans_centroids(data);
+                                        [clustAssign,C] = get_kmeans_centroids(data);
                                     end
                             end
                     end
-    
-                    [clustAssign,D] = knnsearch(C,data,'Distance','euclidean');
+                    
+                    if ~any(isnan(C),'all')
+                        [~,D] = knnsearch(C,data,'Distance','euclidean');
+                    else
+                        D = zeros(height(ClusteringData),1);
+                    end
     
                     ClusteringData.DistToCen = D;
                     ClusteringData.ClustAssign = clustAssign;
@@ -153,7 +157,8 @@ function UnsupClust(app,event)
         %             contourtimesl = cellfun(@(x) {imresize(x,[1 num_pts+1])}, ClusteringData.xTime,'UniformOutput',0);
         %             contourfreq = cellfun(@(x) {imresize(x',[1 num_pts])}, ClusteringData.xFreq,'UniformOutput',0);
         %             contourtime = cellfun(@(x) {imresize(x,[1 num_pts])}, ClusteringData.xTime,'UniformOutput',0);
-    
+                    figClosest = [];
+                    figCentCont = [];
                     if ismember('NumContPts',ClusteringData.Properties.VariableNames) && ~all(ClusteringData.NumContPts==0)
     
                         contoursmth = cellfun(@(x) smooth(x,5), ClusteringData.xFreq,'UniformOutput',false);
@@ -209,7 +214,7 @@ function UnsupClust(app,event)
         % Calculate # of inflection pts for each contour
     
                         %% Centroid contours
-                        if relfreq_weight > 0
+                        if relfreq_weight > 0 && ~any(isnan(C),'all')
                             % Generate relative frequencies
                             allrelfreq = cellfun(@(x) x{:},contourfreqsl,'UniformOutput',false);
                             allrelfreq = cell2mat(allrelfreq);
@@ -484,6 +489,9 @@ function UnsupClust(app,event)
                 case 'K-means (recommended)'
                     if ~bSuperBatch
                         if app.bModel
+                            if any(isnan(C),'all')
+                                warning('Centroids (variable C) are not applicable when running spectral clustering.  C will contain NaNs.')
+                            end
                             save(fullfile(app.strUnsupSaveLoc, 'KMeans Model.mat'), 'C', 'num_pts','RES','freq_weight',...
                                 'relfreq_weight', 'slope_weight', 'concav_weight', 'duration_weight', 'pc_weight',... % 'pc2_weight',
                                 'ninflpt_weight','clusterName', 'spectrogramOptions');
@@ -503,6 +511,9 @@ function UnsupClust(app,event)
                         save(fullfile(PathName, FileName), 'ARTnet', 'settings');
                     end
                 case 'Variational Autoencoder'
+                    if any(isnan(C),'all')
+                        warning('Centroids (variable C) are not applicable when running spectral clustering.  C will contain NaNs.')
+                    end
                     [FileName, PathName] = uiputfile(fullfile(handles.data.squeakfolder, 'Clustering Models', 'Variational Autoencoder Model.mat'), 'Save clustering model');
                     if ~isnumeric(FileName)
                         save(fullfile(PathName, FileName), 'C', 'encoderNet', 'decoderNet', 'options', 'clusterName');
@@ -554,15 +565,15 @@ function UnsupClust(app,event)
             case false
         end
 
-        if isvalid(figSilh) && app.bSilh
+        if ~isempty(figSilh) && isvalid(figSilh) && app.bSilh
             saveas(figSilh,fullfile(app.strUnsupSaveLoc,'Silhouettes.png'));
             close(figSilh)
         end
-        if isvalid(figClosest) && app.bClosest
+        if ~isempty(figClosest) && isvalid(figClosest) && app.bClosest
             saveas(figClosest,fullfile(app.strUnsupSaveLoc,'ClosestCalls.png'));
             close(figClosest)
         end
-        if isvalid(figCentCont) && app.bContours
+        if ~isempty(figCentCont) && isvalid(figCentCont) && app.bContours
             saveas(figCentCont,fullfile(app.strUnsupSaveLoc,'CentroidContours.png'));
             close(figCentCont)
         end
@@ -683,10 +694,10 @@ function ninflpt = get_infl_pts(cont_concav,thresh_pos,thresh_neg)
     ninflpt = length(find(diff(ninflpt(ninflpt~=0))));
 end
 
-function C = get_kmeans_centroids(data,varargin)
+function [IDX,C] = get_kmeans_centroids(data,varargin)
     % Make a k-means model and return the centroids
     if nargin == 1
-        list = {'Elbow Optimized','Elbow w/ Min Clust Size','User Defined','User Defined w/ Min Clust Size','Silhouette Batch'};
+        list = {'Elbow Optimized','Elbow w/ Min Clust Size','User Defined','User Defined w/ Min Clust Size','Spectral Clustering w/ Laplacian','Spectral Clustering w/ Similarity Graph','Silhouette Batch'};
         [optimize,tf] = listdlg('PromptString','Choose a clustering method','ListString',list,'SelectionMode','single','Name','Clustering Method');
     elseif nargin == 3
         batchtable = varargin{1};
@@ -715,7 +726,7 @@ function C = get_kmeans_centroids(data,varargin)
                 if size(data,1) < str2double(opt_options{1})
                     opt_options{1} = num2str(size(data,1));
                 end
-                [~,C] = kmeans_opt(data, str2double(opt_options{1}), 0, str2double(opt_options{2}));
+                [IDX,C] = kmeans_opt(data, str2double(opt_options{1}), 0, str2double(opt_options{2}));
     
             %case 'Elbow w/ Min Clust Size'
             case 2
@@ -730,6 +741,7 @@ function C = get_kmeans_centroids(data,varargin)
                     k = size(data,1);
                 end
                 [IDX,C] = kmeans_opt(data, k, 0, nReps);
+                IDXelb = IDX;
                 Celb = C;
                 [GC,~] = groupcounts(IDX);
                 numcl = length(GC);
@@ -740,6 +752,7 @@ function C = get_kmeans_centroids(data,varargin)
                 end
                 if numcl == 1
                     warning('Reached a single cluster. Proceeding with basic elbow-optimized method.')
+                    IDX = IDXelb;
                     C = Celb;
                 end
     
@@ -754,7 +767,7 @@ function C = get_kmeans_centroids(data,varargin)
                     k = batchtable.k;
                     nReps = 1000;
                 end
-                [~, C] = kmeans(data,k,'Distance','sqeuclidean','Replicates',nReps);
+                [IDX, C] = kmeans(data,k,'Distance','sqeuclidean','Replicates',nReps);
 
             %case 'User Defined w/ Min Clust Size'
             case 4
@@ -765,6 +778,7 @@ function C = get_kmeans_centroids(data,varargin)
                 minclsz = str2double(opt_options{3});
 
                 [IDX, C] = kmeans(data,k,'Distance','sqeuclidean','Replicates',nReps);
+                IDXog = IDX;
                 Cog = C;
                 [GC,~] = groupcounts(IDX);
                 numcl = length(GC);
@@ -775,11 +789,50 @@ function C = get_kmeans_centroids(data,varargin)
                 end
                 if numcl == 1
                     warning('Reached a single cluster. Proceeding with the specified starting # of clusters.')
+                    IDX = IDXog;
                     C = Cog;
                 end
-
-            %case 'Silhouette Batch'
+            % case 'Spectral Clustering w/ Laplacian'
             case 5
+                numcl = 1;
+                for i = 1:size(data,1)
+                    try
+                        [~,~,D_temp] = spectralcluster(data,i);
+                        if ~all(D_temp < 0.001)
+                            numcl = i-1;
+                            break
+                        end
+                    catch
+                        numcl = i-1;
+                        break
+                    end
+                end
+                IDX = spectralcluster(data,numcl);
+                C = nan(numcl,size(data,2));
+            case 6
+            % case 'Spectral Clustering w/ Similarity Graph
+                dist_temp = pdist(data);
+                dist = squareform(dist_temp);
+                S = exp(-dist.^2);
+                issymmetric(S);
+                S_eps = S;
+                S_eps(S_eps<0.5) = 0;
+                G_eps = graph(S_eps);
+%                 figure()
+%                 plot(G_eps)
+                numcl = length(unique(conncomp(G_eps)));
+                while numcl > 1
+                    try
+                        IDX = spectralcluster(S_eps,numcl,'Distance','precomputed');
+                        break
+                    catch
+                        numcl = numcl-1;
+                        numcl
+                    end
+                end
+                C = nan(numcl,size(data,2));
+            %case 'Silhouette Batch'
+            case 7
                 %% User options
                 if nargin == 1
                     opt_options = inputdlg({'Min # of Clusters','Max # of Clusters','Replicates'},'Batch Options',[1; 1; 1],{'2','30','10'});
