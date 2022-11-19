@@ -435,7 +435,12 @@ function UnsupClust(app,event)
     %         end
     
             if ~bSuperBatch
-                [~, clusterName, rejected, finished, clustAssign] = clusteringGUI(clustAssign, ClusteringData, app, event);
+                %[~, clusterName, rejected, finished, clustAssign] = clusteringGUI(clustAssign, ClusteringData, app, event);
+                app.RunClusteringDlg(clustAssign, ClusteringData);
+                clusterName = app.clusterName;
+                rejected = app.rejected;
+                finished = app.finished;
+                clustAssign = app.clustAssign;
             else
                 finished = 1;
             end
@@ -479,6 +484,9 @@ function UnsupClust(app,event)
         end
         %% Update Files
         % Save the clustering model
+        dlgprog = uiprogressdlg(app.mainfigure,'Title','Saving Model',...
+                'Indeterminate','on');
+        drawnow
         if finished == 1 && FromExisting(1) == 'N'
             switch choice
                 case 'K-means (recommended)'
@@ -509,8 +517,12 @@ function UnsupClust(app,event)
                     end
             end
         end
+        close(dlgprog)
     end
     
+    dlgprog = uiprogressdlg(app.mainfigure,'Title','Saving Other Things',...
+            'Indeterminate','on');
+    drawnow
     % Only Save if Save selected in Clustering GUI
     if finished == 1
         %% Save the cluster assignments & silhoutte values
@@ -532,7 +544,7 @@ function UnsupClust(app,event)
                     nAddInt = 1;
                     while isfile(strFullFile)
                         strReplace = sprintf('Contours(%d).mat',nAddInt);
-                        strFullFile = regexprep(strFullFile,'Contour(\w+).mat',strReplace);
+                        strFullFile = regexprep(strFullFile,'Contour.+[.]mat',strReplace);
                         nAddInt = nAddInt + 1;
                     end
                 end
@@ -567,6 +579,7 @@ function UnsupClust(app,event)
             close(figCentCont)
         end
     end
+    close(dlgprog)
 end
 
 %% Dyanamic Time Warping

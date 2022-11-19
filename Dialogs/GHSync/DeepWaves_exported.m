@@ -115,9 +115,11 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         appAbout % About DeepWaves Dialog
         appDisplay % Display Settings Dialog
         appUnsupClustSave % Save Dialog for Unsupervised Clustering Runs
+        appClustering % Description
     end
     
     properties (Access = public)
+        % Save Dialog variables
         strUnsupSaveLoc % Save location for Unsupervised Clustering Products
         bClustImg % Save clustering images
         bSilh % Save silhouette plot
@@ -127,6 +129,12 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         bEEC % Save Expanded Extracted Contours.mat
         bECOverwrite % Overwrite existing EC.mat
         bUpdateDets % Update detections.mat with cluster assignments
+
+        % Clustering Dialog variables
+        rejected
+        finished
+        clusterName
+        clustAssign
     end
     
     methods (Access = public)
@@ -152,17 +160,11 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.appUnsupClustSave = UnsupClustSaveDlg(app, saveloc);
             waitfor(app.appUnsupClustSave);
         end
-%         function SaveUnsupClustProducts(app, saveloc, bClustImg, bSilh, bClosest, bContours, bModel, bEEC, bECOverwrite, bUpdateDets)
-%             app.strUnsupSaveLoc = saveloc;
-%             app.bClustImg = bClustImg;
-%             app.bSilh = bSilh;
-%             app.bClosest = bClosest;
-%             app.bContours = bContours;
-%             app.bModel = bModel;
-%             app.bEEC = bEEC;
-%             app.bECOverwrite = bECOverwrite;
-%             app.bUpdateDets = bUpdateDets;
-%         end
+        
+        function RunClusteringDlg(app,clustAssign,ClusteringData)
+            app.appClustering = ClusteringDlg(app,clustAssign,ClusteringData);
+            waitfor(app.appClustering);
+        end
     end
     
 
@@ -891,6 +893,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             delete(app.appAbout)
             delete(app.appDisplay)
             delete(app.appUnsupClustSave)
+            delete(app.appClustering)
             delete(app)
         end
 

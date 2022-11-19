@@ -3,9 +3,9 @@ classdef UnsupClustSaveDlg_exported < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         dlgUnsupClustSave          matlab.ui.Figure
+        buttonSelectDeselect       matlab.ui.control.Button
         textareaSaveLocation       matlab.ui.control.TextArea
         SaveLocationTextAreaLabel  matlab.ui.control.Label
-        buttonSelectDeselect       matlab.ui.control.Button
         buttonOK                   matlab.ui.control.Button
         panelVariables             matlab.ui.container.Panel
         labelUpdateDetsInfo        matlab.ui.control.Label
@@ -17,6 +17,7 @@ classdef UnsupClustSaveDlg_exported < matlab.apps.AppBase
         checkboxModel              matlab.ui.control.CheckBox
         labelSelectItemstoSave     matlab.ui.control.Label
         buttonBrowse               matlab.ui.control.Button
+        editfieldSaveLocation      matlab.ui.control.EditField
         panelImages                matlab.ui.container.Panel
         imgCentCont                matlab.ui.control.Image
         imgClosestCalls            matlab.ui.control.Image
@@ -161,6 +162,12 @@ classdef UnsupClustSaveDlg_exported < matlab.apps.AppBase
             app.imgCentCont.Position = [420 18 70 70];
             app.imgCentCont.ImageSource = 'Ex_CentConts.png';
 
+            % Create editfieldSaveLocation
+            app.editfieldSaveLocation = uieditfield(app.dlgUnsupClustSave, 'text');
+            app.editfieldSaveLocation.Editable = 'off';
+            app.editfieldSaveLocation.Enable = 'off';
+            app.editfieldSaveLocation.Position = [136 689 365 61];
+
             % Create buttonBrowse
             app.buttonBrowse = uibutton(app.dlgUnsupClustSave, 'push');
             app.buttonBrowse.ButtonPushedFcn = createCallbackFcn(app, @buttonBrowse_Callback, true);
@@ -224,12 +231,6 @@ classdef UnsupClustSaveDlg_exported < matlab.apps.AppBase
             app.buttonOK.Position = [268 15 109 42];
             app.buttonOK.Text = 'OK';
 
-            % Create buttonSelectDeselect
-            app.buttonSelectDeselect = uibutton(app.dlgUnsupClustSave, 'push');
-            app.buttonSelectDeselect.ButtonPushedFcn = createCallbackFcn(app, @buttonSelectDeselect_Callback, true);
-            app.buttonSelectDeselect.Position = [263 652 121 22];
-            app.buttonSelectDeselect.Text = 'Select/De-Select All';
-
             % Create SaveLocationTextAreaLabel
             app.SaveLocationTextAreaLabel = uilabel(app.dlgUnsupClustSave);
             app.SaveLocationTextAreaLabel.HorizontalAlignment = 'right';
@@ -241,6 +242,12 @@ classdef UnsupClustSaveDlg_exported < matlab.apps.AppBase
             app.textareaSaveLocation.Editable = 'off';
             app.textareaSaveLocation.Enable = 'off';
             app.textareaSaveLocation.Position = [124 689 370 60];
+
+            % Create buttonSelectDeselect
+            app.buttonSelectDeselect = uibutton(app.dlgUnsupClustSave, 'push');
+            app.buttonSelectDeselect.ButtonPushedFcn = createCallbackFcn(app, @buttonSelectDeselect_Callback, true);
+            app.buttonSelectDeselect.Position = [263 652 121 22];
+            app.buttonSelectDeselect.Text = 'Select/De-Select All';
 
             % Show the figure after all components are created
             app.dlgUnsupClustSave.Visible = 'on';
