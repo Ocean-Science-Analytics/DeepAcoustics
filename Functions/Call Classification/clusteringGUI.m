@@ -271,16 +271,24 @@ classdef clusteringGUI < handle
                 conttIP = cell2mat(obj.ClusteringData.InflPtVec(clustIndex(callID)));
                 contfIP = contourfreq(conttIP);
                 conttIP = contourtime(conttIP);
+
+                conttext = cell2mat(obj.ClusteringData.ExtPtVec(clustIndex(callID)));
+                contfext = contourfreq(conttext);
+                conttext = contourtime(conttext);
+
                 ploty = resz(1)*contourfreq/ClusteringData.FreqScale(clustIndex(callID))+pad(1);
                 plotyIP = resz(1)*contfIP/ClusteringData.FreqScale(clustIndex(callID))+pad(1);
+                plotyext = resz(1)*contfext/ClusteringData.FreqScale(clustIndex(callID))+pad(1);
                 %Save for later - compatible with update that saves only
                 %spectrograms within boxes to ClusteringData
                 %ploty = resz(1)*(contourfreq-ClusteringData.MinFreq(clustIndex(callID)))/ClusteringData.FreqScale(clustIndex(callID))+pad(1);
                 
                 ploty = size(colorIM,1)-ploty;
                 plotyIP = size(colorIM,1)-plotyIP;
+                plotyext = size(colorIM,1)-plotyext;
                 plotx = resz(2)*contourtime/ClusteringData.TimeScale(clustIndex(callID))+pad(2);
                 plotxIP = resz(2)*conttIP/ClusteringData.TimeScale(clustIndex(callID))+pad(2);
+                plotxext = resz(2)*conttext/ClusteringData.TimeScale(clustIndex(callID))+pad(2);
                 
 %                 dotheight = 1;
 %                 dotlength = 5;
@@ -306,6 +314,10 @@ classdef clusteringGUI < handle
                 plotyIP(plotyIP<1) = 1;
                 plotxIP(plotxIP>(size(colorIM,2)-dotlength)) = size(colorIM,2)-dotlength;
                 plotyIP(plotyIP>(size(colorIM,1)-dotheight)) = size(colorIM,1)-dotheight;
+                plotxext(plotxext<1) = 1;
+                plotyext(plotyext<1) = 1;
+                plotxext(plotxext>(size(colorIM,2)-dotlength)) = size(colorIM,2)-dotlength;
+                plotyext(plotyext>(size(colorIM,1)-dotheight)) = size(colorIM,1)-dotheight;
 
                 for i = 1:length(ploty)
                     maxd1 = size(colorIM,1);
@@ -320,6 +332,14 @@ classdef clusteringGUI < handle
                     maxd1 = min(maxd1,int16(plotyIP(i))+dotheight);
                     maxd2 = min(maxd2,int16(plotxIP(i))+dotlength);
                     colorIM(int16(plotyIP(i)):maxd1,int16(plotxIP(i)):maxd2,1:2) = 0;
+                end
+                for i = 1:length(plotyext)
+                    maxd1 = size(colorIM,1);
+                    maxd2 = size(colorIM,2);
+                    maxd1 = min(maxd1,int16(plotyext(i))+dotheight);
+                    maxd2 = min(maxd2,int16(plotxext(i))+dotlength);
+                    colorIM(int16(plotyext(i)):maxd1,int16(plotxext(i)):maxd2,1) = 0;
+                    colorIM(int16(plotyext(i)):maxd1,int16(plotxext(i)):maxd2,3) = 0;
                 end
             end
         end
