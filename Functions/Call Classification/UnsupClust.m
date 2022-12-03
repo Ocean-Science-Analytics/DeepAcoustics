@@ -205,7 +205,23 @@ function UnsupClust(app,event)
                         vecIP = cellfun(@(x) getIPcont(x,thresh_pos,thresh_neg),concavall,'UniformOutput',false);
                         ClusteringData(:,'InflPtVec') = vecIP;
 
+                        contourtimesl = cellfun(@(x) {linspace(min(x),max(x),num_pts+4)},ClusteringData.xTime,'UniformOutput',false);
+                        contourfreqsl = cellfun(@(x,y,z) {interp1(x,y,z{:})},ClusteringData.xTime,contoursmth,contourtimesl,'UniformOutput',false);
+                        contourfreqsl   = cellfun(@(x) x{:}, contourfreqsl,'UniformOutput',false); 
+                        slopeall   = cellfun(@(x) x(5:end)-x(1:end-4),contourfreqsl,'UniformOutput',false);
+                        thresh_pos = cell2mat(slopeall);
+                        thresh_pos = thresh_pos(thresh_pos > 0);
+                        thresh_pos = median(thresh_pos);
+                        thresh_neg = cell2mat(slopeall);
+                        thresh_neg = thresh_neg(thresh_neg < 0);
+                        thresh_neg = median(thresh_neg);
+
+                        nextpt     = cellfun(@(x) get_infl_pts(x,thresh_pos,thresh_neg),slopeall,'UniformOutput',false);
+                        ClusteringData(:,'NumExtPts') = nextpt;
+                        vecext = cellfun(@(x) getIPcont(x,thresh_pos,thresh_neg),slopeall,'UniformOutput',false);
+                        ClusteringData(:,'ExtPtVec') = vecext;
     
+                        
         % Normalize concavity over entire dataset
         %zccall = num2cell(zscore(concavall,0,'all'),2);
         % Calculate # of inflection pts for each contour
