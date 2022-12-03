@@ -202,6 +202,8 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                         %ninflpt     = cellfun(@(x) get_infl_pts(x),zccall,'UniformOutput',false);
                         ninflpt     = cellfun(@(x) get_infl_pts(x,thresh_pos,thresh_neg),concavall,'UniformOutput',false);
                         ClusteringData(:,'NumInflPts') = ninflpt;
+                        vecIP = cellfun(@(x) getIPcont(x,thresh_pos,thresh_neg),concavall,'UniformOutput',false);
+                        ClusteringData(:,'InflPtVec') = vecIP;
     
     
         % Normalize concavity over entire dataset
@@ -664,11 +666,43 @@ function ninflpt = get_infl_pts(cont_concav,thresh_pos,thresh_neg)
     ninflpt = cont_concav;
     % Separate concav values into three categories using +/- 1 SD as
     % cut-offs
-    ninflpt(ninflpt<=thresh_neg) = -1;
-    ninflpt(ninflpt>=thresh_pos) = 1;
-    ninflpt(ninflpt>thresh_neg & ninflpt<thresh_pos) = 0;
+    ninflpt(cont_concav<=thresh_neg) = -1;
+    ninflpt(cont_concav>=thresh_pos) = 1;
+    ninflpt(cont_concav>thresh_neg & cont_concav<thresh_pos) = 0;
     % Remove zeros and count changes between -1 and 1 and vice versa
     ninflpt = length(find(diff(ninflpt(ninflpt~=0))));
+end
+
+% Indices of Inflection Point Calculations
+function xvals = getIPcont(cont_concav,thresh_pos,thresh_neg)
+    % Given a contour of concavity values
+    ninflpt = cont_concav;
+    % Initialized IP vec to zeros
+    xvals = zeros(1, length(ninflpt));
+    % Separate concav values into three categories using +/- 1 SD as
+    % cut-offs
+    ninflpt(cont_concav<=thresh_neg) = -1;
+    ninflpt(cont_concav>=thresh_pos) = 1;
+    ninflpt(cont_concav>thresh_neg & cont_concav<thresh_pos) = 0;
+    % For every contour point
+    for i = 1:length(ninflpt)
+        % If it's nonzero
+        if ninflpt(i) ~= 0
+            % Look at the rest of the future contour
+            subvec = ninflpt(i+1:end);
+            % Find the next nonzero value
+            testind = find(subvec,1,'first')+i;
+            testval = ninflpt(testind);
+            % If there's a sign switch, it's an inflection point!
+            if ninflpt(i)*testval == -1
+                % Store the index of the inflection point as halfway
+                % between the sign change (or as close as you can get)
+                xvals(i) = floor((testind-i)/2)+i;
+            end
+        end
+    end
+    % Remove zeros
+    xvals = xvals(xvals~=0);
 end
 
 function C = get_kmeans_centroids(data,varargin)
