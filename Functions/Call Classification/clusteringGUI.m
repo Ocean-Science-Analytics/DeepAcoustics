@@ -267,20 +267,35 @@ classdef clusteringGUI < handle
                 
                 contourtime = cell2mat(obj.ClusteringData.xTime_Contour(clustIndex(callID)));
                 contourfreq = cell2mat(obj.ClusteringData.xFreq_Contour(clustIndex(callID)));
+                
+                conttIP = cell2mat(obj.ClusteringData.InflPtVec(clustIndex(callID)));
+                contfIP = contourfreq(conttIP);
+                conttIP = contourtime(conttIP);
                 ploty = resz(1)*contourfreq/ClusteringData.FreqScale(clustIndex(callID))+pad(1);
+                plotyIP = resz(1)*contfIP/ClusteringData.FreqScale(clustIndex(callID))+pad(1);
+                
                 %Save for later - compatible with update that saves only
                 %spectrograms within boxes to ClusteringData
                 %ploty = resz(1)*(contourfreq-ClusteringData.MinFreq(clustIndex(callID)))/ClusteringData.FreqScale(clustIndex(callID))+pad(1);
                 
                 ploty = size(colorIM,1)-ploty;
+                plotyIP = size(colorIM,1)-plotyIP;
                 plotx = resz(2)*contourtime/ClusteringData.TimeScale(clustIndex(callID))+pad(2);
-                
+                plotxIP = resz(2)*conttIP/ClusteringData.TimeScale(clustIndex(callID))+pad(2);
+
 %                 dotheight = 1;
 %                 dotlength = 5;
 %                 
 %                 if ClusteringData.IsJen(clustIndex(callID)) == 1
-                    dotheight = 2;
-                    dotlength = 1;
+                    % Trying to deal with different spectrogram resolutions
+                    % Dot length should be two unless the resolution is
+                    % such that time steps are wide relative to freq, then should be 1
+                    dlmin = min(2,floor(size(colorIM,2)/ClusteringData.NumContPts(clustIndex(callID))));
+                    dlmin = max(dlmin, 1);
+                    dotheight = max(floor(size(colorIM,1)/size(colorIM,2)/2),2);
+                    dotlength = max(floor(size(colorIM,2)/size(colorIM,1)/2),dlmin);
+%                     dotheight = min(dotheight,5);
+%                     dotlength = min(dotlength,5);
 %                 end
                 
                 %Limit values for boundary/indexing issues
@@ -288,6 +303,10 @@ classdef clusteringGUI < handle
                 ploty(ploty<1) = 1;
                 plotx(plotx>(size(colorIM,2)-dotlength)) = size(colorIM,2)-dotlength;
                 ploty(ploty>(size(colorIM,1)-dotheight)) = size(colorIM,1)-dotheight;
+                plotxIP(plotxIP<1) = 1;
+                plotyIP(plotyIP<1) = 1;
+                plotxIP(plotxIP>(size(colorIM,2)-dotlength)) = size(colorIM,2)-dotlength;
+                plotyIP(plotyIP>(size(colorIM,1)-dotheight)) = size(colorIM,1)-dotheight;
 
                 for i = 1:length(ploty)
                     maxd1 = size(colorIM,1);
@@ -295,6 +314,13 @@ classdef clusteringGUI < handle
                     maxd1 = min(maxd1,int16(ploty(i))+dotheight);
                     maxd2 = min(maxd2,int16(plotx(i))+dotlength);
                     colorIM(int16(ploty(i)):maxd1,int16(plotx(i)):maxd2,:) = colorIM(int16(ploty(i)):maxd1,int16(plotx(i)):maxd2,:)+0.75;
+                end
+                for i = 1:length(plotyIP)
+                    maxd1 = size(colorIM,1);
+                    maxd2 = size(colorIM,2);
+                    maxd1 = min(maxd1,int16(plotyIP(i))+dotheight);
+                    maxd2 = min(maxd2,int16(plotxIP(i))+dotlength);
+                    colorIM(int16(plotyIP(i)):maxd1,int16(plotxIP(i)):maxd2,1:2) = 0;
                 end
             end
         end
