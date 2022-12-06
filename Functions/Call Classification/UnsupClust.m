@@ -205,10 +205,10 @@ function UnsupClust(app,event)
                         vecIP = cellfun(@(x) getIPcont(x,thresh_pos,thresh_neg),concavall,'UniformOutput',false);
                         ClusteringData(:,'InflPtVec') = vecIP;
 
-                        contourtimesl = cellfun(@(x) {linspace(min(x),max(x),num_pts+4)},ClusteringData.xTime,'UniformOutput',false);
-                        contourfreqsl = cellfun(@(x,y,z) {interp1(x,y,z{:})},ClusteringData.xTime,contoursmth,contourtimesl,'UniformOutput',false);
-                        contourfreqsl   = cellfun(@(x) x{:}, contourfreqsl,'UniformOutput',false); 
-                        slopeall   = cellfun(@(x) x(5:end)-x(1:end-4),contourfreqsl,'UniformOutput',false);
+                        contourtimesl4ext = cellfun(@(x) {linspace(min(x),max(x),num_pts+4)},ClusteringData.xTime,'UniformOutput',false);
+                        contourfreqsl4ext = cellfun(@(x,y,z) {interp1(x,y,z{:})},ClusteringData.xTime,contoursmth,contourtimesl4ext,'UniformOutput',false);
+                        contourfreqsl4ext   = cellfun(@(x) x{:}, contourfreqsl4ext,'UniformOutput',false); 
+                        slopeall   = cellfun(@(x) x(5:end)-x(1:end-4),contourfreqsl4ext,'UniformOutput',false);
                         thresh_pos = cell2mat(slopeall);
                         thresh_pos = thresh_pos(thresh_pos > 0);
                         thresh_pos = median(thresh_pos);
