@@ -181,11 +181,11 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                 contourtime = cell2mat(app.ClusteringData.xTime_Contour(clustIndex(callID)));
                 contourfreq = cell2mat(app.ClusteringData.xFreq_Contour(clustIndex(callID)));
 
-                conttIP = cell2mat(obj.ClusteringData.InflPtVec(clustIndex(callID)));
+                conttIP = cell2mat(app.ClusteringData.InflPtVec(clustIndex(callID)));
                 contfIP = contourfreq(conttIP);
                 conttIP = contourtime(conttIP);
 
-                conttext = cell2mat(obj.ClusteringData.ExtPtVec(clustIndex(callID)));
+                conttext = cell2mat(app.ClusteringData.ExtPtVec(clustIndex(callID)));
                 contfext = contourfreq(conttext);
                 conttext = contourtime(conttext);
 
