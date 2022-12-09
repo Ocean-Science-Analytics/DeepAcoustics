@@ -254,6 +254,7 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                     maxd2 = min(maxd2,int16(plotxext(i))+dotlength);
                     colorIM(int16(plotyext(i)):maxd1,int16(plotxext(i)):maxd2,1) = 0;
                     colorIM(int16(plotyext(i)):maxd1,int16(plotxext(i)):maxd2,3) = 0;
+                    colorIM(int16(plotyext(i)):maxd1,int16(plotxext(i)):maxd2,2) = 0.5;
                 end
             end
         end

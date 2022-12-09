@@ -211,14 +211,24 @@ function UnsupClust(app,event)
                         slopeall   = cellfun(@(x) x(5:end)-x(1:end-4),contourfreqsl4ext,'UniformOutput',false);
                         thresh_pos = cell2mat(slopeall);
                         thresh_pos = thresh_pos(thresh_pos > 0);
-                        thresh_pos = median(thresh_pos);
+                        %thresh_pos = median(thresh_pos);
+                        thresh_pos_steep = quantile(thresh_pos,0.6);
+                        thresh_pos_shall = quantile(thresh_pos,0.2);
                         thresh_neg = cell2mat(slopeall);
                         thresh_neg = thresh_neg(thresh_neg < 0);
-                        thresh_neg = median(thresh_neg);
+                        %thresh_neg = median(thresh_neg);
+                        thresh_neg_steep = quantile(thresh_neg,0.4);
+                        thresh_neg_shall = quantile(thresh_neg,0.8);
 
-                        nextpt     = cellfun(@(x) get_infl_pts(x,thresh_pos,thresh_neg),slopeall,'UniformOutput',false);
+                        %nextpt     = cellfun(@(x) get_infl_pts(x,thresh_pos,thresh_neg),slopeall,'UniformOutput',false);
+                        n0pos1 = cellfun(@(x) get_infl_pts(x,thresh_pos_steep,thresh_pos_shall),slopeall,'UniformOutput',false);
+                        n0neg1 = cellfun(@(x) get_infl_pts(x,thresh_neg_shall,thresh_neg_steep),slopeall,'UniformOutput',false);
+                        nextpt = cellfun(@plus,n0pos1,n0neg1,'UniformOutput',false);
                         ClusteringData(:,'NumExtPts') = nextpt;
-                        vecext = cellfun(@(x) getIPcont(x,thresh_pos,thresh_neg),slopeall,'UniformOutput',false);
+                        %vecext = cellfun(@(x) getIPcont(x,thresh_pos,thresh_neg),slopeall,'UniformOutput',false);
+                        vecext0pos1 = cellfun(@(x) getIPcont(x,thresh_pos_steep,thresh_pos_shall),slopeall,'UniformOutput',false);
+                        vecext0neg1 = cellfun(@(x) getIPcont(x,thresh_neg_shall,thresh_neg_steep),slopeall,'UniformOutput',false);
+                        vecext = cellfun( @(x,y) [x,y], vecext0pos1, vecext0neg1, 'UniformOutput', false );
                         ClusteringData(:,'ExtPtVec') = vecext;
     
                         
