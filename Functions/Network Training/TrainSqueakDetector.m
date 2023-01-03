@@ -176,40 +176,74 @@ switch bCustomize
                   'Plots','training-progress');
 end
 
-% Load unweighted mobilnetV2 to modify for a YOLO net
-load('BlankNet.mat');
+% % Load unweighted mobilnetV2 to modify for a YOLO net
+% load('BlankNet.mat');
+% 
+% % YOLO Network Options
+% featureExtractionLayer = "block_12_add";
+% filterSize = [3 3];
+% numFilters = 96;
+% numClasses = (width(TrainingTables)-1);
+% numAnchors = size(anchorBoxes,1);
+% numPredictionsPerAnchor = 5;
+% numFiltersInLastConvLayer = numAnchors*(numClasses+numPredictionsPerAnchor);
+% 
+% % YOLO v2 Network Layers
+% detectionLayers = [
+%     convolution2dLayer(filterSize,numFilters,"Name","yolov2Conv1","Padding", "same", "WeightsInitializer",@(sz)randn(sz)*0.01)
+%     batchNormalizationLayer("Name","yolov2Batch1")
+%     reluLayer("Name","yolov2Relu1")
+%     convolution2dLayer(filterSize,numFilters,"Name","yolov2Conv2","Padding", "same", "WeightsInitializer",@(sz)randn(sz)*0.01)
+%     batchNormalizationLayer("Name","yolov2Batch2")
+%     reluLayer("Name","yolov2Relu2")
+%     convolution2dLayer(1,numFiltersInLastConvLayer,"Name","yolov2ClassConv",...
+%     "WeightsInitializer", @(sz)randn(sz)*0.01)
+%     yolov2TransformLayer(numAnchors,"Name","yolov2Transform")
+%     yolov2OutputLayer(anchorBoxes,"Name","yolov2OutputLayer")
+%     ];
+% 
+% lgraph = addLayers(blankNet,detectionLayers);
+% lgraph = connectLayers(lgraph,featureExtractionLayer,"yolov2Conv1");
 
-% YOLO Network Options
-featureExtractionLayer = "block_12_add";
-filterSize = [3 3];
-numFilters = 96;
-numClasses = (width(TrainingTables)-1);
+% Load pre-trained CNN (see Deep Learning Toolbox documentation on
+% Pretrained Deep Neural Networks)
+basenet = resnet50;
+
+% To create a YOLO v4 deep learning network you must make these changes to the base network:
+% Set the Normalization property of the ImageInputLayer in the base network to 'none'.
+% Remove the fully connected classification layer.
+
+% Define an image input layer with Normalization property value as 'none' and other property values same as that of the base network.
+imageSize = basenet.Layers(1).InputSize;
+layerName = basenet.Layers(1).Name;
+newinputLayer = imageInputLayer(imageSize,'Normalization','none','Name',layerName);
+
+% Remove the fully connected layer in the base network.
+lgraph = layerGraph(basenet);
+lgraph = removeLayers(lgraph,'ClassificationLayer_fc1000');
+lgraph = replaceLayer(lgraph,layerName,newinputLayer);
+
+dlnet = dlnetwork(lgraph);
+featureExtractionLayers = ["activation_22_relu","activation_40_relu"];
+classes = TrainingTables.Properties.VariableNames(2:end);
+
+%Compute the area of each anchor box and sort them in descending order.
+area = anchorBoxes(:,1).*anchorBoxes(:,2);
+[~,idx] = sort(area,"descend");
+sortedAnchors = anchorBoxes(idx,:);
+%There are two detection heads in the YOLO v4 network, so divide
+%evenly...ish
 numAnchors = size(anchorBoxes,1);
-numPredictionsPerAnchor = 5;
-numFiltersInLastConvLayer = numAnchors*(numClasses+numPredictionsPerAnchor);
+numAnchorsHalf = ceil(numAnchors/2);
+anchorBoxes = {sortedAnchors(1:numAnchorsHalf,:) sortedAnchors(numAnchorsHalf+1:end,:)};
 
-% YOLO Network Layers
-detectionLayers = [
-    convolution2dLayer(filterSize,numFilters,"Name","yolov2Conv1","Padding", "same", "WeightsInitializer",@(sz)randn(sz)*0.01)
-    batchNormalizationLayer("Name","yolov2Batch1")
-    reluLayer("Name","yolov2Relu1")
-    convolution2dLayer(filterSize,numFilters,"Name","yolov2Conv2","Padding", "same", "WeightsInitializer",@(sz)randn(sz)*0.01)
-    batchNormalizationLayer("Name","yolov2Batch2")
-    reluLayer("Name","yolov2Relu2")
-    convolution2dLayer(1,numFiltersInLastConvLayer,"Name","yolov2ClassConv",...
-    "WeightsInitializer", @(sz)randn(sz)*0.01)
-    yolov2TransformLayer(numAnchors,"Name","yolov2Transform")
-    yolov2OutputLayer(anchorBoxes,"Name","yolov2OutputLayer")
-    ];
-
-lgraph = addLayers(blankNet,detectionLayers);
-lgraph = connectLayers(lgraph,featureExtractionLayer,"yolov2Conv1");
+lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers);
 
 % Train the YOLO v2 network.
 if nargin == 1
-    [detector,info] = trainYOLOv2ObjectDetector(dsTrain,lgraph,options);
+    [detector,info] = trainYOLOv4ObjectDetector(dsTrain,lgraph,options);
 elseif nargin == 2
-    [detector,info] = trainYOLOv2ObjectDetector(dsTrain,layers,options);
+    [detector,info] = trainYOLOv4ObjectDetector(dsTrain,layers,options);
 else
      error('This should not happen')   
 end
