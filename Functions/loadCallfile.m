@@ -32,7 +32,7 @@ if isfield(data, 'Calls')
         Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
     end
 
-    if ~isfield(data,'spect')
+    if ~isfield(data,'spect') && ~isempty(handles)
         warning('Spect settings not previously saved; appending to detections.mat now.')
         spect = handles.data.settings.spect;
         save(filename,'spect','-append');
