@@ -32,10 +32,14 @@ if isfield(data, 'Calls')
         Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
     end
 
-    if ~isfield(data,'spect') && ~isempty(handles)
-        warning('Spect settings not previously saved; appending to detections.mat now.')
-        spect = handles.data.settings.spect;
-        save(filename,'spect','-append');
+    if ~isfield(data,'spect')
+        if ~isempty(handles)
+            warning('Spect settings not previously saved; appending to detections.mat now.')
+            spect = handles.data.settings.spect;
+            save(filename,'spect','-append');
+        else
+            spect = [];
+        end
     else
         spect = data.spect;
     end
@@ -55,9 +59,11 @@ if isfield(data, 'ClusteringData')
     if isfield(data, 'spect')
         handles.data.settings.spect = data.spect;
     else
-        warning('Spect settings not previously saved; appending to detections.mat now.')
-        spect = handles.data.settings.spect;
-        save(filename,'spect','-append');
+        if ~isempty(handles)
+            warning('Spect settings not previously saved; appending to detections.mat now.')
+            spect = handles.data.settings.spect;
+            save(filename,'spect','-append');
+        end
     end
 end
 
