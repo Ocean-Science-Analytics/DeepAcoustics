@@ -233,11 +233,16 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                         vecext0neg1 = cellfun(@(x) getIPcont(x,thresh_neg_shall,thresh_neg_steep),slopeall,'UniformOutput',false);
                         vecext = cellfun( @(x,y) [x,y], vecext0pos1, vecext0neg1, 'UniformOutput', false );
                         ClusteringData(:,'ExtPtVec') = vecext;
-    
-    
-        % Normalize concavity over entire dataset
-        %zccall = num2cell(zscore(concavall,0,'all'),2);
-        % Calculate # of inflection pts for each contour
+                        
+                        %% TSNE
+                        embed = tsne(data);
+                        % Rescale values between 0 and 1
+                        embed = (embed - min(embed)) ./ (max(embed)-min(embed));
+                        embedY = 1-embed(:,2); % flip Y coordinates so the images looks like the UMAP figure
+                        embedX = embed(:,1);
+                        figTSNE = figure();
+                        gscatter(embedX, embedY, clustAssign,'rgbcmyk','o+*xsdvph',8);
+                        title('t-SNE')
     
                         %% Centroid contours
                         if relfreq_weight > 0
