@@ -53,24 +53,24 @@ function UnsupClust(app,event)
                                     if ~bSuperBatch
                                         [ClusteringData, ~, ~, ~, spectrogramOptions] = CreateClusteringData(handles, 'forClustering', true, 'save_data', true);
                                         if isempty(ClusteringData); return; end
-                                        clusterParameters= inputdlg({'Number of Contour Pts','Slope Weight','Concavity Weight','Frequency Weight', ...
+                                        clusterParameters= inputdlg({'Number of Contour Pts','Delta8 Weight','Slope Weight','Concavity Weight','Frequency Weight', ...
                                             'Relative Frequency Weight','Duration Weight','Infl Pt Weight','Parsons Weight','Parsons Resolution'}, ...%,'Parsons2 weight'},
-                                            'Choose cluster parameters:',[1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 15],{'20','0','0','0','1','0','0','0','4'});%,'0'});
+                                            'Choose cluster parameters:',[1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 15],{'20','0','0','0','0','1','0','0','0','4'});%,'0'});
                                         if isempty(clusterParameters); return; end
                                         num_pts = str2double(clusterParameters{1});
-                                        slope_weight = str2double(clusterParameters{2});
-                                        concav_weight = str2double(clusterParameters{3});
-                                        freq_weight = str2double(clusterParameters{4});
-                                        relfreq_weight = str2double(clusterParameters{5});
-                                        duration_weight = str2double(clusterParameters{6});
-                                        ninflpt_weight = str2double(clusterParameters{7});
-                                        pc_weight = str2double(clusterParameters{8});
-                                        RES = str2double(clusterParameters{9});
+                                        delta8_weight = str2double(clusterParameters{2});
+                                        slope_weight = str2double(clusterParameters{3});
+                                        concav_weight = str2double(clusterParameters{4});
+                                        freq_weight = str2double(clusterParameters{5});
+                                        relfreq_weight = str2double(clusterParameters{6});
+                                        duration_weight = str2double(clusterParameters{7});
+                                        ninflpt_weight = str2double(clusterParameters{8});
+                                        pc_weight = str2double(clusterParameters{9});
+                                        RES = str2double(clusterParameters{10});
                                         if RES <= 0
                                             warning('RES cannot be <= 0; assuming pc_weight is 0')
                                             pc_weight = 0;
                                         end
-                                        %pc2_weight = str2double(clusterParameters{8});
                                     else
                                         num_pts = 20;
                                         slope_weight = batchtable.slope_weight(j);
@@ -83,7 +83,7 @@ function UnsupClust(app,event)
                                         ninflpt_weight = batchtable.ninflpt_weight(j);
                                     end
                                     ClusteringData{:,'NumContPts'} = num_pts;
-                                    data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);%, pc2_weight);
+                                    data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);
                                 case 'Variational Autoencoder'
                                     [encoderNet, decoderNet, options, ClusteringData] = create_VAE_model(handles);
                                     data = extract_VAE_embeddings(encoderNet, options, ClusteringData);
@@ -111,24 +111,26 @@ function UnsupClust(app,event)
                                     % Preset variables
                                     num_pts = 20;
                                     RES = 1;
-                                    freq_weight = 0;
-                                    relfreq_weight = 0;
+                                    delta8_weight = 0;
                                     slope_weight = 0;
                                     concav_weight = 0;
+                                    freq_weight = 0;
+                                    relfreq_weight = 0;
                                     duration_weight = 0;
                                     pc_weight = 0;
                                     ninflpt_weight = 0;
                                     % Load existing model to replace variables as
                                     % needed
                                     load(fullfile(PathName,FileName),'C','num_pts',...
-                                        'RES','freq_weight','relfreq_weight','slope_weight',...
-                                        'concav_weight','duration_weight','pc_weight','ninflpt_weight',...%'pc2_weight',...
+                                        'RES','delta8_weight','slope_weight','concav_weight',...
+                                        'freq_weight','relfreq_weight','duration_weight',...
+                                        'pc_weight','ninflpt_weight',...
                                         'clusterName','spectrogramOptions');
                                     ClusteringData = CreateClusteringData(handles, 'forClustering', true, 'spectrogramOptions', spectrogramOptions, 'save_data', true);
                                     if isempty(ClusteringData); return; end
     
                                     ClusteringData{:,'NumContPts'} = num_pts;
-                                    data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);%, pc2_weight);
+                                    data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);
                                 case 'Variational Autoencoder'
                                     C = [];
                                     load(fullfile(PathName,FileName),'C','encoderNet','decoderNet','options');
@@ -368,7 +370,7 @@ function UnsupClust(app,event)
     
                             nexttile
                             image(imtile(floor(imresize(tmp,[maxBandwidth,maxlength])), inferno, 'BackgroundColor', 'w', 'GridSize',[1 1]))
-                            title(sprintf('(%d)  ID = %s',i,ClusteringData.UserID(index)))
+                            title(sprintf('(%d)  ID = %s',i,ClusteringData.UserID(index)),'Units','normalized','Position',[0.5,0.02,0],'Color','white')
                             %title(num2str(i))
                             axis off
                         end
@@ -520,7 +522,7 @@ function UnsupClust(app,event)
                 case 'K-means (recommended)'
                     if ~bSuperBatch
                         if app.bModel
-                            save(fullfile(app.strUnsupSaveLoc, 'KMeans Model.mat'), 'C', 'num_pts','RES','freq_weight',...
+                            save(fullfile(app.strUnsupSaveLoc, 'KMeans Model.mat'), 'C', 'num_pts','RES','delta8_weight','freq_weight',...
                                 'relfreq_weight', 'slope_weight', 'concav_weight', 'duration_weight', 'pc_weight',... % 'pc2_weight',
                                 'ninflpt_weight','clusterName', 'spectrogramOptions');
                         end
@@ -528,7 +530,7 @@ function UnsupClust(app,event)
                         PathName = exportpath;
                         FileName = sprintf('KMeansModel_%s_%dClusters.mat',batchtable.modelname{j},size(C,1));
                         if ~isnumeric(FileName)
-                            save(fullfile(PathName, FileName), 'C', 'num_pts','RES','freq_weight',...
+                            save(fullfile(PathName, FileName), 'C', 'num_pts','RES','delta8_weight','freq_weight',...
                                 'relfreq_weight', 'slope_weight', 'concav_weight', 'duration_weight', 'pc_weight',... % 'pc2_weight',
                                 'ninflpt_weight','spectrogramOptions');
                         end
@@ -619,7 +621,7 @@ function D = dtw2(ZI,ZJ)
     end
 end
 
-function data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight)%, pc2_weight)
+function data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight)
     % Parameterize the data for kmeans
     %ReshapedX   = cell2mat(cellfun(@(x) imresize(x',[1 num_pts+1]) ,ClusteringData.xFreq,'UniformOutput',0));
     % Smooth contour
@@ -638,11 +640,22 @@ function data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, conc
     % Pull concavity based on 20-pt contour
     timelsp     = cellfun(@(x) linspace(min(x),max(x),num_pts+4),ClusteringData.xTime,'UniformOutput',false);
     concavall   = cellfun(@(x,y,z) interp1(x,y,z),ClusteringData.xTime,allconts,timelsp,'UniformOutput',false);
-    % First deriv (deltax = 2 pts)
-    %concavall   = concavall(:,5:end)-concavall(:,1:end-4);
+    % First deriv (deltax = 4 pts)
     concavall   = cellfun(@(x) x(5:end)-x(1:end-4),concavall,'UniformOutput',false);
     %Better (smoothed) slope
     slope = zscore(cell2mat(concavall),[],'all');
+
+    % Calculate Delta-8 Measure
+    % I.e. if >=8% change relative to larger frequency, +/- 1, otherwise 0
+    % First get 21-pt version of slope
+    timelsp     = cellfun(@(x) linspace(min(x),max(x),num_pts+5),ClusteringData.xTime,'UniformOutput',false);
+    concavall   = cellfun(@(x,y,z) interp1(x,y,z),ClusteringData.xTime,allconts,timelsp,'UniformOutput',false);
+    % First deriv (deltax = 4 pts)
+    %concavall   = cellfun(@(x) x(5:end)-x(1:end-4),concavall,'UniformOutput',false);
+    % +/-1s for changes in freq >= 8% of the max in each adjacent pair of
+    % frequencies
+    delta8      = cellfun(@(x) get_delta8(x),concavall,'UniformOutput',false);
+    delta8      = zscore(cell2mat(delta8),[],'all');
     
     timelsp     = cellfun(@(x) linspace(min(x),max(x),num_pts+8),ClusteringData.xTime,'UniformOutput',false);
     concavall   = cellfun(@(x,y,z) interp1(x,y,z),ClusteringData.xTime,allconts,timelsp,'UniformOutput',false);
@@ -707,8 +720,29 @@ function data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, conc
         duration    .*  duration_weight+.001,...
         pc          .*  pc_weight+0.001,...
         ninflpt     .*  ninflpt_weight+0.001...
+        delta8      .*  delta8_weight+0.001...
     %     pc2       .*  pc2_weight+0.001,...
         ];
+end
+
+% Track Changes of >=8% Frequency
+function ndelta8 = get_delta8(contour)
+    % maxesd8 = the max value in every adjacent pair of frequencies (w/
+    % smoothing factor)
+    maxesd8 = max(contour(1:end-4),contour(5:end));
+    % minsd8 = the min value in every adjacent pair of frequencies (w/
+    % smoothing factor)
+    minsd8 = min(contour(1:end-4),contour(5:end));
+    % the absolute change in freq b/w adjacent pairs of freqs
+    diffd8 = maxesd8-minsd8;
+    % ndelta8 = change in freq change b/w adjacent pairs of freqs
+    ndelta8 = (contour(5:end)-contour(1:end-4));
+    % ndelta8 = +/- 1s (or 0s for no change)
+    ndelta8(diffd8~=0) = ndelta8(diffd8~=0)./diffd8(diffd8~=0);
+    % diffd8 = logical T/F if slope change is <8% of max in pair of freqs
+    diffd8 = diffd8 < 0.08*maxesd8;
+    % make any changes <8% = 0 in ndelta8
+    ndelta8(diffd8) = 0;
 end
 
 % # of Inflection Pt Calculations
