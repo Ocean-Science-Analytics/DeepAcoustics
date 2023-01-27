@@ -264,7 +264,7 @@ function UnsupervisedClustering_Callback(hObject, eventdata, handles)
                                 nexttile
                                 plot(1:num_pts,thiscent,1:num_pts,maxcont,'r--',1:num_pts,mincont,'r--')
                                 ylim([minylim maxylim])
-                                title(sprintf('(%d)  n = %d',i,size(thisclust,1)))
+                                title(sprintf('(%d)  n = %d',i,size(thisclust,1)),'Units','normalized','Position',[0.5,0.02,0])
                             end
     
                             title(montTile, 'Centroid Contours with Max and Min Call Variation')
@@ -927,9 +927,9 @@ function C = get_kmeans_centroids(data,varargin)
                 plot(xvals, meanS, '-b');
                 hold on;
                 %plot(xvals, greater0, 'Color', 'red');
-                plot(xvals, accummu, '-r');
+                %plot(xvals, accummu, '-r');
                 plot(xvals, maxS, '-g');
-                plot(xvals, medianS, '-y');
+                %plot(xvals, medianS, '-y');
                 %plot(xvals, below_zero, 'Color', 'yellow');
                 %plot(xvals, meanAbv_zero, 'Color', 'magenta');
                 plot(xvals, propCAbMean1, '-m');
@@ -939,7 +939,7 @@ function C = get_kmeans_centroids(data,varargin)
                 plot(xvals, ctsing, '-k');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
-                legend('Overall Mean', 'Mean by Cluster', 'Max S', 'Median S', 'Prop > Overall Mean', 'Prop > Mean by Cluster', '# Singletons',...
+                legend('Overall Mean', 'Max S', 'Prop > Overall Mean', 'Prop > Mean by Cluster', '# Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
