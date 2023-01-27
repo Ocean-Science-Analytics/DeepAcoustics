@@ -232,11 +232,16 @@ function UnsupClust(app,event)
                         vecext0neg1 = cellfun(@(x) getIPcont(x,thresh_neg_shall,thresh_neg_steep),slopeall,'UniformOutput',false);
                         vecext = cellfun( @(x,y) [x,y], vecext0pos1, vecext0neg1, 'UniformOutput', false );
                         ClusteringData(:,'ExtPtVec') = vecext;
-    
                         
-        % Normalize concavity over entire dataset
-        %zccall = num2cell(zscore(concavall,0,'all'),2);
-        % Calculate # of inflection pts for each contour
+                        %% TSNE
+                        embed = tsne(data);
+                        % Rescale values between 0 and 1
+                        embed = (embed - min(embed)) ./ (max(embed)-min(embed));
+                        embedY = 1-embed(:,2); % flip Y coordinates so the images looks like the UMAP figure
+                        embedX = embed(:,1);
+                        figTSNE = figure();
+                        gscatter(embedX, embedY, clustAssign,'rgbcmyk','o+*xsdvph',8);
+                        title('t-SNE')
     
                         %% Centroid contours
                         if relfreq_weight > 0
@@ -596,6 +601,14 @@ function UnsupClust(app,event)
             case false
         end
 
+        if isvalid(figTSNE) && app.btSNE
+            saveas(figTSNE,fullfile(app.strUnsupSaveLoc,'tSNE.png'));
+            close(figTSNE)
+        end
+        if isvalid(figCentCont) && app.bContours
+            saveas(figCentCont,fullfile(app.strUnsupSaveLoc,'CentroidContours.png'));
+            close(figCentCont)
+        end
         if isvalid(figSilh) && app.bSilh
             saveas(figSilh,fullfile(app.strUnsupSaveLoc,'Silhouettes.png'));
             close(figSilh)
@@ -603,10 +616,6 @@ function UnsupClust(app,event)
         if isvalid(figClosest) && app.bClosest
             saveas(figClosest,fullfile(app.strUnsupSaveLoc,'ClosestCalls.png'));
             close(figClosest)
-        end
-        if isvalid(figCentCont) && app.bContours
-            saveas(figCentCont,fullfile(app.strUnsupSaveLoc,'CentroidContours.png'));
-            close(figCentCont)
         end
     end
     close(dlgprog)

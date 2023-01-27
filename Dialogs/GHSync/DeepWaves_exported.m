@@ -125,6 +125,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         bSilh % Save silhouette plot
         bClosest % Save closest calls image
         bContours % Save centroid contours image
+        btSNE % Save tSNE image
         bModel % Save KMeans Model.mat
         bEEC % Save Expanded Extracted Contours.mat
         bECOverwrite % Overwrite existing EC.mat
@@ -187,6 +188,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.bSilh = false;  % Save silhouette plot
             app.bClosest = false;  % Save closest calls image
             app.bContours = false;  % Save centroid contours image
+            app.btSNE = false;  % Save t-SNE image
             app.bModel = false;  % Save KMeans Model.mat
             app.bEEC = false;  % Save Expanded Extracted Contours.mat
             app.bECOverwrite = false;  % Overwrite existing EC.mat
@@ -1217,6 +1219,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.winFocus.NextPlot = 'replace';
             app.winFocus.Box = 'on';
             app.winFocus.Tag = 'focusWindow';
+            colormap(app.winFocus, 'parula')
             app.winFocus.Position = [253 366 1129 442];
 
             % Create winWaveform
@@ -1229,6 +1232,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.winWaveform.NextPlot = 'replace';
             app.winWaveform.Box = 'on';
             app.winWaveform.Tag = 'waveformWindow';
+            colormap(app.winWaveform, 'parula')
             app.winWaveform.Position = [3 205 228 143];
 
             % Create axesPage
@@ -1241,6 +1245,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.axesPage.NextPlot = 'replace';
             app.axesPage.Box = 'on';
             app.axesPage.Tag = 'detectionAxes';
+            colormap(app.axesPage, 'parula')
             app.axesPage.Position = [259 135 1120 43];
 
             % Create winContour
@@ -1252,6 +1257,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.winContour.FontSize = 10.6666666666667;
             app.winContour.NextPlot = 'replace';
             app.winContour.Tag = 'contourWindow';
+            colormap(app.winContour, 'parula')
             app.winContour.Position = [3 372 228 127];
 
             % Create winPage
@@ -1260,6 +1266,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.winPage.NextPlot = 'replace';
             app.winPage.Box = 'on';
             app.winPage.Tag = 'spectrogramWindow';
+            colormap(app.winPage, 'parula')
             app.winPage.Position = [255 188 1125 181];
 
             % Create buttonAcceptCall
