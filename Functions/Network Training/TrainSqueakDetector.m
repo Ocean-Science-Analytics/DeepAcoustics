@@ -6,6 +6,19 @@ function [detector, lgraph, options, info] = TrainSqueakDetector(TrainingTables,
 imdsTrain = imageDatastore(TrainingTables{:,1});
 bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
 dsTrain = combine(imdsTrain,bldsTrain);
+trainingDataForEstimation = bldsTrain;
+
+list = {'Tiny YOLO v4 COCO','CSP-DarkNet-53','ResNet-50','Other'};
+[basemodels,tf] = listdlg('PromptString','Choose a base network','ListString',list,'SelectionMode','single','Name','Base Network');
+if ~tf
+    return
+end
+switch basemodels
+    %case 'Tiny YOLO v4 COCO' or 'CSP-DarkNet-53
+    case {1,2}
+        inputSize = [224 224 3];
+        trainingDataForEstimation = transform(dsTrain,@(data)preprocessData(data,inputSize));
+end
 
 %% Set training options
 bCustomize = questdlg('Would you like to customize your network options or use defaults?','Customize?','Customize','Defaults','Defaults');
@@ -13,7 +26,7 @@ switch bCustomize
     %Default
     case 'Defaults'
         % Set anchor boxes (default = 8)
-        anchorBoxes = estimateAnchorBoxes(bldsTrain,8);
+        anchorBoxes = estimateAnchorBoxes(trainingDataForEstimation,8);
         % Set training options
         options = trainingOptions('sgdm',...
                   'InitialLearnRate',0.001,...
@@ -30,7 +43,7 @@ switch bCustomize
         arranchorBoxes = cell(maxNumAnchors, 1);
         for k = 1:maxNumAnchors
             % Estimate anchors and mean IoU.
-            [arranchorBoxes{k},meanIoU(k)] = estimateAnchorBoxes(bldsTrain,k);    
+            [arranchorBoxes{k},meanIoU(k)] = estimateAnchorBoxes(trainingDataForEstimation,k);    
         end
 
         figure
@@ -41,10 +54,14 @@ switch bCustomize
 
         nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
                      'Anchor Boxes', [1 50]));
+        % Must be even number for YOLO v$
+        if mod(nAnchors,2) ~= 0
+            nAnchors = nAnchors + 1;
+        end
         if isempty(nAnchors)
             return
         else
-            anchorBoxes = estimateAnchorBoxes(bldsTrain,nAnchors);
+            anchorBoxes = estimateAnchorBoxes(trainingDataForEstimation,nAnchors);
         end
         
         %% Solver for network
@@ -205,26 +222,6 @@ end
 % lgraph = addLayers(blankNet,detectionLayers);
 % lgraph = connectLayers(lgraph,featureExtractionLayer,"yolov2Conv1");
 
-% Load pre-trained CNN (see Deep Learning Toolbox documentation on
-% Pretrained Deep Neural Networks)
-basenet = resnet50;
-
-% To create a YOLO v4 deep learning network you must make these changes to the base network:
-% Set the Normalization property of the ImageInputLayer in the base network to 'none'.
-% Remove the fully connected classification layer.
-
-% Define an image input layer with Normalization property value as 'none' and other property values same as that of the base network.
-imageSize = basenet.Layers(1).InputSize;
-layerName = basenet.Layers(1).Name;
-newinputLayer = imageInputLayer(imageSize,'Normalization','none','Name',layerName);
-
-% Remove the fully connected layer in the base network.
-lgraph = layerGraph(basenet);
-lgraph = removeLayers(lgraph,'ClassificationLayer_fc1000');
-lgraph = replaceLayer(lgraph,layerName,newinputLayer);
-
-dlnet = dlnetwork(lgraph);
-featureExtractionLayers = ["activation_22_relu","activation_40_relu"];
 classes = TrainingTables.Properties.VariableNames(2:end);
 
 %Compute the area of each anchor box and sort them in descending order.
@@ -237,7 +234,49 @@ numAnchors = size(anchorBoxes,1);
 numAnchorsHalf = ceil(numAnchors/2);
 anchorBoxes = {sortedAnchors(1:numAnchorsHalf,:) sortedAnchors(numAnchorsHalf+1:end,:)};
 
-lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers);
+% Load pre-trained CNN (see Deep Learning Toolbox documentation on
+% Pretrained Deep Neural Networks)
+switch basemodels
+    %case 'Tiny YOLO v4 COCO'
+    case 1
+        lgraph = yolov4ObjectDetector("tiny-yolov4-coco",classes,anchorBoxes,InputSize=inputSize);
+    %case 'CSP Darknet53 COCO'
+    case 2
+        lgraph = yolov4ObjectDetector("csp-darknet53-coco",classes,anchorBoxes,InputSize=inputSize);
+    %case 'ResNet-50'
+    case 3
+        S = load('Base_ResNet50.mat','blankNet');
+        basenet = S.blankNet;
+
+        % To create a YOLO v4 deep learning network you must make these changes to the base network:
+        % Set the Normalization property of the ImageInputLayer in the base network to 'none'.
+        % Remove the fully connected classification layer.
+        
+        % Define an image input layer with Normalization property value as 'none' and other property values same as that of the base network.
+        imageSize = basenet.Layers(1).InputSize;
+        layerName = basenet.Layers(1).Name;
+        newinputLayer = imageInputLayer(imageSize,'Normalization','none','Name',layerName);
+        
+        % Remove the fully connected layer in the base network.
+        lgraph = basenet;
+        lgraph = removeLayers(lgraph,'ClassificationLayer_fc1000');
+        lgraph = replaceLayer(lgraph,layerName,newinputLayer);
+        
+        dlnet = dlnetwork(lgraph);
+        featureExtractionLayers = ["activation_22_relu","activation_40_relu"];
+
+        lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers);
+    %case 'Other'
+    case 4
+        [fn,pn] = uigetfile('*.mat');
+        S = load(fullfile(pn,fn),'blankNet');
+        basenet = S.blankNet;
+        if isa(basenet,'nnet.cnn.LayerGraph')
+            error('Selected file does not contain the right variable or variable type')
+        end
+        lgraph = basenet;
+end
+
 
 % Train the YOLO v2 network.
 if nargin == 1

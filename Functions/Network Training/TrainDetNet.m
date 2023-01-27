@@ -34,7 +34,7 @@ end
 if ~strcmp(warningmsg,'Train anyway'); return; end
 
 %% Train the network
-choice = questdlg('Train from existing network?', 'Yes', 'No');
+choice = questdlg('Train from existing network?', 'Yes', 'Yes - TensorFlow', 'No');
 switch choice
     case 'Yes'
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
@@ -50,6 +50,9 @@ switch choice
                     end
             end
         end
+        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector);
+    case 'Yes - TensorFlow'
+        detector = importTensorFlowLayers(uigetdir(pwd,'Please select the folder containing saved TensorFlow 2 model (saved_model.pb & variables subfolder)'));
         [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector);
     case 'No'
         [detector, layers, options, info] = TrainSqueakDetector(TrainingTables);
