@@ -34,7 +34,7 @@ end
 if ~strcmp(warningmsg,'Train anyway'); return; end
 
 %% Train the network
-choice = questdlg('Train from existing network?', 'Yes', 'Yes - TensorFlow', 'No');
+choice = questdlg('Train from existing network?', 'Existing Network?', 'Yes', 'Yes - TensorFlow', 'No', 'Yes');
 switch choice
     case 'Yes'
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
