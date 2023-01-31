@@ -34,8 +34,9 @@ for k = 1:length(trainingdata)
     
     % Make a folder for the training images
     [~, filename] = fileparts(trainingdata{k});
-    fname = fullfile(handles.data.squeakfolder,'Training','Images',filename);
-    mkdir(fname);
+    fname = uigetdir(fullfile(handles.data.squeakfolder,'Training','Images'),'Select Folder to Output Training Images');
+%     fname = fullfile(handles.data.squeakfolder,'Training','Images',filename);
+%     mkdir(fname);
     
     % Remove Rejects
     Calls = Calls(Calls.Accept == 1, :);
@@ -115,7 +116,7 @@ for k = 1:length(trainingdata)
                 AmplitudeRange,...
                 replicatenumber,...
                 StretchRange);
-            TTable = [TTable;{fullfile('Training','Images',filename,IMname), box}];
+            TTable = [TTable;{fullfile(fname,IMname), box}];
         end
         catch
             disp("Image/Box is Bad... You Should Feel Bad");
@@ -123,7 +124,9 @@ for k = 1:length(trainingdata)
         waitbar(bin/length(unique(bins)), h, sprintf('Processing File %g of %g', k, length(trainingdata)));        
         
     end
-    save(fullfile(handles.data.squeakfolder,'Training',[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
+    matpath = uigetdir(fullfile(handles.data.squeakfolder,'Training'),'Select Directory to Save Images.mat');
+    save(fullfile(matpath,[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
+    %save(fullfile(handles.data.squeakfolder,'Training',[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
     disp(['Created ' num2str(height(TTable)) ' Training Images']);
 end
 close(h)

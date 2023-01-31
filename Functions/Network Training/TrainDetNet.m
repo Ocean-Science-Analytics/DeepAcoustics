@@ -23,6 +23,9 @@ for i = 1:length(trainingdata)
     TrainingTables = [TrainingTables; TTable];
     AllSettings = [AllSettings; wind noverlap nfft];
 end
+if ~all([isfile(TrainingTables.imageFilename)])
+    error('Images Could Not Be Found On Path Specified in Images.mat')
+end
 
 %% Create a warning if training files were created with different parameters
 warningmsg = 'Train anyway';
