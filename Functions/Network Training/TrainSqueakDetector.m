@@ -6,19 +6,28 @@ function [detector, lgraph, options, info] = TrainSqueakDetector(TrainingTables,
 imdsTrain = imageDatastore(TrainingTables{:,1});
 bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
 dsTrain = combine(imdsTrain,bldsTrain);
-trainingDataForEstimation = bldsTrain;
 
 list = {'Tiny YOLO v4 COCO','CSP-DarkNet-53','ResNet-50','Other'};
 [basemodels,tf] = listdlg('PromptString','Choose a base network','ListString',list,'SelectionMode','single','Name','Base Network');
 if ~tf
     return
 end
-switch basemodels
-    %case 'Tiny YOLO v4 COCO' or 'CSP-DarkNet-53
-    case {1,2}
-        inputSize = [224 224 3];
-        trainingDataForEstimation = transform(dsTrain,@(data)preprocessData(data,inputSize));
+
+samp = read(dsTrain);
+if istable(samp)
+    sampleData = samp{1,1};
+    sampleImg = sampleData{1};
+else
+    sampleData = samp(1,1);
+    sampleImg = sampleData{1};
 end
+
+dim1 = 32*round(size(sampleImg,1)/32);
+dim2 = 32*round(size(sampleImg,2)/32);
+
+% Training image dims need to matchcase 'Tiny YOLO v4 COCO' or 'CSP-DarkNet-53
+inputSize = [dim1 dim2];
+dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
 
 %% Set training options
 bCustomize = questdlg('Would you like to customize your network options or use defaults?','Customize?','Customize','Defaults','Defaults');
@@ -26,7 +35,7 @@ switch bCustomize
     %Default
     case 'Defaults'
         % Set anchor boxes (default = 8)
-        anchorBoxes = estimateAnchorBoxes(trainingDataForEstimation,8);
+        anchorBoxes = estimateAnchorBoxes(dsTrainReSize,8);
         % Set training options
         options = trainingOptions('sgdm',...
                   'InitialLearnRate',0.001,...
@@ -35,6 +44,8 @@ switch bCustomize
                   'MaxEpochs',100,...
                   'Shuffle','every-epoch',...
                   'VerboseFrequency',30,...
+                  'BatchNormalizationStatistics','moving', ... %YOLOv4
+                  'ResetInputNormalization',false, ... %YOLOv4
                   'Plots','training-progress');
     case 'Customize'
         %% Dynamically choose # of Anchor Boxes
@@ -43,7 +54,7 @@ switch bCustomize
         arranchorBoxes = cell(maxNumAnchors, 1);
         for k = 1:maxNumAnchors
             % Estimate anchors and mean IoU.
-            [arranchorBoxes{k},meanIoU(k)] = estimateAnchorBoxes(trainingDataForEstimation,k);    
+            [arranchorBoxes{k},meanIoU(k)] = estimateAnchorBoxes(dsTrainReSize,k);    
         end
 
         figure
@@ -61,7 +72,7 @@ switch bCustomize
         if isempty(nAnchors)
             return
         else
-            anchorBoxes = estimateAnchorBoxes(trainingDataForEstimation,nAnchors);
+            anchorBoxes = estimateAnchorBoxes(dsTrainReSize,nAnchors);
         end
         
         %% Solver for network
@@ -171,6 +182,7 @@ switch bCustomize
                         imdsTrain = imageDatastore(TrainingTables{:,1});
                         bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
                         dsTrain = combine(imdsTrain,bldsTrain);
+                        %dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
                         
                         imdsVal = imageDatastore(valTT{:,1});
                         bldsVal = boxLabelDatastore(valTT(:,2:end));
@@ -178,7 +190,9 @@ switch bCustomize
                 end                
             case 'No'
                 dsVal = [];
-                dsTrain = TrainingTables;
+                %Not sure why this is here so commenting until I'm forced
+                %to remember why
+                %dsTrain = TrainingTables;
         end
         
         % Set training options
@@ -190,6 +204,8 @@ switch bCustomize
                   'Shuffle','every-epoch',...
                   'Verbose',true,...
                   'VerboseFrequency',30,...
+                  'BatchNormalizationStatistics','moving', ... %YOLOv4
+                  'ResetInputNormalization',false, ... %YOLOv4
                   'Plots','training-progress');
 end
 
@@ -232,7 +248,8 @@ sortedAnchors = anchorBoxes(idx,:);
 %evenly...ish
 numAnchors = size(anchorBoxes,1);
 numAnchorsHalf = ceil(numAnchors/2);
-anchorBoxes = {sortedAnchors(1:numAnchorsHalf,:) sortedAnchors(numAnchorsHalf+1:end,:)};
+anchorBoxes = {sortedAnchors(1:numAnchorsHalf,:) 
+    sortedAnchors(numAnchorsHalf+1:end,:)};
 
 % Load pre-trained CNN (see Deep Learning Toolbox documentation on
 % Pretrained Deep Neural Networks)
@@ -253,9 +270,9 @@ switch basemodels
         % Remove the fully connected classification layer.
         
         % Define an image input layer with Normalization property value as 'none' and other property values same as that of the base network.
-        imageSize = basenet.Layers(1).InputSize;
+        %imageSize = basenet.Layers(1).InputSize;
         layerName = basenet.Layers(1).Name;
-        newinputLayer = imageInputLayer(imageSize,'Normalization','none','Name',layerName);
+        newinputLayer = imageInputLayer(inputSize,'Normalization','none','Name',layerName);
         
         % Remove the fully connected layer in the base network.
         lgraph = basenet;
@@ -265,7 +282,7 @@ switch basemodels
         dlnet = dlnetwork(lgraph);
         featureExtractionLayers = ["activation_22_relu","activation_40_relu"];
 
-        lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers);
+        lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers,InputSize=inputSize);
     %case 'Other'
     case 4
         [fn,pn] = uigetfile('*.mat');
@@ -288,3 +305,20 @@ else
 end
 end
 
+function data = preprocessData(data,targetSize)
+% Resize the images and scale the pixels to between 0 and 1. Also scale the
+% corresponding bounding boxes.
+
+for ii = 1:size(data,1)
+    I = data{ii,1};
+    imgSize = size(I);
+    
+    bboxes = data{ii,2};
+
+    I = im2single(imresize(I,targetSize(1:2)));
+    scale = targetSize(1:2)./imgSize(1:2);
+    bboxes = bboxresize(bboxes,scale);
+    
+    data(ii,1:2) = {I,bboxes};
+end
+end
