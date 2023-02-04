@@ -285,8 +285,18 @@ function UnsupClust(app,event)
                     %% Silhouette Graph for This Run
                     figSilh = figure();
                     [s,~] = silhouette(data,clustAssign);
-                    % Stats         
-                    maxS = max(s);
+                    % Stats
+                    %First count singletons
+                    [thisct,uniqCA] = groupcounts(clustAssign);
+                    ctsing = length(thisct(thisct == 1));
+                    singclust = uniqCA(thisct == 1);
+                    snosing = s(~ismember(clustAssign,singclust));
+                    % Other metrics
+                    if ~isempty(snosing)
+                        maxS = max(snosing);
+                    else
+                        maxS = 1;
+                    end
                     %minS = min(s);
                     meanS = mean(s);
                     medianS = median(s);
@@ -303,18 +313,12 @@ function UnsupClust(app,event)
                     % clusters with zero negative members
                     greater0 = length(s(s>0))/length(s);
 
-                    % Count singleton clusters
-                    ctsing = 0;
                     % Calc proportion of clusters > mean S value
                     ct1 = 0;
                     ct2 = 0;
                     accummu = 0;
-                    uniqCA = unique(clustAssign);
                     for i=1:length(uniqCA)
                         accummu = accummu + mean(s(clustAssign==uniqCA(i)));
-                        if sum(clustAssign==uniqCA(i)) == 1
-                            ctsing = ctsing+1;
-                        end
                     end
                     accummu = accummu/length(uniqCA);
                     for i=1:length(uniqCA)
@@ -334,7 +338,7 @@ function UnsupClust(app,event)
                     yticklabels(1:size(C,1))
                     title(sprintf('Silhouettes of Clusters - %d Clusters',size(C,1)),...
                         {sprintf('Mean1 (overall mean, red dashed) = %0.2f  Mean2 (mean by clust, green dotted) = %0.2f',meanS, accummu),...
-                        sprintf('Med = %0.2f  Max = %0.2f  Prop<=0 = %0.2f',...
+                        sprintf('Med = %0.2f  Max (no Sngtons) = %0.2f  Prop<=0 = %0.2f',...
                         medianS, maxS, below_zero),...
                         sprintf('Prop of Cl>Mean1 = %0.2f  Prop of Cl>Mean2 = %0.2f  # Sngtons = %d', ...
                         propCAbMean1,propCAbMean2,ctsing)})
@@ -938,8 +942,19 @@ function C = get_kmeans_centroids(data,varargin)
                     s = silhouette(data,clust);
                     ind = k-minclust+1;
     
-                    % Making numeric vectors for line plots         
-                    maxS(ind) = max(s);
+                    % Making numeric vectors for line plots
+
+                    %First count singletons
+                    [thisct,uniqCA] = groupcounts(clust);
+                    ctsing(ind) = length(thisct(thisct == 1));
+                    singclust = uniqCA(thisct == 1);
+                    snosing = s(~ismember(clust,singclust));
+                    % Other metrics
+                    if ~isempty(snosing)
+                        maxS(ind) = max(snosing);
+                    else
+                        maxS(ind) = 1;
+                    end
                     %minS(ind) = min(s);
                     meanS(ind) = mean(s);
                     medianS(ind) = median(s);
@@ -956,20 +971,13 @@ function C = get_kmeans_centroids(data,varargin)
                     % clusters with zero negative members
                     greater0(ind) = length(s(s>0))/length(s);
                     
-                    % Count singleton clusters
-                    thisctsing = 0;
                     % Calc proportion of clusters > mean S value
                     ct1 = 0;
                     ct2 = 0;
                     thisaccummu = 0;
-                    uniqCA = unique(clust);
                     for i=1:length(uniqCA)
                         thisaccummu = thisaccummu + mean(s(clust==uniqCA(i)));
-                        if sum(clust==uniqCA(i)) == 1
-                            thisctsing = thisctsing+1;
-                        end
                     end
-                    ctsing(ind) = thisctsing;
                     accummu(ind) = thisaccummu/length(uniqCA);
                     for i=1:length(uniqCA)
                         if mean(s(clust==uniqCA(i)))>=meanS(ind)
@@ -1006,7 +1014,7 @@ function C = get_kmeans_centroids(data,varargin)
                 plot(xvals, ctsing, '-k');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
-                legend('Overall Mean', 'Max S', 'Prop > Overall Mean', 'Prop > Mean by Cluster', '# Singletons',...
+                legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', '# Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
