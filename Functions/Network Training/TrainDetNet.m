@@ -67,7 +67,7 @@ wind = max(AllSettings(:,1));
 noverlap = max(AllSettings(:,2));
 nfft = max(AllSettings(:,3));
 
-version = handles.DSVersion;
+version = handles.DWVersion;
 save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength');
 
 %% Update the menu
