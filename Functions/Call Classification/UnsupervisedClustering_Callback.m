@@ -893,6 +893,7 @@ function C = get_kmeans_centroids(data,varargin)
                 greater8 = zeros(1,(maxclust-minclust+1));
                 greater0 = zeros(1,(maxclust-minclust+1));
                 ctsing = zeros(1,(maxclust-minclust+1));
+                propsing = zeros(1,(maxclust-minclust+1));
                 accummu = zeros(1,(maxclust-minclust+1));
                 propCAbMean1 = zeros(1,(maxclust-minclust+1));
                 propCAbMean2 = zeros(1,(maxclust-minclust+1));
@@ -917,6 +918,7 @@ function C = get_kmeans_centroids(data,varargin)
                     %First count singletons
                     [thisct,uniqCA] = groupcounts(clust);
                     ctsing(ind) = length(thisct(thisct == 1));
+                    propsing(ind) = ctsing(ind)/length(uniqCA);
                     singclust = uniqCA(thisct == 1);
                     snosing = s(~ismember(clust,singclust));
                     % Other metrics
@@ -965,8 +967,8 @@ function C = get_kmeans_centroids(data,varargin)
     
                 %% Silhouettes Plot
                 figure()
-                colororder({'b','k'})
-                yyaxis left
+                %colororder({'b','k'})
+                %yyaxis left
                 xvals = minclust:maxclust;
                 %plot(xvals, greater8, 'Color', 'blue');
                 plot(xvals, meanS, '-b');
@@ -979,16 +981,17 @@ function C = get_kmeans_centroids(data,varargin)
                 %plot(xvals, meanAbv_zero, 'Color', 'magenta');
                 plot(xvals, propCAbMean1, '-m');
                 plot(xvals, propCAbMean2, '-c');
-                ylabel('Silhouette Value')
-                yyaxis right
-                plot(xvals, ctsing, '-k');
+                plot(xvals, propsing,'-k');
+                ylabel('Silhouette Value');
+                %yyaxis right
+                %plot(xvals, ctsing, '-k');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
-                legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', '# Singletons',...
+                legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', 'Prop Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
-                ylabel('# of Singleton Clusters')
+                %ylabel('# of Singleton Clusters')
                 
                 if nargin == 3
                     figfilename = sprintf('BatchSilhouette_%s_%dClusters.png',batchtable.modelname{:},k);
