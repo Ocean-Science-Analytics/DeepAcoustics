@@ -106,12 +106,25 @@ for i = 1:length(chunks)-1
 
         % Detect!
         [bboxes, scores, Class] = detect(network, im2uint8(im), 'ExecutionEnvironment','auto','SelectStrongest',1);
-        
+        % Convert bboxes to ints (I'm not sure why they're not...)
+        nbboxes = int16(bboxes);
+        % Check bbox limits
+        % No zeros (must be at least 1)
+        nbboxes(nbboxes==0) = 1;
+        % start time index must be at least 1 less than length of ti
+        nbboxes(nbboxes(:,1) > length(ti)-1,1) = length(ti)-1;
+        % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
+        nbboxes((nbboxes(:,3)+nbboxes(:,1)) > length(ti),3) = length(ti)-nbboxes((nbboxes(:,3)+nbboxes(:,1)) > length(ti),1);
+        % start freq index must be at least 1 less than length of fr
+        nbboxes(nbboxes(:,2) > length(fr)-1,2) = length(fr)-1;
+        % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
+        nbboxes((nbboxes(:,4)+nbboxes(:,2)) > length(fr),4) = length(fr)-nbboxes((nbboxes(:,4)+nbboxes(:,2)) > length(fr),2);
+
         % Convert boxes from pixels to time and kHz
-        bboxes(:,1) = ti(bboxes(:,1)) + (windL ./ audio_info.SampleRate);
-        bboxes(:,2) = fr(upper_freq - (bboxes(:,2) + bboxes(:,4))) ./ 1000;
-        bboxes(:,3) = ti(bboxes(:,3));
-        bboxes(:,4) = fr(bboxes(:,4)) ./ 1000;
+        bboxes(:,1) = ti(nbboxes(:,1)) + (windL ./ audio_info.SampleRate);
+        bboxes(:,2) = fr(upper_freq - (nbboxes(:,2) + nbboxes(:,4))) ./ 1000;
+        bboxes(:,3) = ti(nbboxes(:,3));
+        bboxes(:,4) = fr(nbboxes(:,4)) ./ 1000;
         
         % Concatinate the results
         AllBoxes=[AllBoxes
