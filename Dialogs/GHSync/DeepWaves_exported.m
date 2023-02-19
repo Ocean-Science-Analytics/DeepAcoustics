@@ -752,12 +752,14 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         % Button pushed function: buttonDetectCalls
         function buttonDetectCalls_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
+            update_folders(hObject, eventdata, handles);
             DetectCalls(hObject, eventdata, handles, true)
         end
 
         % Button pushed function: buttonMultiDetect
         function buttonMultiDetect_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
+            update_folders(hObject, eventdata, handles); 
             DetectCalls(hObject, eventdata, handles, false)
         end
 
