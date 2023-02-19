@@ -37,7 +37,7 @@ end
 
 Settings = [];
 for k=1:length(networkselections)
-    prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Frequency Cut Off High (kHZ)','Frequency Cut Off Low (kHZ)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
+    prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (kHZ)','High Frequency Cutoff (kHZ)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
     dlg_title = ['Settings for ' handles.networkfiles(networkselections(k)).name];
     num_lines=[1 100]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
     def = handles.data.settings.detectionSettings;
