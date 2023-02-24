@@ -34,8 +34,18 @@ bCustomize = questdlg('Would you like to customize your network options or use d
 switch bCustomize
     %Default
     case 'Defaults'
-        % Set anchor boxes (default = 8)
-        anchorBoxes = estimateAnchorBoxes(dsTrainReSize,8);
+        % Set anchor boxes (default = 8/9)
+        % Must be even number for Tiny YOLO v4 and divisible by 3 for
+        % Darknet
+        switch basemodels
+        %case 'Tiny YOLO v4 COCO'
+        case 1
+            nAnchors = 8;
+        %case 'CSP Darknet53 COCO'
+        case 2
+            nAnchors = 9;
+        end
+        anchorBoxes = estimateAnchorBoxes(dsTrainReSize,nAnchors);
         % Set training options
         options = trainingOptions('sgdm',...
                   'InitialLearnRate',0.01,...
@@ -65,9 +75,21 @@ switch bCustomize
 
         nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
                      'Anchor Boxes', [1 50]));
-        % Must be even number for YOLO v$
-        if mod(nAnchors,2) ~= 0
-            nAnchors = nAnchors + 1;
+        % Must be even number for Tiny YOLO v4 and divisible by 3 for
+        % Darknet
+        switch basemodels
+        %case 'Tiny YOLO v4 COCO'
+        case 1
+            if mod(nAnchors,2) ~= 0
+                nAnchors = nAnchors + 1;
+            end
+        %case 'CSP Darknet53 COCO'
+        case 2
+            if mod(nAnchors,3) == 1
+                nAnchors = nAnchors + 2;
+            elseif mod(nAnchors,3) == 2
+                nAnchors = nAnchors + 1;
+            end
         end
         if isempty(nAnchors)
             return
@@ -247,21 +269,29 @@ sortedAnchors = anchorBoxes(idx,:);
 %There are two detection heads in the YOLO v4 network, so divide
 %evenly...ish
 numAnchors = size(anchorBoxes,1);
-numAnchorsHalf = ceil(numAnchors/2);
-anchorBoxes = {sortedAnchors(1:numAnchorsHalf,:) 
-    sortedAnchors(numAnchorsHalf+1:end,:)};
 
 % Load pre-trained CNN (see Deep Learning Toolbox documentation on
 % Pretrained Deep Neural Networks)
 switch basemodels
     %case 'Tiny YOLO v4 COCO'
     case 1
+        numAnchorsHalf = ceil(numAnchors/2);
+        anchorBoxes = {sortedAnchors(1:numAnchorsHalf,:) 
+            sortedAnchors(numAnchorsHalf+1:end,:)};
         lgraph = yolov4ObjectDetector("tiny-yolov4-coco",classes,anchorBoxes,InputSize=inputSize);
     %case 'CSP Darknet53 COCO'
     case 2
+        numAnchorsThird = ceil(numAnchors/3);
+        anchorBoxes = {sortedAnchors(1:numAnchorsThird,:)
+            sortedAnchors(numAnchorsThird+1:numAnchorsThird*2,:)
+            sortedAnchors(numAnchorsThird*2+1:end,:)};
         lgraph = yolov4ObjectDetector("csp-darknet53-coco",classes,anchorBoxes,InputSize=inputSize);
     %case 'ResNet-50'
     case 3
+        numAnchorsHalf = ceil(numAnchors/2);
+        anchorBoxes = {sortedAnchors(1:numAnchorsHalf,:) 
+            sortedAnchors(numAnchorsHalf+1:end,:)};
+
         S = load('Base_ResNet50.mat','blankNet');
         basenet = S.blankNet;
 
@@ -285,6 +315,10 @@ switch basemodels
         lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers,InputSize=inputSize);
     %case 'Other'
     case 4
+        numAnchorsThird = ceil(numAnchors/3);
+        anchorBoxes = {sortedAnchors(1:numAnchorsThird,:)
+            sortedAnchors(numAnchorsThird+1:numAnchorsThird*2,:)
+            sortedAnchors(numAnchorsThird*2+1:end)};
         [fn,pn] = uigetfile('*.mat');
         S = load(fullfile(pn,fn),'blankNet');
         basenet = S.blankNet;
