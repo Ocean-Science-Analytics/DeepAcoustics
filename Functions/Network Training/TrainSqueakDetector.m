@@ -22,21 +22,27 @@ else
     sampleImg = sampleData{1};
 end
 
+dim1 = size(sampleImg,1);
+dim2 = size(sampleImg,2);
+
 if basemodels == 1
     dim1 = 32*round(size(sampleImg,1)/32);
     dim2 = 32*round(size(sampleImg,2)/32);
 elseif basemodels == 2
+    if dim1 ~= dim2
+        error('Oops, image not square, talk to Gabi')
+    end
     warning('If GPU crashes, Darknet COCO may require a smaller image size.')
     prompt = {'Enter image size (square):'};
     dlgtitle = 'Image Size';
     dims = [1 35];
-    definput = {'288'};
+    definput = {dim1};
     dim1 = str2double(inputdlg(prompt,dlgtitle,dims,definput));
     if mod(dim1,32) ~= 0
-        warning('COCO models require image size be a multiple of 32; automatically rounding up to nearest multiple')
+        warning('COCO models require image size be a multiple of 32; automatically rounding to nearest multiple')
         dim1 = 32*round(dim1/32);
-        dim2 = dim1;
     end
+    dim2 = dim1;
 end
 
 % Training image dims need to matchcase 'Tiny YOLO v4 COCO' or 'CSP-DarkNet-53
