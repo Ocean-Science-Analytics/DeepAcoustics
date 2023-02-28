@@ -36,7 +36,7 @@ elseif basemodels == 2
     prompt = {'Enter image size (square):'};
     dlgtitle = 'Image Size';
     dims = [1 35];
-    definput = {dim1};
+    definput = {num2str(dim1)};
     dim1 = str2double(inputdlg(prompt,dlgtitle,dims,definput));
     if mod(dim1,32) ~= 0
         warning('COCO models require image size be a multiple of 32; automatically rounding to nearest multiple')
