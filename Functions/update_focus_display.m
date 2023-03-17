@@ -56,6 +56,11 @@ handles.ContourLine.YData = [ls(1), ls(1) + ls(2) * size(I,2)];
 % Update call statistics text
 set(handles.Ccalls,'String',['Call: ' num2str(handles.data.currentcall) '/' num2str(height(handles.data.calls))]);
 set(handles.score,'String',['Score: ' num2str(handles.data.calls.Score(handles.data.currentcall))]);
+if any(strcmp('Ovlp', handles.data.calls.Properties.VariableNames))
+    set(handles.ovlp,'String',['Ovlp: ' num2str(handles.data.calls.Ovlp(handles.data.currentcall))]);
+else
+    set(handles.ovlp,'String','Ovlp: N/A')
+end
 if handles.data.calls.Accept(handles.data.currentcall)
     set(handles.status,'String','Accepted');
     set(handles.status,'ForegroundColor',[0,1,0]); 

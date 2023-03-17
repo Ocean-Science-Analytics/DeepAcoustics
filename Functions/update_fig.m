@@ -57,6 +57,12 @@ handles = render_call_position(handles, handles.update_position_axes);
 handles = render_call_boxes(handles.spectrogramWindow, handles,false,false);
 handles = render_call_boxes(handles.focusWindow, handles, true,false);
 
+%% If running Precision/Recall, display Annotations too
+if handles.data.bAnnotate
+    handles = render_ann_boxes(handles.spectrogramWindow, handles,false,false);
+    handles = render_ann_boxes(handles.focusWindow, handles, true,false);
+end
+
 % Deals with a random figure popping up rarely.... literally no idea why
 chkfig = findobj('type','figure');
 % Make sure not main window (which has Number == [] and Name = 'DeepWaves'

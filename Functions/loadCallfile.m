@@ -31,6 +31,9 @@ if isfield(data, 'Calls')
     if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames))
         Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
     end
+    if ~any(strcmp('Ovlp', Calls.Properties.VariableNames))
+        Calls.Ovlp(:) = 0;
+    end
 
     if ~isfield(data,'spect')
         if ~isempty(handles)

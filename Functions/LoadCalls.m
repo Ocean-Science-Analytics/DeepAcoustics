@@ -34,6 +34,8 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
 end
 
 h = waitbar(0,'Loading Calls Please wait...');
+% Whenever load new file, reset bAnnotate to false
+handles.data.bAnnotate = false;
 handles.data.calls = [];
 handles.data.audiodata = [];
 [handles.data.calls, handles.data.audiodata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);

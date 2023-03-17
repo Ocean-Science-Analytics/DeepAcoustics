@@ -77,6 +77,16 @@ else
     if isempty(handles.detectionfilesnames)
         set(handles.popupmenuDetectionFiles,'String','No Detections in Folder','value',1);
     else
+        if numel(handles.popupmenuDetectionFiles.String) ~= numel(handles.detectionfilesnames)
+            currsel = get(handles.popupmenuDetectionFiles,'Value');
+            currsel = handles.popupmenuDetectionFiles.String{currsel};
+            newVal = find(strcmp(currsel,handles.detectionfilesnames));
+            if ~isempty(newVal)
+                set(handles.popupmenuDetectionFiles,'Value',newVal);
+            else
+                set(handles.popupmenuDetectionFiles,'Value',1);
+            end
+        end
         set(handles.popupmenuDetectionFiles,'String',handles.detectionfilesnames);
         if handles.popupmenuDetectionFiles.Value > length(handles.popupmenuDetectionFiles.String)
             set(handles.popupmenuDetectionFiles,'Value',1);
