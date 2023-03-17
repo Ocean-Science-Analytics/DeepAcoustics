@@ -24,7 +24,7 @@ classdef clusteringGUI < handle
     end
     
     methods
-        function [obj, NewclusterName, NewRejected, NewFinished, NewClustAssign] = clusteringGUI(clustAssign, ClusteringData)
+        function [obj, NewclusterName, NewRejected, NewFinished, NewClustAssign] = clusteringGUI(clustAssign, ClusteringData, parentapp, parentevent)
             
             obj.clustAssign = clustAssign;
             %Image, Lower freq, delta time, Time points, Freq points, File path, Call ID in file, power, RelBox
@@ -52,7 +52,7 @@ classdef clusteringGUI < handle
             end
             
             obj.fig = dialog('Visible','off','Position',[360,500,600,600],'WindowStyle','Normal','resize', 'on','WindowState','maximized' );
-            obj.fig.CloseRequestFcn = @(src,event) finished_Callback(obj, src, event);
+            obj.fig.CloseRequestFcn = @(src,event) finished_Callback(obj, src, event, parentapp, parentevent);
             set(obj.fig,'color',[.1, .1, .1]);
             
             movegui(obj.fig,'center');
@@ -102,7 +102,7 @@ classdef clusteringGUI < handle
                 'ForegroundColor','w',...
                 'Position',[440 550 60 30],...
                 'String','Save',...
-                'Callback',@(src,event)  finished_Callback(obj, src, event));
+                'Callback',@(src,event)  finished_Callback(obj, src, event, parentapp, parentevent));
             
             if nargin == 2
                 redo = uicontrol('Parent',obj.fig,...
@@ -110,14 +110,14 @@ classdef clusteringGUI < handle
                     'ForegroundColor','w',...
                     'Position',[510 550 60 30],...
                     'String','Redo',...
-                    'Callback',@(src,event) finished_Callback(obj, src, event));
+                    'Callback',@(src,event) finished_Callback(obj, src, event, parentapp, parentevent));
             else
                 redo = uicontrol('Parent',obj.fig,...
                     'BackgroundColor',[.149 .251 .251],...
                     'ForegroundColor','w',...
                     'Position',[510 550 60 30],...
                     'String','Cancel',...
-                    'Callback',@(src,event) finished_Callback(obj, src, event));
+                    'Callback',@(src,event) finished_Callback(obj, src, event, parentapp, parentevent));
             end
             %% Paging
             nextpage = uicontrol('Parent',obj.fig,...
@@ -290,6 +290,7 @@ classdef clusteringGUI < handle
                 plotxIP = resz(2)*conttIP/ClusteringData.TimeScale(clustIndex(callID))+pad(2);
                 plotxext = resz(2)*conttext/ClusteringData.TimeScale(clustIndex(callID))+pad(2);
                 
+
 %                 dotheight = 1;
 %                 dotlength = 5;
 %                 
@@ -596,7 +597,7 @@ classdef clusteringGUI < handle
             obj.clusterName(obj.currentCluster) = get(hObject,'String');
         end
 
-        function obj = finished_Callback(obj, hObject, eventdata)
+        function obj = finished_Callback(obj, hObject, eventdata, parentapp, parentevent)
             % If window is closed, finished = 2
             % If clicked apply, finished = 1
             % If clicked redo, finished = 0
@@ -608,10 +609,17 @@ classdef clusteringGUI < handle
                         case 'Save'
                             obj.finished = 1;
                             
+                            hObject.Enable = 'off';
+                            pind = regexp(char(obj.ClusteringData{1,'Filename'}),'\');
+                            pind = pind(end);
+                            pname = char(obj.ClusteringData{1,'Filename'});
+                            pname = pname(1:pind);
+                            parentapp.RunUnsupClustSaveDlg(pname);
+                            
                             % Save the cluster images
-                            saveChoice =  questdlg('Save file with Cluster Images? (NOT recommended for big datasets)','Save images','Yes','No','No');
-                            switch saveChoice
-                                case 'Yes'
+                            %saveChoice =  questdlg('Save file with Cluster Images? (NOT recommended for big datasets)','Save images','Yes','No','No');
+                            switch parentapp.bClustImg
+                                case true
                                     % Start at beginning
                                     obj.currentCluster = 1;
                                     obj.page = 1;
@@ -626,11 +634,7 @@ classdef clusteringGUI < handle
 %                                         [thisim,~] = frame2im(getframe(obj.fig));
 %                                         montarr = [montarr, thisim];
                                         thisfnm = ['ClusteringImg_',sprintf('%03d',obj.currentCluster),'_',sprintf('%03d',obj.page),'.png'];
-                                        pind = regexp(char(obj.ClusteringData{1,'Filename'}),'\');
-                                        pind = pind(end);
-                                        pname = char(obj.ClusteringData{1,'Filename'});
-                                        pname = pname(1:pind);
-                                        saveas(obj.fig,fullfile(pname,thisfnm));
+                                        saveas(obj.fig,fullfile(parentapp.strUnsupSaveLoc,thisfnm));
                                         % Cycle through all pages for that
                                         % cluster
                                         numpgs = ceil(obj.count(obj.currentCluster) / length(obj.image_axes));
@@ -642,16 +646,12 @@ classdef clusteringGUI < handle
 %                                             [thisim,~] = frame2im(getframe(obj.fig));
 %                                             montarr = [montarr, thisim];
                                             thisfnm = ['ClusteringImg_',sprintf('%03d',obj.currentCluster),'_',sprintf('%03d',obj.page),'.png'];
-                                            pind = regexp(char(obj.ClusteringData{1,'Filename'}),'\');
-                                            pind = pind(end);
-                                            pname = char(obj.ClusteringData{1,'Filename'});
-                                            pname = pname(1:pind);
-                                            saveas(obj.fig,fullfile(pname,thisfnm));
+                                            saveas(obj.fig,fullfile(parentapp.strUnsupSaveLoc,thisfnm));
                                         end
                                         % Next cluster
                                         next_Callback(obj, hObject, eventdata);
                                     end
-                                case 'No'
+                                case false
                             end
                         case 'Redo'
                             obj.finished = 0;

@@ -38,16 +38,17 @@ chunksize=networkfile.imLength*.8;
 %Overlap between chucks (s)
 overlap=networkfile.imLength*.2;
 
+% Switched high- and low-freq cutoff order in dialog, but should be back
+% compatible
 % (2) High frequency cutoff (kHz)
-if audio_info.SampleRate < (Settings(2)*1000)*2
+HighCutoff = max(Settings(2),Settings(3));
+if audio_info.SampleRate < (HighCutoff*1000)*2
     disp('Warning: Upper frequency is above sampling rate / 2. Lowering it to the Nyquist frequency.');
     HighCutoff=floor(audio_info.SampleRate/2000);
-else
-    HighCutoff = Settings(2);
 end
 
 % (3) Low frequency cutoff (kHz)
-LowCutoff = Settings(3);
+LowCutoff = min(Settings(2),Settings(3));
 
 % (4) Score cutoff (kHz)
 score_cuttoff=Settings(4);
@@ -158,7 +159,7 @@ Calls = merge_boxes(AllBoxes, AllScores, AllClass, audio_info, 1, score_cuttoff,
 % Merge long 22s if detected with a long 22 network
 if contains(networkname,'long','IgnoreCase',true) & ~isempty(Calls)
     try
-        Calls = SeperateLong22s_Callback([],[],[],inputfile,Calls);
+        Calls = SeparateLong22s([],[],[],inputfile,Calls);
     catch ME
         disp(ME)
     end

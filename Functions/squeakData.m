@@ -44,7 +44,7 @@ classdef squeakData < handle
             obj.defaultSettings.EntropyThreshold = 0.215;
             obj.defaultSettings.labels = {'1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24'};
             obj.defaultSettings.pageSize = 3; % Size of page view in seconds
-            obj.defaultSettings.spectogram_ticks = 11;
+            obj.defaultSettings.spectrogram_ticks = 11;
             obj.defaultSettings.focus_window_size = 0.5;
             obj.defaultSettings.spectrogramContrast = [-.6, 3];
             % Spectrogram fft settings in seconds

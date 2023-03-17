@@ -17,7 +17,7 @@ if ~isempty(handles.data.calls)
         saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Detection file has been modified. Would you like to save changes?','Save Detection File?','Yes','No',opts);
         switch saveChanges
             case 'Yes'
-                savesession_Callback(hObject, eventdata, handles);
+                SaveSession(hObject, eventdata, handles);
             case 'No'
         end
     end

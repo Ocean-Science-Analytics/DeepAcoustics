@@ -1,4 +1,4 @@
-function UnsupervisedClustering_Callback(hObject, eventdata, handles)
+function UnsupClust(hObject, eventdata, handles)
     % Cluster with k-means or adaptive
     
 %     SuperBatch = questdlg({'Do you want to do a super batch run using a special mat?'; ...
