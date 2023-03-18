@@ -23,8 +23,11 @@ switch answer
         bAutoTry = false;
         
         %% Get the files
+        % Select set of Raven selection tables
         [ravenname,ravenpath] = uigetfile(fullfile(handles.data.squeakfolder,'*.txt;*.csv'),...
             'Select Raven Log - Can Select Multiple','MultiSelect','on');
+        % Select directory containing audio files corresponding to Raven
+        % tables
         audiopath = uigetdir(ravenpath,'Select Directory Containing Corresponding Audio Files');
         audiodir = [dir([audiopath '\*.wav']); ...
             dir([audiopath '\*.ogg']); ...
@@ -37,15 +40,25 @@ switch answer
             dir([audiopath '\*.mp3']); ...
             dir([audiopath '\*.m4a']); ...
             dir([audiopath '\*.mp4'])];
-        outpath = uigetdir(ravenpath,'Select Directory To Save Output Files (WARNING: Will Overwrite)');
+        % Select output directory for saving generated Detections.mat
+        outpath = uigetdir(ravenpath,'Select Directory To Save Output Detections.mat (WARNING: Will Overwrite)');
 
+        % If only one raven table selected, needs to be reformatted as a
+        % cell array so later code works
         if ischar(ravenname)
             ravenname = {ravenname};
         end
+        % Initialize container for the audio files that correspond to each
+        % Raven table file
         audioname = cell(size(ravenname));
     case 'No - I am doing only one table and its one audio file'
+        % Because there is a one-to-one match, we will not need to try to
+        % figure out which audio files go with which tables, so setting
+        % this to true will allow us to skip that part of the code
         bAutoTry = true;
+        % Select single Raven selection table
         [ravenname,ravenpath] = uigetfile(fullfile(handles.data.squeakfolder,'*.txt;*.csv'),'Select Raven Log');
+        % Select single audio file that goes with that selection table
         [thisaudioname, audiopath] = uigetfile({
             '*.wav;*.ogg;*.flac;*.UVD;*.au;*.aiff;*.aif;*.aifc;*.mp3;*.m4a;*.mp4' 'Audio File'
             '*.wav' 'WAVE'
@@ -57,52 +70,80 @@ switch answer
             '*.mp3', 'MP3 (it''s probably a bad idea to record in MP3'
             '*.m4a;*.mp4' 'MPEG-4 AAC'
             }, 'Select Audio File',ravenpath);
+        % Select output directory for saving generated Detections.mat
         outpath = uigetdir(ravenpath,'Select Directory To Save Output Files (WARNING: Will Overwrite)');
-        audioname = {{thisaudioname}};
+        % Reformat variable type for name of Raven selection table file and
+        % name of audio file
         ravenname = {ravenname};
+        audioname = {{thisaudioname}};
     case 'Cancel'
         uiwait(msgbox('You chose to cancel the Raven import'))
         return
 end
 
+% If we are importing either multiple Raven tables or multiple audio
+% files...
 if ~bAutoTry
+    % For every Raven selection table selected...
     for i = 1:length(ravenname)
+        % Import as table (method depends on incoming file type)
         if strcmp(ravenname{i}(end-2:end),'csv')
             ravenTable = readtable([ravenpath ravenname{i}]);
         else
             ravenTable = readtable([ravenpath ravenname{i}], 'Delimiter', 'tab');
         end
-
+        % Look for the columns we need to create Detections Table
+        % BeginFile = the audio file corresponding to that detection
         if any(strcmp('BeginFile',ravenTable.Properties.VariableNames))
+            % Error out if field with seconds into file is missing
             if ~ismember('FileOffset_s_', ravenTable.Properties.VariableNames)
                 error('"BeginFile" is present but "FileOffset_s_" is not a field in your Raven table')
+            % Error out if all fields that help figure out end time of
+            % detection is missing
             elseif ~ismember('DeltaTime_s_', ravenTable.Properties.VariableNames) && ~ismember('EndTime_s_', ravenTable.Properties.VariableNames)
                 error('%s\n%s\n', '"BeginFile" and "FileOffset_s_" are present but both "DeltaTime_s_"',...
                     'and "EndTime_s_" are missing from your Raven table and you need at least one of them.')
             end
+            % Store the audio files that are included in this selection
+            % table
             audioname{i} = unique(ravenTable.BeginFile);
         else
-            warning('"BeginFile" is not a field in your Raven table - will attempt to auto-match a wav file')
+            % Switch to a mode that will try to auto-match an audio file
+            % based on the filename of the selection table
+            warning('"BeginFile" is not a field in your Raven table - will attempt to auto-match an audio file. \nThis will NOT work properly if there are multiple audio files corresponding to your Raven table')
             bAutoTry = true;
         end
 
+        % If need to try and auto-match an audio file to a selection
+        % table...
         if bAutoTry
+            % First look for YYMMDD.*HHMMSS
             [datetime,~] = regexp(ravenname{i},'([0-9]{6}).*([0-9]{6})','tokens','match');
+            % If failure, then try YYMMDD.*HHMM
             if isempty(datetime)
                 [datetime,~] = regexp(ravenname{i},'([0-9]{6}).*([0-9]{4})','tokens','match');
             end
+            % If success, look for that date/time in audio file directory
             if ~isempty(datetime)
+                % First look for exact match
                 audiomatch = regexp({audiodir.name},['.*' datetime{1}{1} '.*' datetime{1}{2} '.*'],'match');
                 audiomatch = ~cellfun(@isempty, audiomatch);
+                % If failure, try HHMM (assumes match attempt is for
+                % HHMMSS)
                 if ~any(audiomatch)
                     audiomatch = regexp({audiodir.name},['.*' datetime{1}{1} '.*' datetime{1}{2}(1:4) '.*'],'match');
                     audiomatch = ~cellfun(@isempty, audiomatch);
                 end
             end
+            % If failure to find any date/time in file name OR matched none
+            % or multiple audio files to the found date/time format, alert
+            % user that they will have to do the Raven table import
+            % one-by-one and initialize one import to start
             if isempty(datetime) || length(find(audiomatch)) ~= 1
                 uiwait(msgbox('Could not automatically match all wav files to txt files - you will have to do them one-by-one'))
+                % Select single Raven selection table
                 [ravenname,ravenpath] = uigetfile(fullfile(ravenpath,'*.txt;*.csv'),'Select Raven Log');
-                %ravenTable = readtable([ravenpath ravenname], 'Delimiter', 'tab');
+                % Select single audio file that goes with that selection table
                 [thisaudioname, audiopath] = uigetfile({
                     '*.wav;*.ogg;*.flac;*.UVD;*.au;*.aiff;*.aif;*.aifc;*.mp3;*.m4a;*.mp4' 'Audio File'
                     '*.wav' 'WAVE'
@@ -114,28 +155,37 @@ if ~bAutoTry
                     '*.mp3', 'MP3 (it''s probably a bad idea to record in MP3'
                     '*.m4a;*.mp4' 'MPEG-4 AAC'
                     }, 'Select Audio File',audiopath);
+                % Reformat variable type for name of Raven selection table file and
+                % name of audio file
                 audioname = {{thisaudioname}};
                 ravenname = {ravenname};
                 break;
             else
+                % If success, store the matched audio file's name for
+                % further importing
                 audioname{i} = {audiodir(audiomatch).name};
             end
         end
     end
 end
 
+% For every incoming selection table...
 for i = 1:length(ravenname)
+    % Import as table (method depends on incoming file type)
     if strcmp(ravenname{i}(end-2:end),'csv')
         ravenTable = readtable([ravenpath ravenname{i}]);
     else
         ravenTable = readtable([ravenpath ravenname{i}], 'Delimiter', 'tab');
     end
+    % For every audio file contained within this Raven selection table
     for j = 1:length(audioname{i})
+        % subTable = only the dets that belong to this audio file
         if length(audioname{i}) > 1
             subTable = ravenTable(strcmp(audioname{i}{j},ravenTable.BeginFile),:);
         else
             subTable = ravenTable;
         end
+        % Import audiodata
         audiodata = audioinfo(fullfile(audiopath, audioname{i}{j}));
         if audiodata.NumChannels > 1
             warning('Audio file contains more than one channel. Use channel 1...')
@@ -152,7 +202,7 @@ for i = 1:length(ravenname)
             subTable.BeginTime_s_ = subTable.FileOffset_s_;
         end
 
-        %% Get the data from the raven file
+        %% Get the data from the raven file needed for Detections.mat
         Box    = [subTable.BeginTime_s_, subTable.LowFreq_Hz_/1000, subTable.DeltaTime_s_, (subTable.HighFreq_Hz_ - subTable.LowFreq_Hz_)/1000];
         Score  = ones(height(subTable),1);
         Accept = ones(height(subTable),1);
@@ -168,9 +218,9 @@ for i = 1:length(ravenname)
 
         %% Put all the variables into a table
         Calls = table(Box,Score,Accept,Type,'VariableNames',{'Box','Score','Accept','Type'});
-
+        % Auto-name Detections.mat using audioname
         [~ ,FileName] = fileparts(audioname{i}{j});
-        %[FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [name '.mat']),'Save Call File');
+        % Save Detections.mat
         save(fullfile(outpath,[FileName '_Detections.mat']),'Calls', 'audiodata','-v7.3');
         close(hc);
     end
