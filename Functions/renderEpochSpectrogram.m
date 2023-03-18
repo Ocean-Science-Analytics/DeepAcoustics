@@ -40,9 +40,14 @@ set(handles.spectrogramWindow,...
     'Ylim',f([1,end])/1000);
 set(handles.epochSpect,'CData',s_display,'XData', t, 'YData',f/1000);
 
-
+if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && height(handles.data.calls) > 0 && isa(handles.data.calls.StTime(1),'datetime')
+    sttime = handles.data.calls.StTime(1) - handles.data.calls.Box(1,1)/86400;
+else
+    sttime = 0;
+end
+    
 % set(handles.spectrogramWindow,'YDir', 'normal','YColor',[1 1 1],'XColor',[1 1 1],'Clim', clim);
-set_tick_timestamps(handles.spectrogramWindow, false);
+set_tick_timestamps(handles.spectrogramWindow,false,sttime);
 
 
 %% Plot Spectrogram in the focus view

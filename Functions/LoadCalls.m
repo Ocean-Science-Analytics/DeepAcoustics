@@ -12,7 +12,7 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
     
     %Check if detection file has changed to save file before loading a new one.
     if ~isempty(handles.data.calls)
-        [~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
+        [~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
         if ~isequal(modcheck.calls, handles.data.calls) || ~isequal(modcheck.spect, handles.data.settings.spect)
             opts.Interpreter = 'tex';
             opts.Default='Yes';
@@ -38,7 +38,7 @@ h = waitbar(0,'Loading Calls Please wait...');
 handles.data.bAnnotate = false;
 handles.data.calls = [];
 handles.data.audiodata = [];
-[handles.data.calls, handles.data.audiodata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
+[handles.data.calls, handles.data.audiodata, handles.data.settings.spect] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
 
 % Position of the focus window to the first call in the file
 handles.data.focusCenter = handles.data.calls.Box(1,1) + handles.data.calls.Box(1,3)/2;

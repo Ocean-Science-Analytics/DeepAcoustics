@@ -1,10 +1,11 @@
-function [Calls,audiodata,ClusteringData,modcheck] = loadCallfile(filename,handles)
+function [Calls,audiodata,spect,ClusteringData,modcheck] = loadCallfile(filename,handles)
 
 modcheck = struct();
 data = load(filename);
 
 Calls = table();
 audiodata = struct();
+spect = [];
 ClusteringData = table();
 
 if isfield(data, 'audiodata')
@@ -34,6 +35,15 @@ if isfield(data, 'Calls')
     if ~any(strcmp('Ovlp', Calls.Properties.VariableNames))
         Calls.Ovlp(:) = 0;
     end
+    if ~any(strcmp('StTime', Calls.Properties.VariableNames))
+        if ~isempty(audiodata)
+            [~,fnonly,~] = fileparts(filename);
+            Calls = AddDateTime(Calls,audiodata,fnonly);
+        else
+            Calls.StTime(:) = 0;
+        end
+        save(filename,'Calls','-append');
+    end
 
     if ~isfield(data,'spect')
         if ~isempty(handles)
@@ -46,14 +56,16 @@ if isfield(data, 'Calls')
     else
         spect = data.spect;
     end
-    if nargout == 4
+    if nargout == 5
         %% Output for detection mat modification check
         modcheck.calls = data.Calls;
         modcheck.spect = spect;
     else
+        % This may not actually be working right because this fn doesn't
+        % have the power to update handles...
         handles.data.settings.spect = spect;
     end
-elseif nargout < 3 % If ClusteringData is requested, we don't need Calls
+elseif nargout < 4 % If ClusteringData is requested, we don't need Calls
     error('This doesn''t appear to be a detection file!')
 end
 
@@ -70,7 +82,7 @@ if isfield(data, 'ClusteringData')
     end
 end
 
-if nargout < 3
+if nargout < 4
     
     %% Make sure there's nothing wrong with the call file
     if isempty(Calls)

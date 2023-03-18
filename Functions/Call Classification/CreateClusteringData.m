@@ -45,8 +45,9 @@ audioReader = squeakData([]);
 %% Load the data
 audiodata = {};
 Calls = [];
+spect = [];
 for j = 1:length(fileName)
-    [Calls_tmp,  audiodata{j}, loaded_ClusteringData] = loadCallfile(fullfile(filePath,fileName{j}),handles);
+    [Calls_tmp,  audiodata{j}, spect, loaded_ClusteringData] = loadCallfile(fullfile(filePath,fileName{j}),handles);
     % If the files is extracted contours, rather than a detection file
     if ~isempty(loaded_ClusteringData)
         ClusteringData = [ClusteringData; table2cell(loaded_ClusteringData)];
@@ -170,7 +171,9 @@ if p.Results.save_data && ~all(cellfun(@(x) isempty(fields(x)), audiodata)) % If
     pname = pname(1:pind);
     [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save extracted data for faster loading (optional)');
     if FileName ~= 0
-        spect = handles.data.settings.spect;
+        if isempty(spect)
+            spect = handles.data.settings.spect;
+        end
         save(fullfile(PathName,FileName),'ClusteringData','spect','-v7.3');
     end
 end
