@@ -42,6 +42,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         menuChangeDisplayRange    matlab.ui.container.Menu
         menuChangeContourThresh   matlab.ui.container.Menu
         menuPrecRecall            matlab.ui.container.Menu
+        menuAddDateTime           matlab.ui.container.Menu
         menuHelp                  matlab.ui.container.Menu
         menuAbout                 matlab.ui.container.Menu
         menuViewManual            matlab.ui.container.Menu
@@ -800,7 +801,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         function buttonPlayCall_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            PlayCall(hObject, eventdata, handles);
+            PlayCall(handles);
         end
 
         % Button pushed function: buttonBackALot
@@ -939,6 +940,31 @@ classdef DeepWaves_exported < matlab.apps.AppBase
 
             % Call About dialog
             app.appDisplay = DisplayDlg(app, event, handles);
+        end
+
+        % Menu selected function: menuAddDateTime
+        function menuAddDateTime_Callback(app, event)
+            [~, ~, handles] = convertToGUIDECallbackArguments(app, event); 
+
+            answer = questdlg('WARNING: This will automatically update and overwrite any Detections.mat files you choose.  Do you wish to proceed?',...
+                'Overwrite Warning','Yes','No','Yes');
+            switch answer
+                case 'Yes'
+                    % Select set of Detection mats to add D/T info to
+                    [detnames,detpath] = uigetfile(fullfile(handles.data.squeakfolder,'*.mat'),...
+                        'Select Detections.mat - Can Select Multiple','MultiSelect','on');
+        
+                    % If only one raven table selected, needs to be reformatted as a
+                    % cell array so later code works
+                    if ischar(detnames)
+                        detnames = {detnames};
+                    end
+        
+                    for i = 1:numel(detnames)
+                        % The load operation will automatically append the field
+                        loadCallfile(fullfile(detpath,detnames{i}),handles);
+                    end
+            end
         end
     end
 
@@ -1189,6 +1215,12 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.menuPrecRecall.MenuSelectedFcn = createCallbackFcn(app, @menuPrecRecall_Callback, true);
             app.menuPrecRecall.Text = 'Precision/Recall';
             app.menuPrecRecall.Tag = 'PrecRecall';
+
+            % Create menuAddDateTime
+            app.menuAddDateTime = uimenu(app.menuTools);
+            app.menuAddDateTime.MenuSelectedFcn = createCallbackFcn(app, @menuAddDateTime_Callback, true);
+            app.menuAddDateTime.Text = 'Add Date/Time';
+            app.menuAddDateTime.Tag = 'AddDateTime';
 
             % Create menuHelp
             app.menuHelp = uimenu(app.mainfigure);
