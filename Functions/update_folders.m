@@ -13,14 +13,14 @@ end
 % Update Networks
 handles.networkfiles = {};
 if isempty(handles.data.settings.networkfolder)
-    set(handles.neuralnetworkspopup,'String','No Folder Selected','value',1);
+    set(handles.neuralnetworkspopup,'String',{'No Folder Selected'},'value',1);
 elseif exist(handles.data.settings.networkfolder,'dir')==0
-    set(handles.neuralnetworkspopup,'String','Invalid Folder','value',1);
+    set(handles.neuralnetworkspopup,'String',{'Invalid Folder'},'value',1);
 else
     handles.networkfiles=dir([handles.data.settings.networkfolder '/*.mat*']);
     handles.networkfilesnames = {handles.networkfiles.name};
     if isempty(handles.networkfilesnames)
-        set(handles.neuralnetworkspopup,'String','No Networks in Folder','value',1);
+        set(handles.neuralnetworkspopup,'String',{'No Networks in Folder'},'value',1);
     else
         set(handles.neuralnetworkspopup,'String',handles.networkfilesnames)
         if handles.neuralnetworkspopup.Value > length(handles.neuralnetworkspopup.String)
@@ -33,9 +33,9 @@ end
 % Update Audio
 handles.audiofiles = {};
 if isempty(handles.data.settings.audiofolder)
-    set(handles.AudioFilespopup,'String','No Folder Selected','value',1);
+    set(handles.AudioFilespopup,'String',{'No Folder Selected'},'value',1);
 elseif exist(handles.data.settings.audiofolder,'dir')==0
-    set(handles.AudioFilespopup,'String','Invalid Folder','value',1);
+    set(handles.AudioFilespopup,'String',{'Invalid Folder'},'value',1);
 else
     handles.audiofiles = [
         dir(fullfile(handles.data.settings.audiofolder, '*.wav'))
@@ -51,7 +51,7 @@ else
         ];
     handles.audiofilesnames = {handles.audiofiles.name};
     if isempty(handles.audiofilesnames)
-        set(handles.AudioFilespopup,'String','No Audio in Folder','value',1);
+        set(handles.AudioFilespopup,'String',{'No Audio in Folder'},'value',1);
     else
         set(handles.AudioFilespopup,'String',handles.audiofilesnames)
         if handles.AudioFilespopup.Value > length(handles.AudioFilespopup.String)
@@ -63,9 +63,9 @@ end
 % Update Detections
 handles.detectionfiles = {};
 if isempty(handles.data.settings.detectionfolder)
-    set(handles.popupmenuDetectionFiles,'String','No Folder Selected','value',1);
+    set(handles.popupmenuDetectionFiles,'String',{'No Folder Selected'},'value',1);
 elseif exist(handles.data.settings.detectionfolder,'dir')==0
-    set(handles.popupmenuDetectionFiles,'String','Invalid Folder','value',1);
+    set(handles.popupmenuDetectionFiles,'String',{'Invalid Folder'},'value',1);
 else
     handles.detectionfiles=dir([handles.data.settings.detectionfolder '/*.mat*']);
     
@@ -75,7 +75,7 @@ else
     
     handles.detectionfilesnames = {handles.detectionfiles.name};
     if isempty(handles.detectionfilesnames)
-        set(handles.popupmenuDetectionFiles,'String','No Detections in Folder','value',1);
+        set(handles.popupmenuDetectionFiles,'String',{'No Detections in Folder'},'value',1);
     else
         if numel(handles.popupmenuDetectionFiles.String) ~= numel(handles.detectionfilesnames)
             currsel = get(handles.popupmenuDetectionFiles,'Value');
