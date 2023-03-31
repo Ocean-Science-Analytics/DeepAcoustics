@@ -34,7 +34,7 @@ rejected(clustAssign == 'Noise') = 1;
 
 for i = 1:length(files)
 
-    Calls = loadCallfile(files{i},[]);
+    Calls = loadCallfile(files{i},[],false);
 
     % Find the index of the clustering data that belongs to the file
     cluster_idx = find(file_idx == i);

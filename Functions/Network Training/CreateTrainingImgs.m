@@ -30,7 +30,7 @@ for k = 1:length(trainingdata)
     
     % Load the detection and audio files
     audioReader = squeakData();
-    [Calls, audioReader.audiodata] = loadCallfile([trainingpath trainingdata{k}],handles);
+    [Calls, audioReader.audiodata] = loadCallfile([trainingpath trainingdata{k}],handles,false);
     
     % Make a folder for the training images
     [~, filename] = fileparts(trainingdata{k});

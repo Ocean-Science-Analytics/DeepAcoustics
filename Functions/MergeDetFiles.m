@@ -29,7 +29,7 @@ AllClass = [];
 AllAccept = [];
 
 for j = 1:length(detectionFilename)
-    Calls = loadCallfile(fullfile(detectionFilepath, detectionFilename{j}),handles);
+    Calls = loadCallfile(fullfile(detectionFilepath, detectionFilename{j}),handles,false);
 
     AllBoxes = [AllBoxes; Calls.Box];
     AllScores = [AllScores; Calls.Score];

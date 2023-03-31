@@ -47,7 +47,7 @@ audiodata = {};
 Calls = [];
 spect = [];
 for j = 1:length(fileName)
-    [Calls_tmp,  audiodata{j}, spect, loaded_ClusteringData] = loadCallfile(fullfile(filePath,fileName{j}),handles);
+    [Calls_tmp,  audiodata{j}, spect, loaded_ClusteringData] = loadCallfile(fullfile(filePath,fileName{j}),handles,false);
     % If the files is extracted contours, rather than a detection file
     if ~isempty(loaded_ClusteringData)
         ClusteringData = [ClusteringData; table2cell(loaded_ClusteringData)];

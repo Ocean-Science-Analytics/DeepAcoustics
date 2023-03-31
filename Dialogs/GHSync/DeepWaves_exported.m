@@ -962,7 +962,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         
                     for i = 1:numel(detnames)
                         % The load operation will automatically append the field
-                        loadCallfile(fullfile(detpath,detnames{i}),handles);
+                        loadCallfile(fullfile(detpath,detnames{i}),handles,true);
                     end
             end
         end

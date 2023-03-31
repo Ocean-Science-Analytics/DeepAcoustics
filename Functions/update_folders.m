@@ -70,8 +70,8 @@ else
     handles.detectionfiles=dir([handles.data.settings.detectionfolder '/*.mat*']);
     
     % Sort the detection files by date modified
-    [~, idx] = sort([handles.detectionfiles.datenum],'descend');
-    handles.detectionfiles = handles.detectionfiles(idx);
+    %[~, idx] = sort([handles.detectionfiles.datenum],'descend');
+    %handles.detectionfiles = handles.detectionfiles(idx);
     
     handles.detectionfilesnames = {handles.detectionfiles.name};
     if isempty(handles.detectionfilesnames)

@@ -1,4 +1,4 @@
-function [Calls,audiodata,spect,ClusteringData,modcheck] = loadCallfile(filename,handles)
+function [Calls,audiodata,spect,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT)
 
 modcheck = struct();
 data = load(filename);
@@ -35,8 +35,8 @@ if isfield(data, 'Calls')
     if ~any(strcmp('Ovlp', Calls.Properties.VariableNames))
         Calls.Ovlp(:) = 0;
     end
-    if ~any(strcmp('StTime', Calls.Properties.VariableNames))
-        if ~isempty(audiodata)
+    if ~any(strcmp('StTime', Calls.Properties.VariableNames)) || all([Calls.StTime]==0)
+        if ~isempty(audiodata) && bTryDT
             [~,fnonly,~] = fileparts(filename);
             Calls = AddDateTime(Calls,audiodata,fnonly);
         else

@@ -7,7 +7,7 @@ handles = guidata(hObject);
 
 %Check if detection file has changed to save file before loading a new one.
 if ~isempty(handles.data.calls)
-    tmpcalls = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
+    tmpcalls = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
     if ismember('Power',tmpcalls.Properties.VariableNames)
         tmpcalls = removevars(tmpcalls,'Power');
     end
