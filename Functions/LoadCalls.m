@@ -38,7 +38,7 @@ h = waitbar(0,'Loading Calls Please wait...');
 handles.data.bAnnotate = false;
 handles.data.calls = [];
 handles.data.audiodata = [];
-[handles.data.calls, handles.data.audiodata, handles.data.settings.spect] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,true);
+[handles.data.calls, handles.data.audiodata, handles.data.settings.spect] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
 
 % Position of the focus window to the first call in the file
 handles.data.focusCenter = handles.data.calls.Box(1,1) + handles.data.calls.Box(1,3)/2;
