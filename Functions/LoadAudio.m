@@ -1,6 +1,8 @@
 % --- Executes on button press in LOAD AUDIO.
 function LoadAudio(hObject, eventdata, handles)        
 h = waitbar(0,'Loading Audio Please wait...');
+handles.current_detection_file = '';
+handles.current_file_id = '';
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);
 
@@ -10,8 +12,8 @@ if isempty(handles.audiofiles)
         '"File -> Select Audio Folder", then choose the desired file in the "Audio Files" dropdown box.'])
     return
 end
-handles.current_file_id = get(handles.AudioFilespopup,'Value');
-handles.current_audio_file = handles.audiofiles(handles.current_file_id).name;
+current_file_id = get(handles.AudioFilespopup,'Value');
+handles.current_audio_file = handles.audiofiles(current_file_id).name;
 
 handles.data.audiodata = audioinfo(fullfile(handles.data.settings.audiofolder,handles.current_audio_file));
 

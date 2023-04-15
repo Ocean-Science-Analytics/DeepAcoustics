@@ -21,9 +21,7 @@ function ExportRaven(hObject, eventdata, handles)
         end
     end
     a  = cell2table(raventable);
-    handles.current_file_id = get(handles.popupmenuDetectionFiles,'Value');
-    current_detection_file = handles.detectionfiles(handles.current_file_id).name;
-    ravenname=[strtok(current_detection_file,'.') '_Raven.txt'];
+    ravenname=[strtok(handles.detectionfiles(handles.current_file_id).name,'.') '_Raven.txt'];
     [FileName,PathName] = uiputfile(ravenname,'Save Raven Truth Table (.txt)');
     writetable(a,[PathName FileName],'delimiter','\t','WriteVariableNames',false);
     guidata(hObject, handles);
