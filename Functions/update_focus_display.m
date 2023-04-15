@@ -1,5 +1,13 @@
 function handles = update_focus_display(handles)
 
+if ~isempty(handles.current_detection_file)
+    set(handles.displayfile,'String',char(handles.current_detection_file))
+elseif ~isempty(handles.current_audio_file)
+    set(handles.displayfile,'String',char(handles.current_audio_file))
+else
+    set(handles.displayfile,'String',char(''))
+end
+
 % Values for the spectrogram are already calculated in renderEpochSpectrogram
 s_f  = handles.data.page_spect.s_display(:,handles.data.page_spect.t > handles.current_focus_position(1) & handles.data.page_spect.t < sum(handles.current_focus_position([1,3])));
 ti_f = handles.data.page_spect.t(handles.data.page_spect.t > handles.current_focus_position(1) & handles.data.page_spect.t < sum(handles.current_focus_position([1,3])));
@@ -80,7 +88,6 @@ set(handles.duration,'String',['Duration: ' num2str(stats.DeltaTime*1000,'%.0f')
 set(handles.sinuosity,'String',['Sinuosity: ' num2str(stats.Sinuosity,'%.4f')]);
 set(handles.powertext,'String',['Rel Pwr: ' num2str(stats.MeanPower) ' dB/Hz']);
 set(handles.tonalitytext,'String',['Tonality: ' num2str(stats.SignalToNoise,'%.4f')]);
-
 % Waveform
 PlotAudio = handles.data.AudioSamples(handles.data.calls.Box(handles.data.currentcall,1),...
     sum(handles.data.calls.Box(handles.data.currentcall,[1,3])));

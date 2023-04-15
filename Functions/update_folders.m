@@ -62,10 +62,9 @@ end
 
 % Update Detections
 handles.detectionfiles = {};
-if isempty(handles.data.settings.detectionfolder)
-    set(handles.popupmenuDetectionFiles,'String','No Folder Selected','value',1);
-elseif exist(handles.data.settings.detectionfolder,'dir')==0
-    set(handles.popupmenuDetectionFiles,'String','Invalid Folder','value',1);
+if isempty(handles.data.settings.detectionfolder) || exist(handles.data.settings.detectionfolder,'dir')==0
+    handles.current_file_id = 1;
+    handles.current_detection_file = '';
 else
     handles.detectionfiles=dir([handles.data.settings.detectionfolder '/*.mat*']);
     
@@ -73,13 +72,24 @@ else
     [~, idx] = sort([handles.detectionfiles.datenum],'descend');
     handles.detectionfiles = handles.detectionfiles(idx);
     
+    % If there has been a change to the # of mats in the detections
+    % directory, adjust variables so the right detection continues to be
+    % selected
     handles.detectionfilesnames = {handles.detectionfiles.name};
-    if isempty(handles.detectionfilesnames)
-        set(handles.popupmenuDetectionFiles,'String','No Detections in Folder','value',1);
+    if ~isempty(handles.current_detection_file)
+        newVal = find(strcmp(handles.current_detection_file,handles.detectionfilesnames));
+        handles.current_file_id = newVal;
     else
-        set(handles.popupmenuDetectionFiles,'String',handles.detectionfilesnames);
-        if handles.popupmenuDetectionFiles.Value > length(handles.popupmenuDetectionFiles.String)
-            set(handles.popupmenuDetectionFiles,'Value',1);
+        handles.current_file_id = 1;
+    end
+        
+    if isempty(handles.detectionfilesnames)
+        handles.current_file_id = 1;
+        handles.current_detection_file = '';
+    else
+        if handles.current_file_id > length(handles.detectionfilesnames)
+            handles.current_file_id = 1;
+            handles.current_detection_file = '';
         end
     end
 end
