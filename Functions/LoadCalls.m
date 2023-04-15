@@ -2,15 +2,8 @@
 function LoadCalls(hObject, eventdata, handles, ~)
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);
-if nargin == 3 % if "Load Calls" button pressed, load the selected file, else reload the current file
-    if isempty(handles.detectionfiles)
-        close(h);
-        errordlg(['No valid detection files in current folder. Select a folder containing detection files with '...
-            '"File -> Select Detection Folder", then choose the desired file in the "Detected Call Files" dropdown box.'])
-        return
-    end
-    
-    %Check if detection file has changed to save file before loading a new one.
+if nargin == 3 % if "Load Calls" button pressed, load the selected file, else reload the current file  
+    %Check if pre-existing detection file has changed to save file before loading a new one.
     if ~isempty(handles.data.calls)
         [~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
         if ~isequal(modcheck.calls, handles.data.calls) || ~isequal(modcheck.spect, handles.data.settings.spect)
@@ -29,8 +22,23 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
         end
     end
     
-    handles.current_file_id = get(handles.popupmenuDetectionFiles,'Value');
-    handles.current_detection_file = handles.detectionfiles(handles.current_file_id).name;
+    % Select new detections file
+    [newdetfile,newdetpath] = uigetfile('*.mat');
+    % If cancel, return
+    if isequal(newdetfile,0)
+       return;
+    % Else get ready to load new file
+    else
+        % Update detection file info
+        matsindir = dir([handles.data.settings.detectionfolder '/*.mat*']);
+        matsindir = {matsindir.name};
+        handles.current_file_id = find(strcmp(newdetfile,matsindir));
+        handles.current_detection_file = newdetfile;
+        % Update Settings
+        handles.data.settings.detectionfolder = newdetpath;
+        handles.data.saveSettings();
+        update_folders(hObject, eventdata, handles);
+    end
 end
 
 h = waitbar(0,'Loading Calls Please wait...');

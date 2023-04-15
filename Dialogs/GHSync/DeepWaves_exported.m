@@ -47,6 +47,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         menuAbout                 matlab.ui.container.Menu
         menuViewManual            matlab.ui.container.Menu
         menuKeyboardShortcuts     matlab.ui.container.Menu
+        textFileName              matlab.ui.control.Label
         textCalls                 matlab.ui.control.Label
         textScore                 matlab.ui.control.Label
         textOvlp                  matlab.ui.control.Label
@@ -69,8 +70,6 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         dropdownNeuralNet         matlab.ui.control.DropDown
         textAudioFiles            matlab.ui.control.Label
         dropdownAudioFiles        matlab.ui.control.DropDown
-        textDetCallFiles          matlab.ui.control.Label
-        dropdownDetCallFiles      matlab.ui.control.DropDown
         textDetectLoadRecord      matlab.ui.control.Label
         buttonDetectCalls         matlab.ui.control.Button
         buttonMultiDetect         matlab.ui.control.Button
@@ -343,6 +342,11 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             set(handles.focusWindow,'Color',[0.1 0.1 0.1],'YColor',[1 1 1],'XColor',[1 1 1]);
             set(handles.focusWindow,'XTick',[]);
             set(handles.focusWindow,'YTick',[]);
+
+            handles.current_file_id = 1;
+            handles.current_detection_file = '';
+            handles.current_audio_file = '';
+
             update_folders(hObject, eventdata, handles);
             handles = guidata(hObject);  % Get newest version of handles
             
@@ -481,13 +485,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         function menuSelectDet_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            
-            % Find audio in folder
-            path=uigetdir(handles.data.settings.detectionfolder,'Select Detection File Folder');
-            if isnumeric(path);return;end
-            handles.data.settings.detectionfolder = path;
-            handles.data.saveSettings();
-            update_folders(hObject, eventdata, handles);
+            LoadCalls(hObject, eventdata, handles)
         end
 
         % Menu selected function: menuSaveSess
@@ -743,7 +741,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             guidata(hObject, handles);
         end
 
-        % Value changed function: dropdownDetCallFiles
+        % Callback function: not associated with a component
         function dropdownDetCallFiles_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
@@ -1004,7 +1002,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             % Create menuSelectDet
             app.menuSelectDet = uimenu(app.menuFile);
             app.menuSelectDet.MenuSelectedFcn = createCallbackFcn(app, @menuSelectDet_Callback, true);
-            app.menuSelectDet.Text = 'Select Detection Folder';
+            app.menuSelectDet.Text = 'Load Detection File';
             app.menuSelectDet.Tag = 'load_detectionFolder';
 
             % Create menuSaveSess
@@ -1679,29 +1677,6 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.textDetectLoadRecord.Position = [277 115 203 18];
             app.textDetectLoadRecord.Text = {'Detect, Load, & Record -------'; '________________________________________'};
 
-            % Create dropdownDetCallFiles
-            app.dropdownDetCallFiles = uidropdown(app.mainfigure);
-            app.dropdownDetCallFiles.Items = {'Completed Detection Files'};
-            app.dropdownDetCallFiles.ValueChangedFcn = createCallbackFcn(app, @dropdownDetCallFiles_Callback, true);
-            app.dropdownDetCallFiles.Tag = 'popupmenuDetectionFiles';
-            app.dropdownDetCallFiles.FontSize = 10.6666666666667;
-            app.dropdownDetCallFiles.FontColor = [1 1 1];
-            app.dropdownDetCallFiles.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownDetCallFiles.Position = [11 24 239 23];
-            app.dropdownDetCallFiles.Value = 'Completed Detection Files';
-
-            % Create textDetCallFiles
-            app.textDetCallFiles = uilabel(app.mainfigure);
-            app.textDetCallFiles.Tag = 'textdetectedcallfiles';
-            app.textDetCallFiles.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textDetCallFiles.VerticalAlignment = 'top';
-            app.textDetCallFiles.WordWrap = 'on';
-            app.textDetCallFiles.FontSize = 16;
-            app.textDetCallFiles.FontWeight = 'bold';
-            app.textDetCallFiles.FontColor = [1 1 1];
-            app.textDetCallFiles.Position = [12 46 239 22];
-            app.textDetCallFiles.Text = 'Detected Call Files';
-
             % Create dropdownAudioFiles
             app.dropdownAudioFiles = uidropdown(app.mainfigure);
             app.dropdownAudioFiles.Items = {'Audio Wave File'};
@@ -1962,6 +1937,14 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.textCalls.FontColor = [1 1 1];
             app.textCalls.Position = [9 776 241 24];
             app.textCalls.Text = 'Calls: 0/0';
+
+            % Create textFileName
+            app.textFileName = uilabel(app.mainfigure);
+            app.textFileName.Tag = 'displayfile';
+            app.textFileName.FontWeight = 'bold';
+            app.textFileName.FontColor = [1 1 1];
+            app.textFileName.Position = [298 769 1036 22];
+            app.textFileName.Text = '';
 
             % Show the figure after all components are created
             app.mainfigure.Visible = 'on';
