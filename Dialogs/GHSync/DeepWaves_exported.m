@@ -41,73 +41,74 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         menuChangePlaybackRate    matlab.ui.container.Menu
         menuChangeDisplayRange    matlab.ui.container.Menu
         menuChangeContourThresh   matlab.ui.container.Menu
-        menuSeparateLong22s       matlab.ui.container.Menu
+        menuPrecRecall            matlab.ui.container.Menu
+        menuAddDateTime           matlab.ui.container.Menu
         menuHelp                  matlab.ui.container.Menu
         menuAbout                 matlab.ui.container.Menu
         menuViewManual            matlab.ui.container.Menu
         menuKeyboardShortcuts     matlab.ui.container.Menu
-        textClustAssign           matlab.ui.control.Label
+        textFileName              matlab.ui.control.Label
+        textCalls                 matlab.ui.control.Label
+        textScore                 matlab.ui.control.Label
+        textOvlp                  matlab.ui.control.Label
+        textStatus                matlab.ui.control.Label
+        textUserID                matlab.ui.control.Label
         textLabel                 matlab.ui.control.Label
-        buttonPrevFile            matlab.ui.control.Button
-        buttonNextFile            matlab.ui.control.Button
-        sliderTonality            matlab.ui.control.Slider
-        textDetReview             matlab.ui.control.Label
-        textNavigation            matlab.ui.control.Label
-        buttonRecordAudio         matlab.ui.control.StateButton
-        buttonLowCLimMinus        matlab.ui.control.Button
-        buttonLowCLimPlus         matlab.ui.control.Button
-        buttonHighCLimPlus        matlab.ui.control.Button
-        buttonHighCLimMinus       matlab.ui.control.Button
-        buttonInvertCmap          matlab.ui.control.Button
-        textSettings              matlab.ui.control.Label
-        textDetectLoadRecord      matlab.ui.control.Label
-        buttonLoadAudio           matlab.ui.control.Button
-        buttonFwdABit             matlab.ui.control.Button
-        buttonBackABit            matlab.ui.control.Button
-        textScale                 matlab.ui.control.Label
-        buttonDisplaySettings     matlab.ui.control.Button
-        dropdownPage              matlab.ui.control.DropDown
-        textPage                  matlab.ui.control.Label
-        textFocus                 matlab.ui.control.Label
-        dropdownFocus             matlab.ui.control.DropDown
-        buttonFwdALot             matlab.ui.control.Button
-        buttonBackALot            matlab.ui.control.Button
-        textWaveform              matlab.ui.control.Label
+        textClustAssign           matlab.ui.control.Label
+        textFrequency             matlab.ui.control.Label
+        textDuration              matlab.ui.control.Label
+        textSlope                 matlab.ui.control.Label
+        textSinuosity             matlab.ui.control.Label
+        textRelPwr                matlab.ui.control.Label
         textTonality              matlab.ui.control.Label
         textContour               matlab.ui.control.Label
-        textUserID                matlab.ui.control.Label
-        textColorMap              matlab.ui.control.Label
-        textRelPwr                matlab.ui.control.Label
-        buttonMultiDetect         matlab.ui.control.Button
-        textSinuosity             matlab.ui.control.Label
-        textSlope                 matlab.ui.control.Label
-        textDuration              matlab.ui.control.Label
-        buttonDraw                matlab.ui.control.Button
-        textFrequency             matlab.ui.control.Label
-        dropdownColorMap          matlab.ui.control.DropDown
-        textStatus                matlab.ui.control.Label
-        textScore                 matlab.ui.control.Label
-        textCalls                 matlab.ui.control.Label
-        buttonLoadCalls           matlab.ui.control.Button
-        buttonRejectCall          matlab.ui.control.Button
-        dropdownDetCallFiles      matlab.ui.control.DropDown
-        textDetCallFiles          matlab.ui.control.Label
-        buttonDetectCalls         matlab.ui.control.Button
-        dropdownAudioFiles        matlab.ui.control.DropDown
-        textAudioFiles            matlab.ui.control.Label
+        buttonPrevFile            matlab.ui.control.Button
+        buttonNextFile            matlab.ui.control.Button
+        textWaveform              matlab.ui.control.Label
+        sliderTonality            matlab.ui.control.Slider
         textNeuralNet             matlab.ui.control.Label
         dropdownNeuralNet         matlab.ui.control.DropDown
+        textAudioFiles            matlab.ui.control.Label
+        dropdownAudioFiles        matlab.ui.control.DropDown
+        textDetectLoadRecord      matlab.ui.control.Label
+        buttonDetectCalls         matlab.ui.control.Button
+        buttonMultiDetect         matlab.ui.control.Button
+        buttonLoadCalls           matlab.ui.control.Button
+        buttonLoadAudio           matlab.ui.control.Button
+        buttonRecordAudio         matlab.ui.control.StateButton
+        textDetReview             matlab.ui.control.Label
+        buttonAcceptCall          matlab.ui.control.Button
+        buttonRejectCall          matlab.ui.control.Button
+        buttonDraw                matlab.ui.control.Button
+        buttonPlayCall            matlab.ui.control.Button
+        textNavigation            matlab.ui.control.Label
+        buttonBackALot            matlab.ui.control.Button
+        buttonBackABit            matlab.ui.control.Button
         buttonPrevCall            matlab.ui.control.Button
         buttonNextCall            matlab.ui.control.Button
-        buttonPlayCall            matlab.ui.control.Button
-        textLowCLim               matlab.ui.control.Label
+        buttonFwdABit             matlab.ui.control.Button
+        buttonFwdALot             matlab.ui.control.Button
+        textSettings              matlab.ui.control.Label
+        textFocus                 matlab.ui.control.Label
+        dropdownFocus             matlab.ui.control.DropDown
+        textPage                  matlab.ui.control.Label
+        dropdownPage              matlab.ui.control.DropDown
+        textScale                 matlab.ui.control.Label
+        buttonDisplaySettings     matlab.ui.control.Button
+        textColorMap              matlab.ui.control.Label
+        dropdownColorMap          matlab.ui.control.DropDown
+        buttonInvertCmap          matlab.ui.control.Button
         textHighCLim              matlab.ui.control.Label
-        buttonAcceptCall          matlab.ui.control.Button
-        winPage                   matlab.ui.control.UIAxes
+        buttonHighCLimMinus       matlab.ui.control.Button
+        buttonHighCLimPlus        matlab.ui.control.Button
+        textLowCLim               matlab.ui.control.Label
+        buttonLowCLimMinus        matlab.ui.control.Button
+        buttonLowCLimPlus         matlab.ui.control.Button
         winContour                matlab.ui.control.UIAxes
-        axesPage                  matlab.ui.control.UIAxes
         winWaveform               matlab.ui.control.UIAxes
         winFocus                  matlab.ui.control.UIAxes
+        winPage                   matlab.ui.control.UIAxes
+        axesPage                  matlab.ui.control.UIAxes
     end
 
     
@@ -341,6 +342,11 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             set(handles.focusWindow,'Color',[0.1 0.1 0.1],'YColor',[1 1 1],'XColor',[1 1 1]);
             set(handles.focusWindow,'XTick',[]);
             set(handles.focusWindow,'YTick',[]);
+
+            handles.current_file_id = 1;
+            handles.current_detection_file = '';
+            handles.current_audio_file = '';
+
             update_folders(hObject, eventdata, handles);
             handles = guidata(hObject);  % Get newest version of handles
             
@@ -479,13 +485,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         function menuSelectDet_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            
-            % Find audio in folder
-            path=uigetdir(handles.data.settings.detectionfolder,'Select Detection File Folder');
-            if isnumeric(path);return;end
-            handles.data.settings.detectionfolder = path;
-            handles.data.saveSettings();
-            update_folders(hObject, eventdata, handles);
+            LoadCalls(hObject, eventdata, handles)
         end
 
         % Menu selected function: menuSaveSess
@@ -665,11 +665,11 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             ChangeContourThresh(hObject, eventdata, handles);
         end
 
-        % Menu selected function: menuSeparateLong22s
-        function menuSeparateLong22s_Callback(app, event)
+        % Menu selected function: menuPrecRecall
+        function menuPrecRecall_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            SeparateLong22s(hObject, eventdata, handles);
+            PrecRecall(hObject, eventdata, handles);
         end
 
         % Menu selected function: menuAbout
@@ -741,7 +741,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             guidata(hObject, handles);
         end
 
-        % Value changed function: dropdownDetCallFiles
+        % Callback function
         function dropdownDetCallFiles_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
@@ -752,14 +752,12 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         % Button pushed function: buttonDetectCalls
         function buttonDetectCalls_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
-            update_folders(hObject, eventdata, handles);
             DetectCalls(hObject, eventdata, handles, true)
         end
 
         % Button pushed function: buttonMultiDetect
         function buttonMultiDetect_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
-            update_folders(hObject, eventdata, handles); 
             DetectCalls(hObject, eventdata, handles, false)
         end
 
@@ -801,7 +799,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         function buttonPlayCall_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            PlayCall(hObject, eventdata, handles);
+            PlayCall(handles);
         end
 
         % Button pushed function: buttonBackALot
@@ -941,6 +939,31 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             % Call About dialog
             app.appDisplay = DisplayDlg(app, event, handles);
         end
+
+        % Menu selected function: menuAddDateTime
+        function menuAddDateTime_Callback(app, event)
+            [~, ~, handles] = convertToGUIDECallbackArguments(app, event); 
+
+            answer = questdlg('WARNING: This will automatically update and overwrite any Detections.mat files you choose.  Do you wish to proceed?',...
+                'Overwrite Warning','Yes','No','Yes');
+            switch answer
+                case 'Yes'
+                    % Select set of Detection mats to add D/T info to
+                    [detnames,detpath] = uigetfile(fullfile(handles.data.squeakfolder,'*.mat'),...
+                        'Select Detections.mat - Can Select Multiple','MultiSelect','on');
+        
+                    % If only one raven table selected, needs to be reformatted as a
+                    % cell array so later code works
+                    if ischar(detnames)
+                        detnames = {detnames};
+                    end
+        
+                    for i = 1:numel(detnames)
+                        % The load operation will automatically append the field
+                        loadCallfile(fullfile(detpath,detnames{i}),handles,true);
+                    end
+            end
+        end
     end
 
     % Component initialization
@@ -979,7 +1002,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             % Create menuSelectDet
             app.menuSelectDet = uimenu(app.menuFile);
             app.menuSelectDet.MenuSelectedFcn = createCallbackFcn(app, @menuSelectDet_Callback, true);
-            app.menuSelectDet.Text = 'Select Detection Folder';
+            app.menuSelectDet.Text = 'Load Detection File';
             app.menuSelectDet.Tag = 'load_detectionFolder';
 
             % Create menuSaveSess
@@ -1185,11 +1208,17 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.menuChangeContourThresh.Text = 'Change Contour Threshold';
             app.menuChangeContourThresh.Tag = 'ChangeContourThreshold';
 
-            % Create menuSeparateLong22s
-            app.menuSeparateLong22s = uimenu(app.menuTools);
-            app.menuSeparateLong22s.MenuSelectedFcn = createCallbackFcn(app, @menuSeparateLong22s_Callback, true);
-            app.menuSeparateLong22s.Text = 'Separate Long 22s';
-            app.menuSeparateLong22s.Tag = 'SeperateLong22s';
+            % Create menuPrecRecall
+            app.menuPrecRecall = uimenu(app.menuTools);
+            app.menuPrecRecall.MenuSelectedFcn = createCallbackFcn(app, @menuPrecRecall_Callback, true);
+            app.menuPrecRecall.Text = 'Precision/Recall';
+            app.menuPrecRecall.Tag = 'PrecRecall';
+
+            % Create menuAddDateTime
+            app.menuAddDateTime = uimenu(app.menuTools);
+            app.menuAddDateTime.MenuSelectedFcn = createCallbackFcn(app, @menuAddDateTime_Callback, true);
+            app.menuAddDateTime.Text = 'Add Date/Time';
+            app.menuAddDateTime.Tag = 'AddDateTime';
 
             % Create menuHelp
             app.menuHelp = uimenu(app.mainfigure);
@@ -1215,13 +1244,32 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.menuKeyboardShortcuts.Text = 'Keyboard_Shortcuts';
             app.menuKeyboardShortcuts.Tag = 'Keyboard_Shortcuts';
 
+            % Create axesPage
+            app.axesPage = uiaxes(app.mainfigure);
+            app.axesPage.XColor = [1 1 1];
+            app.axesPage.YColor = [1 1 1];
+            app.axesPage.FontSize = 10.6666666666667;
+            app.axesPage.GridColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.axesPage.MinorGridColor = [0.1 0.1 0.1];
+            app.axesPage.NextPlot = 'replace';
+            app.axesPage.Box = 'on';
+            app.axesPage.Tag = 'detectionAxes';
+            app.axesPage.Position = [259 135 1120 43];
+
+            % Create winPage
+            app.winPage = uiaxes(app.mainfigure);
+            app.winPage.FontSize = 12;
+            app.winPage.NextPlot = 'replace';
+            app.winPage.Box = 'on';
+            app.winPage.Tag = 'spectrogramWindow';
+            app.winPage.Position = [255 188 1125 181];
+
             % Create winFocus
             app.winFocus = uiaxes(app.mainfigure);
             app.winFocus.FontSize = 13.3333333333333;
             app.winFocus.NextPlot = 'replace';
             app.winFocus.Box = 'on';
             app.winFocus.Tag = 'focusWindow';
-            colormap(app.winFocus, 'parula')
             app.winFocus.Position = [253 366 1129 442];
 
             % Create winWaveform
@@ -1234,21 +1282,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.winWaveform.NextPlot = 'replace';
             app.winWaveform.Box = 'on';
             app.winWaveform.Tag = 'waveformWindow';
-            colormap(app.winWaveform, 'parula')
             app.winWaveform.Position = [3 205 228 143];
-
-            % Create axesPage
-            app.axesPage = uiaxes(app.mainfigure);
-            app.axesPage.XColor = [1 1 1];
-            app.axesPage.YColor = [1 1 1];
-            app.axesPage.FontSize = 10.6666666666667;
-            app.axesPage.GridColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.axesPage.MinorGridColor = [0.1 0.1 0.1];
-            app.axesPage.NextPlot = 'replace';
-            app.axesPage.Box = 'on';
-            app.axesPage.Tag = 'detectionAxes';
-            colormap(app.axesPage, 'parula')
-            app.axesPage.Position = [259 135 1120 43];
 
             % Create winContour
             app.winContour = uiaxes(app.mainfigure);
@@ -1259,42 +1293,27 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.winContour.FontSize = 10.6666666666667;
             app.winContour.NextPlot = 'replace';
             app.winContour.Tag = 'contourWindow';
-            colormap(app.winContour, 'parula')
             app.winContour.Position = [3 372 228 127];
 
-            % Create winPage
-            app.winPage = uiaxes(app.mainfigure);
-            app.winPage.FontSize = 12;
-            app.winPage.NextPlot = 'replace';
-            app.winPage.Box = 'on';
-            app.winPage.Tag = 'spectrogramWindow';
-            colormap(app.winPage, 'parula')
-            app.winPage.Position = [255 188 1125 181];
+            % Create buttonLowCLimPlus
+            app.buttonLowCLimPlus = uibutton(app.mainfigure, 'push');
+            app.buttonLowCLimPlus.ButtonPushedFcn = createCallbackFcn(app, @buttonLowCLimPlus_Callback, true);
+            app.buttonLowCLimPlus.Tag = 'low_clim_plus';
+            app.buttonLowCLimPlus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.buttonLowCLimPlus.FontSize = 10.6666666666667;
+            app.buttonLowCLimPlus.FontColor = [1 1 1];
+            app.buttonLowCLimPlus.Position = [1371 17 30 22];
+            app.buttonLowCLimPlus.Text = '+';
 
-            % Create buttonAcceptCall
-            app.buttonAcceptCall = uibutton(app.mainfigure, 'push');
-            app.buttonAcceptCall.ButtonPushedFcn = createCallbackFcn(app, @buttonAcceptCall_Callback, true);
-            app.buttonAcceptCall.HandleVisibility = 'off';
-            app.buttonAcceptCall.Interruptible = 'off';
-            app.buttonAcceptCall.Tag = 'AcceptCall';
-            app.buttonAcceptCall.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
-            app.buttonAcceptCall.FontWeight = 'bold';
-            app.buttonAcceptCall.FontColor = [1 1 1];
-            app.buttonAcceptCall.Position = [492 88 94 24];
-            app.buttonAcceptCall.Text = 'Accept Call (a)';
-
-            % Create textHighCLim
-            app.textHighCLim = uilabel(app.mainfigure);
-            app.textHighCLim.HandleVisibility = 'off';
-            app.textHighCLim.Tag = 'text34';
-            app.textHighCLim.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textHighCLim.VerticalAlignment = 'top';
-            app.textHighCLim.WordWrap = 'on';
-            app.textHighCLim.FontSize = 13.3333333333333;
-            app.textHighCLim.FontWeight = 'bold';
-            app.textHighCLim.FontColor = [1 1 1];
-            app.textHighCLim.Position = [1215 43 108 18];
-            app.textHighCLim.Text = 'High Color Limit';
+            % Create buttonLowCLimMinus
+            app.buttonLowCLimMinus = uibutton(app.mainfigure, 'push');
+            app.buttonLowCLimMinus.ButtonPushedFcn = createCallbackFcn(app, @buttonLowCLimMinus_Callback, true);
+            app.buttonLowCLimMinus.Tag = 'low_clim_minus';
+            app.buttonLowCLimMinus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.buttonLowCLimMinus.FontSize = 10.6666666666667;
+            app.buttonLowCLimMinus.FontColor = [1 1 1];
+            app.buttonLowCLimMinus.Position = [1336 17 30 22];
+            app.buttonLowCLimMinus.Text = '-';
 
             % Create textLowCLim
             app.textLowCLim = uilabel(app.mainfigure);
@@ -1309,15 +1328,178 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.textLowCLim.Position = [1215 18 106 18];
             app.textLowCLim.Text = 'Low Color Limit';
 
-            % Create buttonPlayCall
-            app.buttonPlayCall = uibutton(app.mainfigure, 'push');
-            app.buttonPlayCall.ButtonPushedFcn = createCallbackFcn(app, @buttonPlayCall_Callback, true);
-            app.buttonPlayCall.Tag = 'PlayCall';
-            app.buttonPlayCall.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
-            app.buttonPlayCall.FontWeight = 'bold';
-            app.buttonPlayCall.FontColor = [1 1 1];
-            app.buttonPlayCall.Position = [598 57 90 24];
-            app.buttonPlayCall.Text = 'Play Call (p)';
+            % Create buttonHighCLimPlus
+            app.buttonHighCLimPlus = uibutton(app.mainfigure, 'push');
+            app.buttonHighCLimPlus.ButtonPushedFcn = createCallbackFcn(app, @buttonHighCLimPlus_Callback, true);
+            app.buttonHighCLimPlus.Tag = 'high_clim_plus';
+            app.buttonHighCLimPlus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.buttonHighCLimPlus.FontSize = 10.6666666666667;
+            app.buttonHighCLimPlus.FontColor = [1 1 1];
+            app.buttonHighCLimPlus.Position = [1371 42 30 22];
+            app.buttonHighCLimPlus.Text = '+';
+
+            % Create buttonHighCLimMinus
+            app.buttonHighCLimMinus = uibutton(app.mainfigure, 'push');
+            app.buttonHighCLimMinus.ButtonPushedFcn = createCallbackFcn(app, @buttonHighCLimMinus_Callback, true);
+            app.buttonHighCLimMinus.Tag = 'high_clim_minus';
+            app.buttonHighCLimMinus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.buttonHighCLimMinus.FontSize = 10.6666666666667;
+            app.buttonHighCLimMinus.FontColor = [1 1 1];
+            app.buttonHighCLimMinus.Position = [1336 42 30 22];
+            app.buttonHighCLimMinus.Text = '-';
+
+            % Create textHighCLim
+            app.textHighCLim = uilabel(app.mainfigure);
+            app.textHighCLim.HandleVisibility = 'off';
+            app.textHighCLim.Tag = 'text34';
+            app.textHighCLim.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textHighCLim.VerticalAlignment = 'top';
+            app.textHighCLim.WordWrap = 'on';
+            app.textHighCLim.FontSize = 13.3333333333333;
+            app.textHighCLim.FontWeight = 'bold';
+            app.textHighCLim.FontColor = [1 1 1];
+            app.textHighCLim.Position = [1215 43 108 18];
+            app.textHighCLim.Text = 'High Color Limit';
+
+            % Create buttonInvertCmap
+            app.buttonInvertCmap = uibutton(app.mainfigure, 'push');
+            app.buttonInvertCmap.ButtonPushedFcn = createCallbackFcn(app, @buttonInvertCmap_Callback, true);
+            app.buttonInvertCmap.Tag = 'invert_cmap';
+            app.buttonInvertCmap.Icon = 'invert_cmap_image.png';
+            app.buttonInvertCmap.IconAlignment = 'center';
+            app.buttonInvertCmap.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.buttonInvertCmap.FontSize = 10.6666666666667;
+            app.buttonInvertCmap.FontColor = [1 1 1];
+            app.buttonInvertCmap.Position = [1380 72 31 23];
+            app.buttonInvertCmap.Text = '';
+
+            % Create dropdownColorMap
+            app.dropdownColorMap = uidropdown(app.mainfigure);
+            app.dropdownColorMap.Items = {'inferno', 'magma', 'plasma', 'viridis', 'cubehelix', 'black&white', 'gray', 'jet', 'hot', 'parula', 'hsv', 'cool', 'spring', 'summer', 'autumn', 'winter', 'bone', 'copper', 'pink'};
+            app.dropdownColorMap.ValueChangedFcn = createCallbackFcn(app, @dropdownColorMap_Callback, true);
+            app.dropdownColorMap.Tag = 'popupmenuColorMap';
+            app.dropdownColorMap.FontSize = 10.6666666666667;
+            app.dropdownColorMap.FontWeight = 'bold';
+            app.dropdownColorMap.FontColor = [1 1 1];
+            app.dropdownColorMap.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.dropdownColorMap.Position = [1250 70 124 24];
+            app.dropdownColorMap.Value = 'inferno';
+
+            % Create textColorMap
+            app.textColorMap = uilabel(app.mainfigure);
+            app.textColorMap.Tag = 'text17';
+            app.textColorMap.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textColorMap.VerticalAlignment = 'top';
+            app.textColorMap.WordWrap = 'on';
+            app.textColorMap.FontSize = 13.3333333333333;
+            app.textColorMap.FontWeight = 'bold';
+            app.textColorMap.FontColor = [1 1 1];
+            app.textColorMap.Position = [1250 94 124 18];
+            app.textColorMap.Text = 'Color Map';
+
+            % Create buttonDisplaySettings
+            app.buttonDisplaySettings = uibutton(app.mainfigure, 'push');
+            app.buttonDisplaySettings.ButtonPushedFcn = createCallbackFcn(app, @buttonDisplaySettings_Callback, true);
+            app.buttonDisplaySettings.Tag = 'spectrogramScalePopup';
+            app.buttonDisplaySettings.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.buttonDisplaySettings.FontSize = 10.6666666666667;
+            app.buttonDisplaySettings.FontColor = [1 1 1];
+            app.buttonDisplaySettings.Position = [1129 72 99 22];
+            app.buttonDisplaySettings.Text = 'Display Settings';
+
+            % Create textScale
+            app.textScale = uilabel(app.mainfigure);
+            app.textScale.Tag = 'AmplitudeScaleText';
+            app.textScale.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textScale.VerticalAlignment = 'top';
+            app.textScale.WordWrap = 'on';
+            app.textScale.FontSize = 13.3333333333333;
+            app.textScale.FontWeight = 'bold';
+            app.textScale.FontColor = [1 1 1];
+            app.textScale.Position = [1131 94 74 18];
+            app.textScale.Text = 'Scale';
+
+            % Create dropdownPage
+            app.dropdownPage = uidropdown(app.mainfigure);
+            app.dropdownPage.Items = {'2s', '3s', '5s', '10s', ''};
+            app.dropdownPage.ValueChangedFcn = createCallbackFcn(app, @dropdownPage_Callback, true);
+            app.dropdownPage.Tag = 'epochWindowSizePopup';
+            app.dropdownPage.FontSize = 10.6666666666667;
+            app.dropdownPage.FontColor = [1 1 1];
+            app.dropdownPage.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.dropdownPage.Position = [1049 72 70 22];
+            app.dropdownPage.Value = '2s';
+
+            % Create textPage
+            app.textPage = uilabel(app.mainfigure);
+            app.textPage.Tag = 'text26';
+            app.textPage.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textPage.VerticalAlignment = 'top';
+            app.textPage.WordWrap = 'on';
+            app.textPage.FontSize = 13.3333333333333;
+            app.textPage.FontWeight = 'bold';
+            app.textPage.FontColor = [1 1 1];
+            app.textPage.Position = [1049 94 70 18];
+            app.textPage.Text = 'Page';
+
+            % Create dropdownFocus
+            app.dropdownFocus = uidropdown(app.mainfigure);
+            app.dropdownFocus.Items = {'0.25s', '0.5s', '1s'};
+            app.dropdownFocus.ValueChangedFcn = createCallbackFcn(app, @dropdownFocus_Callback, true);
+            app.dropdownFocus.Tag = 'focusWindowSizePopup';
+            app.dropdownFocus.FontSize = 10.6666666666667;
+            app.dropdownFocus.FontColor = [1 1 1];
+            app.dropdownFocus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.dropdownFocus.Position = [962 72 73 22];
+            app.dropdownFocus.Value = '0.5s';
+
+            % Create textFocus
+            app.textFocus = uilabel(app.mainfigure);
+            app.textFocus.Tag = 'text25';
+            app.textFocus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textFocus.VerticalAlignment = 'top';
+            app.textFocus.WordWrap = 'on';
+            app.textFocus.FontSize = 13.3333333333333;
+            app.textFocus.FontWeight = 'bold';
+            app.textFocus.FontColor = [1 1 1];
+            app.textFocus.Position = [962 94 73 18];
+            app.textFocus.Text = 'Focus';
+
+            % Create textSettings
+            app.textSettings = uilabel(app.mainfigure);
+            app.textSettings.Tag = 'text31';
+            app.textSettings.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textSettings.VerticalAlignment = 'top';
+            app.textSettings.WordWrap = 'on';
+            app.textSettings.FontSize = 13.3333333333333;
+            app.textSettings.FontWeight = 'bold';
+            app.textSettings.FontColor = [1 1 1];
+            app.textSettings.Position = [962 116 412 18];
+            app.textSettings.Text = 'Settings ----------------------------------------------------------------------------------------';
+
+            % Create buttonFwdALot
+            app.buttonFwdALot = uibutton(app.mainfigure, 'push');
+            app.buttonFwdALot.ButtonPushedFcn = createCallbackFcn(app, @buttonFwdALot_Callback, true);
+            app.buttonFwdALot.Tag = 'forwardButton';
+            app.buttonFwdALot.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
+            app.buttonFwdALot.FontSize = 14.6666666666667;
+            app.buttonFwdALot.FontWeight = 'bold';
+            app.buttonFwdALot.FontColor = [1 1 1];
+            app.buttonFwdALot.Tooltip = 'Next Page';
+            app.buttonFwdALot.Position = [899 88 40 24];
+            app.buttonFwdALot.Text = '>>>';
+
+            % Create buttonFwdABit
+            app.buttonFwdABit = uibutton(app.mainfigure, 'push');
+            app.buttonFwdABit.ButtonPushedFcn = createCallbackFcn(app, @buttonFwdABit_Callback, true);
+            app.buttonFwdABit.Tag = 'topRightButton';
+            app.buttonFwdABit.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
+            app.buttonFwdABit.FontSize = 14.6666666666667;
+            app.buttonFwdABit.FontWeight = 'bold';
+            app.buttonFwdABit.FontColor = [1 1 1];
+            app.buttonFwdABit.Tooltip = 'Next Window';
+            app.buttonFwdABit.Position = [864 88 31 24];
+            app.buttonFwdABit.Text = '>>';
 
             % Create buttonNextCall
             app.buttonNextCall = uibutton(app.mainfigure, 'push');
@@ -1343,6 +1525,181 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonPrevCall.Position = [784 88 31 24];
             app.buttonPrevCall.Text = '<';
 
+            % Create buttonBackABit
+            app.buttonBackABit = uibutton(app.mainfigure, 'push');
+            app.buttonBackABit.ButtonPushedFcn = createCallbackFcn(app, @buttonBackABit_Callback, true);
+            app.buttonBackABit.Tag = 'topLeftButton';
+            app.buttonBackABit.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
+            app.buttonBackABit.FontSize = 14.6666666666667;
+            app.buttonBackABit.FontWeight = 'bold';
+            app.buttonBackABit.FontColor = [1 1 1];
+            app.buttonBackABit.Tooltip = 'Previous Window';
+            app.buttonBackABit.Position = [743 88 37.0000000000001 24];
+            app.buttonBackABit.Text = '<<';
+
+            % Create buttonBackALot
+            app.buttonBackALot = uibutton(app.mainfigure, 'push');
+            app.buttonBackALot.ButtonPushedFcn = createCallbackFcn(app, @buttonBackALot_Callback, true);
+            app.buttonBackALot.Tag = 'backwardButton';
+            app.buttonBackALot.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
+            app.buttonBackALot.FontSize = 14.6666666666667;
+            app.buttonBackALot.FontWeight = 'bold';
+            app.buttonBackALot.FontColor = [1 1 1];
+            app.buttonBackALot.Tooltip = 'Previous Page';
+            app.buttonBackALot.Position = [700 88 40 24];
+            app.buttonBackALot.Text = '<<<';
+
+            % Create textNavigation
+            app.textNavigation = uilabel(app.mainfigure);
+            app.textNavigation.Tag = 'text30';
+            app.textNavigation.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textNavigation.VerticalAlignment = 'top';
+            app.textNavigation.WordWrap = 'on';
+            app.textNavigation.FontSize = 13.3333333333333;
+            app.textNavigation.FontWeight = 'bold';
+            app.textNavigation.FontColor = [1 1 1];
+            app.textNavigation.Position = [700 115 239 18];
+            app.textNavigation.Text = 'Navigation -----------------------------------------';
+
+            % Create buttonPlayCall
+            app.buttonPlayCall = uibutton(app.mainfigure, 'push');
+            app.buttonPlayCall.ButtonPushedFcn = createCallbackFcn(app, @buttonPlayCall_Callback, true);
+            app.buttonPlayCall.Tag = 'PlayCall';
+            app.buttonPlayCall.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
+            app.buttonPlayCall.FontWeight = 'bold';
+            app.buttonPlayCall.FontColor = [1 1 1];
+            app.buttonPlayCall.Position = [598 57 90 24];
+            app.buttonPlayCall.Text = 'Play Call (p)';
+
+            % Create buttonDraw
+            app.buttonDraw = uibutton(app.mainfigure, 'push');
+            app.buttonDraw.ButtonPushedFcn = createCallbackFcn(app, @buttonDraw_Callback, true);
+            app.buttonDraw.Tag = 'rectangle';
+            app.buttonDraw.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
+            app.buttonDraw.FontWeight = 'bold';
+            app.buttonDraw.FontColor = [1 1 1];
+            app.buttonDraw.Position = [490 57 94 24];
+            app.buttonDraw.Text = 'Draw (d)';
+
+            % Create buttonRejectCall
+            app.buttonRejectCall = uibutton(app.mainfigure, 'push');
+            app.buttonRejectCall.ButtonPushedFcn = createCallbackFcn(app, @buttonRejectCall_Callback, true);
+            app.buttonRejectCall.Tag = 'RejectCall';
+            app.buttonRejectCall.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
+            app.buttonRejectCall.FontWeight = 'bold';
+            app.buttonRejectCall.FontColor = [1 1 1];
+            app.buttonRejectCall.Position = [596 88 89 24];
+            app.buttonRejectCall.Text = 'Reject Call (r)';
+
+            % Create buttonAcceptCall
+            app.buttonAcceptCall = uibutton(app.mainfigure, 'push');
+            app.buttonAcceptCall.ButtonPushedFcn = createCallbackFcn(app, @buttonAcceptCall_Callback, true);
+            app.buttonAcceptCall.HandleVisibility = 'off';
+            app.buttonAcceptCall.Interruptible = 'off';
+            app.buttonAcceptCall.Tag = 'AcceptCall';
+            app.buttonAcceptCall.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
+            app.buttonAcceptCall.FontWeight = 'bold';
+            app.buttonAcceptCall.FontColor = [1 1 1];
+            app.buttonAcceptCall.Position = [492 88 94 24];
+            app.buttonAcceptCall.Text = 'Accept Call (a)';
+
+            % Create textDetReview
+            app.textDetReview = uilabel(app.mainfigure);
+            app.textDetReview.Tag = 'text18';
+            app.textDetReview.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textDetReview.VerticalAlignment = 'top';
+            app.textDetReview.WordWrap = 'on';
+            app.textDetReview.FontSize = 13.3333333333333;
+            app.textDetReview.FontWeight = 'bold';
+            app.textDetReview.FontColor = [1 1 1];
+            app.textDetReview.Position = [494 115 196 18];
+            app.textDetReview.Text = 'Detection Review ------------------';
+
+            % Create buttonRecordAudio
+            app.buttonRecordAudio = uibutton(app.mainfigure, 'state');
+            app.buttonRecordAudio.ValueChangedFcn = createCallbackFcn(app, @buttonRecordAudio_Callback, true);
+            app.buttonRecordAudio.Tag = 'recordAudio';
+            app.buttonRecordAudio.Text = 'Record Audio';
+            app.buttonRecordAudio.BackgroundColor = [0.392156862745098 0.831372549019608 0.0745098039215686];
+            app.buttonRecordAudio.FontWeight = 'bold';
+            app.buttonRecordAudio.FontColor = [1 1 1];
+            app.buttonRecordAudio.Position = [274 24 92.0000000000001 25];
+
+            % Create buttonLoadAudio
+            app.buttonLoadAudio = uibutton(app.mainfigure, 'push');
+            app.buttonLoadAudio.ButtonPushedFcn = createCallbackFcn(app, @buttonLoadAudio_Callback, true);
+            app.buttonLoadAudio.Tag = 'loadAudioFile';
+            app.buttonLoadAudio.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
+            app.buttonLoadAudio.FontWeight = 'bold';
+            app.buttonLoadAudio.FontColor = [1 1 1];
+            app.buttonLoadAudio.Position = [374 56 85.0000000000001 24];
+            app.buttonLoadAudio.Text = 'Load Audio';
+
+            % Create buttonLoadCalls
+            app.buttonLoadCalls = uibutton(app.mainfigure, 'push');
+            app.buttonLoadCalls.ButtonPushedFcn = createCallbackFcn(app, @buttonLoadCalls_Callback, true);
+            app.buttonLoadCalls.Tag = 'loadcalls';
+            app.buttonLoadCalls.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
+            app.buttonLoadCalls.FontWeight = 'bold';
+            app.buttonLoadCalls.FontColor = [1 1 1];
+            app.buttonLoadCalls.Position = [275 56 91.0000000000001 24];
+            app.buttonLoadCalls.Text = 'Load Calls';
+
+            % Create buttonMultiDetect
+            app.buttonMultiDetect = uibutton(app.mainfigure, 'push');
+            app.buttonMultiDetect.ButtonPushedFcn = createCallbackFcn(app, @buttonMultiDetect_Callback, true);
+            app.buttonMultiDetect.Tag = 'multinetdect_1';
+            app.buttonMultiDetect.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
+            app.buttonMultiDetect.FontWeight = 'bold';
+            app.buttonMultiDetect.FontColor = [1 1 1];
+            app.buttonMultiDetect.Position = [374 87 85.0000000000001 24];
+            app.buttonMultiDetect.Text = 'Multi Detect';
+
+            % Create buttonDetectCalls
+            app.buttonDetectCalls = uibutton(app.mainfigure, 'push');
+            app.buttonDetectCalls.ButtonPushedFcn = createCallbackFcn(app, @buttonDetectCalls_Callback, true);
+            app.buttonDetectCalls.Tag = 'multinetdect';
+            app.buttonDetectCalls.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
+            app.buttonDetectCalls.FontWeight = 'bold';
+            app.buttonDetectCalls.FontColor = [1 1 1];
+            app.buttonDetectCalls.Position = [275 86 90 24];
+            app.buttonDetectCalls.Text = 'Detect Calls';
+
+            % Create textDetectLoadRecord
+            app.textDetectLoadRecord = uilabel(app.mainfigure);
+            app.textDetectLoadRecord.Tag = 'text29';
+            app.textDetectLoadRecord.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textDetectLoadRecord.VerticalAlignment = 'top';
+            app.textDetectLoadRecord.WordWrap = 'on';
+            app.textDetectLoadRecord.FontSize = 13.3333333333333;
+            app.textDetectLoadRecord.FontWeight = 'bold';
+            app.textDetectLoadRecord.FontColor = [1 1 1];
+            app.textDetectLoadRecord.Position = [277 115 203 18];
+            app.textDetectLoadRecord.Text = {'Detect, Load, & Record -------'; '________________________________________'};
+
+            % Create dropdownAudioFiles
+            app.dropdownAudioFiles = uidropdown(app.mainfigure);
+            app.dropdownAudioFiles.Items = {'Audio Wave File'};
+            app.dropdownAudioFiles.ValueChangedFcn = createCallbackFcn(app, @dropdownAudioFiles_Callback, true);
+            app.dropdownAudioFiles.Tag = 'AudioFilespopup';
+            app.dropdownAudioFiles.FontSize = 10.6666666666667;
+            app.dropdownAudioFiles.FontColor = [1 1 1];
+            app.dropdownAudioFiles.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.dropdownAudioFiles.Position = [12 76 238 26];
+            app.dropdownAudioFiles.Value = 'Audio Wave File';
+
+            % Create textAudioFiles
+            app.textAudioFiles = uilabel(app.mainfigure);
+            app.textAudioFiles.Tag = 'textAudioFiles';
+            app.textAudioFiles.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textAudioFiles.VerticalAlignment = 'top';
+            app.textAudioFiles.WordWrap = 'on';
+            app.textAudioFiles.FontSize = 16;
+            app.textAudioFiles.FontWeight = 'bold';
+            app.textAudioFiles.FontColor = [1 1 1];
+            app.textAudioFiles.Position = [12 101 238 21];
+            app.textAudioFiles.Text = 'Audio Files';
+
             % Create dropdownNeuralNet
             app.dropdownNeuralNet = uidropdown(app.mainfigure);
             app.dropdownNeuralNet.Items = {'Neural Network Matrix'};
@@ -1366,257 +1723,16 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.textNeuralNet.Position = [12 156 238 20];
             app.textNeuralNet.Text = 'Neural Networks';
 
-            % Create textAudioFiles
-            app.textAudioFiles = uilabel(app.mainfigure);
-            app.textAudioFiles.Tag = 'textAudioFiles';
-            app.textAudioFiles.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textAudioFiles.VerticalAlignment = 'top';
-            app.textAudioFiles.WordWrap = 'on';
-            app.textAudioFiles.FontSize = 16;
-            app.textAudioFiles.FontWeight = 'bold';
-            app.textAudioFiles.FontColor = [1 1 1];
-            app.textAudioFiles.Position = [12 101 238 21];
-            app.textAudioFiles.Text = 'Audio Files';
-
-            % Create dropdownAudioFiles
-            app.dropdownAudioFiles = uidropdown(app.mainfigure);
-            app.dropdownAudioFiles.Items = {'Audio Wave File'};
-            app.dropdownAudioFiles.ValueChangedFcn = createCallbackFcn(app, @dropdownAudioFiles_Callback, true);
-            app.dropdownAudioFiles.Tag = 'AudioFilespopup';
-            app.dropdownAudioFiles.FontSize = 10.6666666666667;
-            app.dropdownAudioFiles.FontColor = [1 1 1];
-            app.dropdownAudioFiles.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownAudioFiles.Position = [12 76 238 26];
-            app.dropdownAudioFiles.Value = 'Audio Wave File';
-
-            % Create buttonDetectCalls
-            app.buttonDetectCalls = uibutton(app.mainfigure, 'push');
-            app.buttonDetectCalls.ButtonPushedFcn = createCallbackFcn(app, @buttonDetectCalls_Callback, true);
-            app.buttonDetectCalls.Tag = 'multinetdect';
-            app.buttonDetectCalls.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
-            app.buttonDetectCalls.FontWeight = 'bold';
-            app.buttonDetectCalls.FontColor = [1 1 1];
-            app.buttonDetectCalls.Position = [275 86 90 24];
-            app.buttonDetectCalls.Text = 'Detect Calls';
-
-            % Create textDetCallFiles
-            app.textDetCallFiles = uilabel(app.mainfigure);
-            app.textDetCallFiles.Tag = 'textdetectedcallfiles';
-            app.textDetCallFiles.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textDetCallFiles.VerticalAlignment = 'top';
-            app.textDetCallFiles.WordWrap = 'on';
-            app.textDetCallFiles.FontSize = 16;
-            app.textDetCallFiles.FontWeight = 'bold';
-            app.textDetCallFiles.FontColor = [1 1 1];
-            app.textDetCallFiles.Position = [12 46 239 22];
-            app.textDetCallFiles.Text = 'Detected Call Files';
-
-            % Create dropdownDetCallFiles
-            app.dropdownDetCallFiles = uidropdown(app.mainfigure);
-            app.dropdownDetCallFiles.Items = {'Completed Detection Files'};
-            app.dropdownDetCallFiles.ValueChangedFcn = createCallbackFcn(app, @dropdownDetCallFiles_Callback, true);
-            app.dropdownDetCallFiles.Tag = 'popupmenuDetectionFiles';
-            app.dropdownDetCallFiles.FontSize = 10.6666666666667;
-            app.dropdownDetCallFiles.FontColor = [1 1 1];
-            app.dropdownDetCallFiles.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownDetCallFiles.Position = [11 24 239 23];
-            app.dropdownDetCallFiles.Value = 'Completed Detection Files';
-
-            % Create buttonRejectCall
-            app.buttonRejectCall = uibutton(app.mainfigure, 'push');
-            app.buttonRejectCall.ButtonPushedFcn = createCallbackFcn(app, @buttonRejectCall_Callback, true);
-            app.buttonRejectCall.Tag = 'RejectCall';
-            app.buttonRejectCall.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
-            app.buttonRejectCall.FontWeight = 'bold';
-            app.buttonRejectCall.FontColor = [1 1 1];
-            app.buttonRejectCall.Position = [596 88 89 24];
-            app.buttonRejectCall.Text = 'Reject Call (r)';
-
-            % Create buttonLoadCalls
-            app.buttonLoadCalls = uibutton(app.mainfigure, 'push');
-            app.buttonLoadCalls.ButtonPushedFcn = createCallbackFcn(app, @buttonLoadCalls_Callback, true);
-            app.buttonLoadCalls.Tag = 'loadcalls';
-            app.buttonLoadCalls.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
-            app.buttonLoadCalls.FontWeight = 'bold';
-            app.buttonLoadCalls.FontColor = [1 1 1];
-            app.buttonLoadCalls.Position = [275 56 91.0000000000001 24];
-            app.buttonLoadCalls.Text = 'Load Calls';
-
-            % Create textCalls
-            app.textCalls = uilabel(app.mainfigure);
-            app.textCalls.Tag = 'Ccalls';
-            app.textCalls.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textCalls.VerticalAlignment = 'top';
-            app.textCalls.WordWrap = 'on';
-            app.textCalls.FontSize = 16;
-            app.textCalls.FontWeight = 'bold';
-            app.textCalls.FontColor = [1 1 1];
-            app.textCalls.Position = [9 776 192 24];
-            app.textCalls.Text = 'Calls: 0/0';
-
-            % Create textScore
-            app.textScore = uilabel(app.mainfigure);
-            app.textScore.Tag = 'score';
-            app.textScore.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textScore.VerticalAlignment = 'top';
-            app.textScore.WordWrap = 'on';
-            app.textScore.FontSize = 16;
-            app.textScore.FontWeight = 'bold';
-            app.textScore.FontColor = [1 1 1];
-            app.textScore.Position = [9 752 192 24];
-            app.textScore.Text = 'Score:';
-
-            % Create textStatus
-            app.textStatus = uilabel(app.mainfigure);
-            app.textStatus.Tag = 'status';
-            app.textStatus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textStatus.VerticalAlignment = 'top';
-            app.textStatus.WordWrap = 'on';
-            app.textStatus.FontSize = 16;
-            app.textStatus.FontWeight = 'bold';
-            app.textStatus.FontColor = [1 1 1];
-            app.textStatus.Position = [9 728 192 24];
-            app.textStatus.Text = 'Status:';
-
-            % Create dropdownColorMap
-            app.dropdownColorMap = uidropdown(app.mainfigure);
-            app.dropdownColorMap.Items = {'inferno', 'magma', 'plasma', 'viridis', 'cubehelix', 'black&white', 'gray', 'jet', 'hot', 'parula', 'hsv', 'cool', 'spring', 'summer', 'autumn', 'winter', 'bone', 'copper', 'pink'};
-            app.dropdownColorMap.ValueChangedFcn = createCallbackFcn(app, @dropdownColorMap_Callback, true);
-            app.dropdownColorMap.Tag = 'popupmenuColorMap';
-            app.dropdownColorMap.FontSize = 10.6666666666667;
-            app.dropdownColorMap.FontWeight = 'bold';
-            app.dropdownColorMap.FontColor = [1 1 1];
-            app.dropdownColorMap.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownColorMap.Position = [1250 70 124 24];
-            app.dropdownColorMap.Value = 'inferno';
-
-            % Create textFrequency
-            app.textFrequency = uilabel(app.mainfigure);
-            app.textFrequency.Tag = 'freq';
-            app.textFrequency.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textFrequency.VerticalAlignment = 'top';
-            app.textFrequency.WordWrap = 'on';
-            app.textFrequency.FontSize = 16;
-            app.textFrequency.FontWeight = 'bold';
-            app.textFrequency.FontColor = [1 1 1];
-            app.textFrequency.Position = [9 632 192 24];
-            app.textFrequency.Text = 'Frequency (KHz):';
-
-            % Create buttonDraw
-            app.buttonDraw = uibutton(app.mainfigure, 'push');
-            app.buttonDraw.ButtonPushedFcn = createCallbackFcn(app, @buttonDraw_Callback, true);
-            app.buttonDraw.Tag = 'rectangle';
-            app.buttonDraw.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
-            app.buttonDraw.FontWeight = 'bold';
-            app.buttonDraw.FontColor = [1 1 1];
-            app.buttonDraw.Position = [490 57 94 24];
-            app.buttonDraw.Text = 'Draw (d)';
-
-            % Create textDuration
-            app.textDuration = uilabel(app.mainfigure);
-            app.textDuration.Tag = 'duration';
-            app.textDuration.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textDuration.VerticalAlignment = 'top';
-            app.textDuration.WordWrap = 'on';
-            app.textDuration.FontSize = 16;
-            app.textDuration.FontWeight = 'bold';
-            app.textDuration.FontColor = [1 1 1];
-            app.textDuration.Position = [9 608 192 24];
-            app.textDuration.Text = 'Duration (ms):';
-
-            % Create textSlope
-            app.textSlope = uilabel(app.mainfigure);
-            app.textSlope.Tag = 'slope';
-            app.textSlope.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textSlope.VerticalAlignment = 'top';
-            app.textSlope.WordWrap = 'on';
-            app.textSlope.FontSize = 16;
-            app.textSlope.FontWeight = 'bold';
-            app.textSlope.FontColor = [1 1 1];
-            app.textSlope.Position = [9 584 192 24];
-            app.textSlope.Text = 'Slope (KHz/s):';
-
-            % Create textSinuosity
-            app.textSinuosity = uilabel(app.mainfigure);
-            app.textSinuosity.Tag = 'sinuosity';
-            app.textSinuosity.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textSinuosity.VerticalAlignment = 'top';
-            app.textSinuosity.WordWrap = 'on';
-            app.textSinuosity.FontSize = 16;
-            app.textSinuosity.FontWeight = 'bold';
-            app.textSinuosity.FontColor = [1 1 1];
-            app.textSinuosity.Position = [9 560 192 24];
-            app.textSinuosity.Text = 'Sinuosity:';
-
-            % Create buttonMultiDetect
-            app.buttonMultiDetect = uibutton(app.mainfigure, 'push');
-            app.buttonMultiDetect.ButtonPushedFcn = createCallbackFcn(app, @buttonMultiDetect_Callback, true);
-            app.buttonMultiDetect.Tag = 'multinetdect_1';
-            app.buttonMultiDetect.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
-            app.buttonMultiDetect.FontWeight = 'bold';
-            app.buttonMultiDetect.FontColor = [1 1 1];
-            app.buttonMultiDetect.Position = [374 87 85.0000000000001 24];
-            app.buttonMultiDetect.Text = 'Multi Detect';
-
-            % Create textRelPwr
-            app.textRelPwr = uilabel(app.mainfigure);
-            app.textRelPwr.Tag = 'powertext';
-            app.textRelPwr.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textRelPwr.VerticalAlignment = 'top';
-            app.textRelPwr.WordWrap = 'on';
-            app.textRelPwr.FontSize = 16;
-            app.textRelPwr.FontWeight = 'bold';
-            app.textRelPwr.FontColor = [1 1 1];
-            app.textRelPwr.Position = [9 536 192 24];
-            app.textRelPwr.Text = 'Rel Pwr:';
-
-            % Create textColorMap
-            app.textColorMap = uilabel(app.mainfigure);
-            app.textColorMap.Tag = 'text17';
-            app.textColorMap.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textColorMap.VerticalAlignment = 'top';
-            app.textColorMap.WordWrap = 'on';
-            app.textColorMap.FontSize = 13.3333333333333;
-            app.textColorMap.FontWeight = 'bold';
-            app.textColorMap.FontColor = [1 1 1];
-            app.textColorMap.Position = [1250 94 124 18];
-            app.textColorMap.Text = 'Color Map';
-
-            % Create textUserID
-            app.textUserID = uilabel(app.mainfigure);
-            app.textUserID.Tag = 'text19';
-            app.textUserID.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textUserID.VerticalAlignment = 'top';
-            app.textUserID.WordWrap = 'on';
-            app.textUserID.FontSize = 16;
-            app.textUserID.FontWeight = 'bold';
-            app.textUserID.FontColor = [1 1 1];
-            app.textUserID.Position = [9 704 192 24];
-            app.textUserID.Text = 'User ID:';
-
-            % Create textContour
-            app.textContour = uilabel(app.mainfigure);
-            app.textContour.Tag = 'text20';
-            app.textContour.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textContour.VerticalAlignment = 'top';
-            app.textContour.WordWrap = 'on';
-            app.textContour.FontSize = 10.6666666666667;
-            app.textContour.FontWeight = 'bold';
-            app.textContour.FontColor = [1 1 1];
-            app.textContour.Position = [9 494 121 16];
-            app.textContour.Text = 'Contour';
-
-            % Create textTonality
-            app.textTonality = uilabel(app.mainfigure);
-            app.textTonality.Tag = 'tonalitytext';
-            app.textTonality.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textTonality.VerticalAlignment = 'top';
-            app.textTonality.WordWrap = 'on';
-            app.textTonality.FontSize = 16;
-            app.textTonality.FontWeight = 'bold';
-            app.textTonality.FontColor = [1 1 1];
-            app.textTonality.Position = [9 512 192 24];
-            app.textTonality.Text = 'Tonality:';
+            % Create sliderTonality
+            app.sliderTonality = uislider(app.mainfigure);
+            app.sliderTonality.Limits = [0 1];
+            app.sliderTonality.MajorTicks = [];
+            app.sliderTonality.Orientation = 'vertical';
+            app.sliderTonality.ValueChangedFcn = createCallbackFcn(app, @sliderTonality_Callback, true);
+            app.sliderTonality.MinorTicks = [];
+            app.sliderTonality.Tag = 'TonalitySlider';
+            app.sliderTonality.FontSize = 10.6666666666667;
+            app.sliderTonality.Position = [223 223 3 118];
 
             % Create textWaveform
             app.textWaveform = uilabel(app.mainfigure);
@@ -1629,253 +1745,6 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.textWaveform.FontColor = [1 1 1];
             app.textWaveform.Position = [12 342 121 16];
             app.textWaveform.Text = 'Waveform';
-
-            % Create buttonBackALot
-            app.buttonBackALot = uibutton(app.mainfigure, 'push');
-            app.buttonBackALot.ButtonPushedFcn = createCallbackFcn(app, @buttonBackALot_Callback, true);
-            app.buttonBackALot.Tag = 'backwardButton';
-            app.buttonBackALot.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
-            app.buttonBackALot.FontSize = 14.6666666666667;
-            app.buttonBackALot.FontWeight = 'bold';
-            app.buttonBackALot.FontColor = [1 1 1];
-            app.buttonBackALot.Tooltip = 'Previous Page';
-            app.buttonBackALot.Position = [700 88 40 24];
-            app.buttonBackALot.Text = '<<<';
-
-            % Create buttonFwdALot
-            app.buttonFwdALot = uibutton(app.mainfigure, 'push');
-            app.buttonFwdALot.ButtonPushedFcn = createCallbackFcn(app, @buttonFwdALot_Callback, true);
-            app.buttonFwdALot.Tag = 'forwardButton';
-            app.buttonFwdALot.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
-            app.buttonFwdALot.FontSize = 14.6666666666667;
-            app.buttonFwdALot.FontWeight = 'bold';
-            app.buttonFwdALot.FontColor = [1 1 1];
-            app.buttonFwdALot.Tooltip = 'Next Page';
-            app.buttonFwdALot.Position = [899 88 40 24];
-            app.buttonFwdALot.Text = '>>>';
-
-            % Create dropdownFocus
-            app.dropdownFocus = uidropdown(app.mainfigure);
-            app.dropdownFocus.Items = {'0.25s', '0.5s', '1s'};
-            app.dropdownFocus.ValueChangedFcn = createCallbackFcn(app, @dropdownFocus_Callback, true);
-            app.dropdownFocus.Tag = 'focusWindowSizePopup';
-            app.dropdownFocus.FontSize = 10.6666666666667;
-            app.dropdownFocus.FontColor = [1 1 1];
-            app.dropdownFocus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownFocus.Position = [962 72 73 22];
-            app.dropdownFocus.Value = '0.5s';
-
-            % Create textFocus
-            app.textFocus = uilabel(app.mainfigure);
-            app.textFocus.Tag = 'text25';
-            app.textFocus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textFocus.VerticalAlignment = 'top';
-            app.textFocus.WordWrap = 'on';
-            app.textFocus.FontSize = 13.3333333333333;
-            app.textFocus.FontWeight = 'bold';
-            app.textFocus.FontColor = [1 1 1];
-            app.textFocus.Position = [962 94 73 18];
-            app.textFocus.Text = 'Focus';
-
-            % Create textPage
-            app.textPage = uilabel(app.mainfigure);
-            app.textPage.Tag = 'text26';
-            app.textPage.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textPage.VerticalAlignment = 'top';
-            app.textPage.WordWrap = 'on';
-            app.textPage.FontSize = 13.3333333333333;
-            app.textPage.FontWeight = 'bold';
-            app.textPage.FontColor = [1 1 1];
-            app.textPage.Position = [1049 94 70 18];
-            app.textPage.Text = 'Page';
-
-            % Create dropdownPage
-            app.dropdownPage = uidropdown(app.mainfigure);
-            app.dropdownPage.Items = {'2s', '3s', '5s', '10s', ''};
-            app.dropdownPage.ValueChangedFcn = createCallbackFcn(app, @dropdownPage_Callback, true);
-            app.dropdownPage.Tag = 'epochWindowSizePopup';
-            app.dropdownPage.FontSize = 10.6666666666667;
-            app.dropdownPage.FontColor = [1 1 1];
-            app.dropdownPage.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownPage.Position = [1049 72 70 22];
-            app.dropdownPage.Value = '2s';
-
-            % Create buttonDisplaySettings
-            app.buttonDisplaySettings = uibutton(app.mainfigure, 'push');
-            app.buttonDisplaySettings.ButtonPushedFcn = createCallbackFcn(app, @buttonDisplaySettings_Callback, true);
-            app.buttonDisplaySettings.Tag = 'spectrogramScalePopup';
-            app.buttonDisplaySettings.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.buttonDisplaySettings.FontSize = 10.6666666666667;
-            app.buttonDisplaySettings.FontColor = [1 1 1];
-            app.buttonDisplaySettings.Position = [1129 72 99 22];
-            app.buttonDisplaySettings.Text = 'Display Settings';
-
-            % Create textScale
-            app.textScale = uilabel(app.mainfigure);
-            app.textScale.Tag = 'AmplitudeScaleText';
-            app.textScale.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textScale.VerticalAlignment = 'top';
-            app.textScale.WordWrap = 'on';
-            app.textScale.FontSize = 13.3333333333333;
-            app.textScale.FontWeight = 'bold';
-            app.textScale.FontColor = [1 1 1];
-            app.textScale.Position = [1131 94 74 18];
-            app.textScale.Text = 'Scale';
-
-            % Create buttonBackABit
-            app.buttonBackABit = uibutton(app.mainfigure, 'push');
-            app.buttonBackABit.ButtonPushedFcn = createCallbackFcn(app, @buttonBackABit_Callback, true);
-            app.buttonBackABit.Tag = 'topLeftButton';
-            app.buttonBackABit.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
-            app.buttonBackABit.FontSize = 14.6666666666667;
-            app.buttonBackABit.FontWeight = 'bold';
-            app.buttonBackABit.FontColor = [1 1 1];
-            app.buttonBackABit.Tooltip = 'Previous Window';
-            app.buttonBackABit.Position = [743 88 37.0000000000001 24];
-            app.buttonBackABit.Text = '<<';
-
-            % Create buttonFwdABit
-            app.buttonFwdABit = uibutton(app.mainfigure, 'push');
-            app.buttonFwdABit.ButtonPushedFcn = createCallbackFcn(app, @buttonFwdABit_Callback, true);
-            app.buttonFwdABit.Tag = 'topRightButton';
-            app.buttonFwdABit.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
-            app.buttonFwdABit.FontSize = 14.6666666666667;
-            app.buttonFwdABit.FontWeight = 'bold';
-            app.buttonFwdABit.FontColor = [1 1 1];
-            app.buttonFwdABit.Tooltip = 'Next Window';
-            app.buttonFwdABit.Position = [864 88 31 24];
-            app.buttonFwdABit.Text = '>>';
-
-            % Create buttonLoadAudio
-            app.buttonLoadAudio = uibutton(app.mainfigure, 'push');
-            app.buttonLoadAudio.ButtonPushedFcn = createCallbackFcn(app, @buttonLoadAudio_Callback, true);
-            app.buttonLoadAudio.Tag = 'loadAudioFile';
-            app.buttonLoadAudio.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
-            app.buttonLoadAudio.FontWeight = 'bold';
-            app.buttonLoadAudio.FontColor = [1 1 1];
-            app.buttonLoadAudio.Position = [374 56 85.0000000000001 24];
-            app.buttonLoadAudio.Text = 'Load Audio';
-
-            % Create textDetectLoadRecord
-            app.textDetectLoadRecord = uilabel(app.mainfigure);
-            app.textDetectLoadRecord.Tag = 'text29';
-            app.textDetectLoadRecord.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textDetectLoadRecord.VerticalAlignment = 'top';
-            app.textDetectLoadRecord.WordWrap = 'on';
-            app.textDetectLoadRecord.FontSize = 13.3333333333333;
-            app.textDetectLoadRecord.FontWeight = 'bold';
-            app.textDetectLoadRecord.FontColor = [1 1 1];
-            app.textDetectLoadRecord.Position = [277 115 203 18];
-            app.textDetectLoadRecord.Text = {'Detect, Load, & Record -------'; '________________________________________'};
-
-            % Create textSettings
-            app.textSettings = uilabel(app.mainfigure);
-            app.textSettings.Tag = 'text31';
-            app.textSettings.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textSettings.VerticalAlignment = 'top';
-            app.textSettings.WordWrap = 'on';
-            app.textSettings.FontSize = 13.3333333333333;
-            app.textSettings.FontWeight = 'bold';
-            app.textSettings.FontColor = [1 1 1];
-            app.textSettings.Position = [962 116 412 18];
-            app.textSettings.Text = 'Settings ----------------------------------------------------------------------------------------';
-
-            % Create buttonInvertCmap
-            app.buttonInvertCmap = uibutton(app.mainfigure, 'push');
-            app.buttonInvertCmap.ButtonPushedFcn = createCallbackFcn(app, @buttonInvertCmap_Callback, true);
-            app.buttonInvertCmap.Tag = 'invert_cmap';
-            app.buttonInvertCmap.Icon = 'invert_cmap_image.png';
-            app.buttonInvertCmap.IconAlignment = 'center';
-            app.buttonInvertCmap.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.buttonInvertCmap.FontSize = 10.6666666666667;
-            app.buttonInvertCmap.FontColor = [1 1 1];
-            app.buttonInvertCmap.Position = [1380 72 31 23];
-            app.buttonInvertCmap.Text = '';
-
-            % Create buttonHighCLimMinus
-            app.buttonHighCLimMinus = uibutton(app.mainfigure, 'push');
-            app.buttonHighCLimMinus.ButtonPushedFcn = createCallbackFcn(app, @buttonHighCLimMinus_Callback, true);
-            app.buttonHighCLimMinus.Tag = 'high_clim_minus';
-            app.buttonHighCLimMinus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.buttonHighCLimMinus.FontSize = 10.6666666666667;
-            app.buttonHighCLimMinus.FontColor = [1 1 1];
-            app.buttonHighCLimMinus.Position = [1336 42 30 22];
-            app.buttonHighCLimMinus.Text = '-';
-
-            % Create buttonHighCLimPlus
-            app.buttonHighCLimPlus = uibutton(app.mainfigure, 'push');
-            app.buttonHighCLimPlus.ButtonPushedFcn = createCallbackFcn(app, @buttonHighCLimPlus_Callback, true);
-            app.buttonHighCLimPlus.Tag = 'high_clim_plus';
-            app.buttonHighCLimPlus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.buttonHighCLimPlus.FontSize = 10.6666666666667;
-            app.buttonHighCLimPlus.FontColor = [1 1 1];
-            app.buttonHighCLimPlus.Position = [1371 42 30 22];
-            app.buttonHighCLimPlus.Text = '+';
-
-            % Create buttonLowCLimPlus
-            app.buttonLowCLimPlus = uibutton(app.mainfigure, 'push');
-            app.buttonLowCLimPlus.ButtonPushedFcn = createCallbackFcn(app, @buttonLowCLimPlus_Callback, true);
-            app.buttonLowCLimPlus.Tag = 'low_clim_plus';
-            app.buttonLowCLimPlus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.buttonLowCLimPlus.FontSize = 10.6666666666667;
-            app.buttonLowCLimPlus.FontColor = [1 1 1];
-            app.buttonLowCLimPlus.Position = [1371 17 30 22];
-            app.buttonLowCLimPlus.Text = '+';
-
-            % Create buttonLowCLimMinus
-            app.buttonLowCLimMinus = uibutton(app.mainfigure, 'push');
-            app.buttonLowCLimMinus.ButtonPushedFcn = createCallbackFcn(app, @buttonLowCLimMinus_Callback, true);
-            app.buttonLowCLimMinus.Tag = 'low_clim_minus';
-            app.buttonLowCLimMinus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.buttonLowCLimMinus.FontSize = 10.6666666666667;
-            app.buttonLowCLimMinus.FontColor = [1 1 1];
-            app.buttonLowCLimMinus.Position = [1336 17 30 22];
-            app.buttonLowCLimMinus.Text = '-';
-
-            % Create buttonRecordAudio
-            app.buttonRecordAudio = uibutton(app.mainfigure, 'state');
-            app.buttonRecordAudio.ValueChangedFcn = createCallbackFcn(app, @buttonRecordAudio_Callback, true);
-            app.buttonRecordAudio.Tag = 'recordAudio';
-            app.buttonRecordAudio.Text = 'Record Audio';
-            app.buttonRecordAudio.BackgroundColor = [0.392156862745098 0.831372549019608 0.0745098039215686];
-            app.buttonRecordAudio.FontWeight = 'bold';
-            app.buttonRecordAudio.FontColor = [1 1 1];
-            app.buttonRecordAudio.Position = [274 24 92.0000000000001 25];
-
-            % Create textNavigation
-            app.textNavigation = uilabel(app.mainfigure);
-            app.textNavigation.Tag = 'text30';
-            app.textNavigation.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textNavigation.VerticalAlignment = 'top';
-            app.textNavigation.WordWrap = 'on';
-            app.textNavigation.FontSize = 13.3333333333333;
-            app.textNavigation.FontWeight = 'bold';
-            app.textNavigation.FontColor = [1 1 1];
-            app.textNavigation.Position = [700 115 239 18];
-            app.textNavigation.Text = 'Navigation -----------------------------------------';
-
-            % Create textDetReview
-            app.textDetReview = uilabel(app.mainfigure);
-            app.textDetReview.Tag = 'text18';
-            app.textDetReview.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textDetReview.VerticalAlignment = 'top';
-            app.textDetReview.WordWrap = 'on';
-            app.textDetReview.FontSize = 13.3333333333333;
-            app.textDetReview.FontWeight = 'bold';
-            app.textDetReview.FontColor = [1 1 1];
-            app.textDetReview.Position = [494 115 196 18];
-            app.textDetReview.Text = 'Detection Review ------------------';
-
-            % Create sliderTonality
-            app.sliderTonality = uislider(app.mainfigure);
-            app.sliderTonality.Limits = [0 1];
-            app.sliderTonality.MajorTicks = [];
-            app.sliderTonality.Orientation = 'vertical';
-            app.sliderTonality.ValueChangedFcn = createCallbackFcn(app, @sliderTonality_Callback, true);
-            app.sliderTonality.MinorTicks = [];
-            app.sliderTonality.Tag = 'TonalitySlider';
-            app.sliderTonality.FontSize = 10.6666666666667;
-            app.sliderTonality.Position = [223 223 3 118];
 
             % Create buttonNextFile
             app.buttonNextFile = uibutton(app.mainfigure, 'push');
@@ -1901,17 +1770,89 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonPrevFile.Position = [784 57 33.0000000000001 24];
             app.buttonPrevFile.Text = '|<';
 
-            % Create textLabel
-            app.textLabel = uilabel(app.mainfigure);
-            app.textLabel.Tag = 'text36';
-            app.textLabel.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textLabel.VerticalAlignment = 'top';
-            app.textLabel.WordWrap = 'on';
-            app.textLabel.FontSize = 16;
-            app.textLabel.FontWeight = 'bold';
-            app.textLabel.FontColor = [1 1 1];
-            app.textLabel.Position = [9 680 192 24];
-            app.textLabel.Text = 'Label:';
+            % Create textContour
+            app.textContour = uilabel(app.mainfigure);
+            app.textContour.Tag = 'text20';
+            app.textContour.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textContour.VerticalAlignment = 'top';
+            app.textContour.WordWrap = 'on';
+            app.textContour.FontSize = 10.6666666666667;
+            app.textContour.FontWeight = 'bold';
+            app.textContour.FontColor = [1 1 1];
+            app.textContour.Position = [9 494 121 16];
+            app.textContour.Text = 'Contour';
+
+            % Create textTonality
+            app.textTonality = uilabel(app.mainfigure);
+            app.textTonality.Tag = 'tonalitytext';
+            app.textTonality.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textTonality.VerticalAlignment = 'top';
+            app.textTonality.WordWrap = 'on';
+            app.textTonality.FontSize = 16;
+            app.textTonality.FontWeight = 'bold';
+            app.textTonality.FontColor = [1 1 1];
+            app.textTonality.Position = [9 512 241 24];
+            app.textTonality.Text = 'Tonality:';
+
+            % Create textRelPwr
+            app.textRelPwr = uilabel(app.mainfigure);
+            app.textRelPwr.Tag = 'powertext';
+            app.textRelPwr.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textRelPwr.VerticalAlignment = 'top';
+            app.textRelPwr.WordWrap = 'on';
+            app.textRelPwr.FontSize = 16;
+            app.textRelPwr.FontWeight = 'bold';
+            app.textRelPwr.FontColor = [1 1 1];
+            app.textRelPwr.Position = [9 536 241 24];
+            app.textRelPwr.Text = 'Rel Pwr:';
+
+            % Create textSinuosity
+            app.textSinuosity = uilabel(app.mainfigure);
+            app.textSinuosity.Tag = 'sinuosity';
+            app.textSinuosity.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textSinuosity.VerticalAlignment = 'top';
+            app.textSinuosity.WordWrap = 'on';
+            app.textSinuosity.FontSize = 16;
+            app.textSinuosity.FontWeight = 'bold';
+            app.textSinuosity.FontColor = [1 1 1];
+            app.textSinuosity.Position = [9 560 241 24];
+            app.textSinuosity.Text = 'Sinuosity:';
+
+            % Create textSlope
+            app.textSlope = uilabel(app.mainfigure);
+            app.textSlope.Tag = 'slope';
+            app.textSlope.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textSlope.VerticalAlignment = 'top';
+            app.textSlope.WordWrap = 'on';
+            app.textSlope.FontSize = 16;
+            app.textSlope.FontWeight = 'bold';
+            app.textSlope.FontColor = [1 1 1];
+            app.textSlope.Position = [9 584 241 24];
+            app.textSlope.Text = 'Slope (KHz/s):';
+
+            % Create textDuration
+            app.textDuration = uilabel(app.mainfigure);
+            app.textDuration.Tag = 'duration';
+            app.textDuration.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textDuration.VerticalAlignment = 'top';
+            app.textDuration.WordWrap = 'on';
+            app.textDuration.FontSize = 16;
+            app.textDuration.FontWeight = 'bold';
+            app.textDuration.FontColor = [1 1 1];
+            app.textDuration.Position = [9 608 241 24];
+            app.textDuration.Text = 'Duration (ms):';
+
+            % Create textFrequency
+            app.textFrequency = uilabel(app.mainfigure);
+            app.textFrequency.Tag = 'freq';
+            app.textFrequency.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textFrequency.VerticalAlignment = 'top';
+            app.textFrequency.WordWrap = 'on';
+            app.textFrequency.FontSize = 16;
+            app.textFrequency.FontWeight = 'bold';
+            app.textFrequency.FontColor = [1 1 1];
+            app.textFrequency.Position = [9 632 241 24];
+            app.textFrequency.Text = 'Frequency (KHz):';
 
             % Create textClustAssign
             app.textClustAssign = uilabel(app.mainfigure);
@@ -1922,8 +1863,88 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.textClustAssign.FontSize = 16;
             app.textClustAssign.FontWeight = 'bold';
             app.textClustAssign.FontColor = [1 1 1];
-            app.textClustAssign.Position = [9 656 192 24];
+            app.textClustAssign.Position = [9 656 241 24];
             app.textClustAssign.Text = 'Clust Assign:';
+
+            % Create textLabel
+            app.textLabel = uilabel(app.mainfigure);
+            app.textLabel.Tag = 'text36';
+            app.textLabel.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textLabel.VerticalAlignment = 'top';
+            app.textLabel.WordWrap = 'on';
+            app.textLabel.FontSize = 16;
+            app.textLabel.FontWeight = 'bold';
+            app.textLabel.FontColor = [1 1 1];
+            app.textLabel.Position = [9 680 241 24];
+            app.textLabel.Text = 'Label:';
+
+            % Create textUserID
+            app.textUserID = uilabel(app.mainfigure);
+            app.textUserID.Tag = 'text19';
+            app.textUserID.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textUserID.VerticalAlignment = 'top';
+            app.textUserID.WordWrap = 'on';
+            app.textUserID.FontSize = 16;
+            app.textUserID.FontWeight = 'bold';
+            app.textUserID.FontColor = [1 1 1];
+            app.textUserID.Position = [9 704 241 24];
+            app.textUserID.Text = 'User ID:';
+
+            % Create textStatus
+            app.textStatus = uilabel(app.mainfigure);
+            app.textStatus.Tag = 'status';
+            app.textStatus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textStatus.VerticalAlignment = 'top';
+            app.textStatus.WordWrap = 'on';
+            app.textStatus.FontSize = 16;
+            app.textStatus.FontWeight = 'bold';
+            app.textStatus.FontColor = [1 1 1];
+            app.textStatus.Position = [9 728 241 24];
+            app.textStatus.Text = 'Status:';
+
+            % Create textOvlp
+            app.textOvlp = uilabel(app.mainfigure);
+            app.textOvlp.Tag = 'ovlp';
+            app.textOvlp.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textOvlp.VerticalAlignment = 'top';
+            app.textOvlp.WordWrap = 'on';
+            app.textOvlp.FontSize = 16;
+            app.textOvlp.FontWeight = 'bold';
+            app.textOvlp.FontColor = [1 1 1];
+            app.textOvlp.Position = [129 752 121 24];
+            app.textOvlp.Text = 'Ovlp:';
+
+            % Create textScore
+            app.textScore = uilabel(app.mainfigure);
+            app.textScore.Tag = 'score';
+            app.textScore.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textScore.VerticalAlignment = 'top';
+            app.textScore.WordWrap = 'on';
+            app.textScore.FontSize = 16;
+            app.textScore.FontWeight = 'bold';
+            app.textScore.FontColor = [1 1 1];
+            app.textScore.Position = [9 752 121 24];
+            app.textScore.Text = 'Score:';
+
+            % Create textCalls
+            app.textCalls = uilabel(app.mainfigure);
+            app.textCalls.Tag = 'Ccalls';
+            app.textCalls.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.textCalls.VerticalAlignment = 'top';
+            app.textCalls.WordWrap = 'on';
+            app.textCalls.FontSize = 16;
+            app.textCalls.FontWeight = 'bold';
+            app.textCalls.FontColor = [1 1 1];
+            app.textCalls.Position = [9 776 241 24];
+            app.textCalls.Text = 'Calls: 0/0';
+
+            % Create textFileName
+            app.textFileName = uilabel(app.mainfigure);
+            app.textFileName.Tag = 'displayfile';
+            app.textFileName.FontWeight = 'bold';
+            app.textFileName.FontColor = [1 1 1];
+            app.textFileName.Position = [298 769 1036 22];
+            app.textFileName.Text = '';
 
             % Show the figure after all components are created
             app.mainfigure.Visible = 'on';

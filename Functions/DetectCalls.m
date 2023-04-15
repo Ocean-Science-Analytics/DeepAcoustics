@@ -11,9 +11,12 @@ if isempty(handles.networkfiles)
     return
 end
 if exist(handles.data.settings.detectionfolder,'dir')==0
-    errordlg('Please Select Output Folder')
-    uiwait
-    load_detectionFolder_Callback(hObject, eventdata, handles)
+    % Find audio in folder
+    path=uigetdir(handles.data.settings.detectionfolder,'Select Detection File Folder');
+    if isnumeric(path);return;end
+    handles.data.settings.detectionfolder = path;
+    handles.data.saveSettings();
+    update_folders(hObject, eventdata, handles);
     handles = guidata(hObject);  % Get newest version of handles
 end
 
