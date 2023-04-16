@@ -42,7 +42,7 @@ switch choice
     case 'Yes'
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
         load([NetPath NetName],'detector');
-        if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && detector.Network.Layers(end).Classes==categorical({'USV'}))
+        if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && detector.ClassNames==categorical({'USV'}))
             choice = questdlg('It looks like you are trying to build on an older USV model.  Do you want to make sure new detections are also labelled USV? (Recommend Yes unless you know what you are doing.)', 'Yes', 'No');
             switch choice
                 case 'Yes'
@@ -53,7 +53,7 @@ switch choice
                     end
             end
         end
-        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector);
+        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector,options);
     case 'Yes - TensorFlow'
         detector = importTensorFlowLayers(uigetdir(pwd,'Please select the folder containing saved TensorFlow 2 model (saved_model.pb & variables subfolder)'));
         [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector);
