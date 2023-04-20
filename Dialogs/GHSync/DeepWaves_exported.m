@@ -729,7 +729,6 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         function dropdownNeuralNet_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            
             guidata(hObject, handles);
         end
 
@@ -737,15 +736,6 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         function dropdownAudioFiles_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            
-            guidata(hObject, handles);
-        end
-
-        % Callback function: not associated with a component
-        function dropdownDetCallFiles_Callback(app, event)
-            % Create GUIDE-style callback args - Added by Migration Tool
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            
             guidata(hObject, handles);
         end
 
