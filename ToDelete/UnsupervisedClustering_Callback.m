@@ -53,24 +53,24 @@ function UnsupClust(hObject, eventdata, handles)
                                     if ~bSuperBatch
                                         [ClusteringData, ~, ~, ~, spectrogramOptions] = CreateClusteringData(handles, 'forClustering', true, 'save_data', true);
                                         if isempty(ClusteringData); return; end
-                                        clusterParameters= inputdlg({'Number of Contour Pts','Slope Weight','Concavity Weight','Frequency Weight', ...
+                                        clusterParameters= inputdlg({'Number of Contour Pts','Delta8 Weight','Slope Weight','Concavity Weight','Frequency Weight', ...
                                             'Relative Frequency Weight','Duration Weight','Infl Pt Weight','Parsons Weight','Parsons Resolution'}, ...%,'Parsons2 weight'},
-                                            'Choose cluster parameters:',[1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 15],{'20','0','0','0','1','0','0','0','4'});%,'0'});
+                                            'Choose cluster parameters:',[1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 15],{'20','0','0','0','0','1','0','0','0','4'});%,'0'});
                                         if isempty(clusterParameters); return; end
                                         num_pts = str2double(clusterParameters{1});
-                                        slope_weight = str2double(clusterParameters{2});
-                                        concav_weight = str2double(clusterParameters{3});
-                                        freq_weight = str2double(clusterParameters{4});
-                                        relfreq_weight = str2double(clusterParameters{5});
-                                        duration_weight = str2double(clusterParameters{6});
-                                        ninflpt_weight = str2double(clusterParameters{7});
-                                        pc_weight = str2double(clusterParameters{8});
-                                        RES = str2double(clusterParameters{9});
+                                        delta8_weight = str2double(clusterParameters{2});
+                                        slope_weight = str2double(clusterParameters{3});
+                                        concav_weight = str2double(clusterParameters{4});
+                                        freq_weight = str2double(clusterParameters{5});
+                                        relfreq_weight = str2double(clusterParameters{6});
+                                        duration_weight = str2double(clusterParameters{7});
+                                        ninflpt_weight = str2double(clusterParameters{8});
+                                        pc_weight = str2double(clusterParameters{9});
+                                        RES = str2double(clusterParameters{10});
                                         if RES <= 0
                                             warning('RES cannot be <= 0; assuming pc_weight is 0')
                                             pc_weight = 0;
                                         end
-                                        %pc2_weight = str2double(clusterParameters{8});
                                     else
                                         num_pts = 20;
                                         slope_weight = batchtable.slope_weight(j);
@@ -83,7 +83,7 @@ function UnsupClust(hObject, eventdata, handles)
                                         ninflpt_weight = batchtable.ninflpt_weight(j);
                                     end
                                     ClusteringData{:,'NumContPts'} = num_pts;
-                                    data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);%, pc2_weight);
+                                    data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);
                                 case 'Variational Autoencoder'
                                     [encoderNet, decoderNet, options, ClusteringData] = create_VAE_model(handles);
                                     data = extract_VAE_embeddings(encoderNet, options, ClusteringData);
@@ -111,24 +111,26 @@ function UnsupClust(hObject, eventdata, handles)
                                     % Preset variables
                                     num_pts = 20;
                                     RES = 1;
-                                    freq_weight = 0;
-                                    relfreq_weight = 0;
+                                    delta8_weight = 0;
                                     slope_weight = 0;
                                     concav_weight = 0;
+                                    freq_weight = 0;
+                                    relfreq_weight = 0;
                                     duration_weight = 0;
                                     pc_weight = 0;
                                     ninflpt_weight = 0;
                                     % Load existing model to replace variables as
                                     % needed
                                     load(fullfile(PathName,FileName),'C','num_pts',...
-                                        'RES','freq_weight','relfreq_weight','slope_weight',...
-                                        'concav_weight','duration_weight','pc_weight','ninflpt_weight',...%'pc2_weight',...
+                                        'RES','delta8_weight','slope_weight','concav_weight',...
+                                        'freq_weight','relfreq_weight','duration_weight',...
+                                        'pc_weight','ninflpt_weight',...
                                         'clusterName','spectrogramOptions');
                                     ClusteringData = CreateClusteringData(handles, 'forClustering', true, 'spectrogramOptions', spectrogramOptions, 'save_data', true);
                                     if isempty(ClusteringData); return; end
     
                                     ClusteringData{:,'NumContPts'} = num_pts;
-                                    data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);%, pc2_weight);
+                                    data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);
                                 case 'Variational Autoencoder'
                                     C = [];
                                     load(fullfile(PathName,FileName),'C','encoderNet','decoderNet','options');
@@ -188,6 +190,7 @@ function UnsupClust(hObject, eventdata, handles)
                         % Second deriv (deltax = 2 pts)
                         %concavall   = concavall(:,5:end)-concavall(:,1:end-4);
                         concavall   = cellfun(@(x) x(5:end)-x(1:end-4),concavall,'UniformOutput',false);
+
                         % Second deriv (deltax = 2 pts)
                         % Normalize concavity over entire dataset
                         %zccall = num2cell(zscore(concavall,0,'all'),2);
@@ -202,11 +205,44 @@ function UnsupClust(hObject, eventdata, handles)
                         %ninflpt     = cellfun(@(x) get_infl_pts(x),zccall,'UniformOutput',false);
                         ninflpt     = cellfun(@(x) get_infl_pts(x,thresh_pos,thresh_neg),concavall,'UniformOutput',false);
                         ClusteringData(:,'NumInflPts') = ninflpt;
-    
-    
-        % Normalize concavity over entire dataset
-        %zccall = num2cell(zscore(concavall,0,'all'),2);
-        % Calculate # of inflection pts for each contour
+                        vecIP = cellfun(@(x) getIPcont(x,thresh_pos,thresh_neg),concavall,'UniformOutput',false);
+                        ClusteringData(:,'InflPtVec') = vecIP;
+
+                        contourtimesl4ext = cellfun(@(x) {linspace(min(x),max(x),num_pts+4)},ClusteringData.xTime,'UniformOutput',false);
+                        contourfreqsl4ext = cellfun(@(x,y,z) {interp1(x,y,z{:})},ClusteringData.xTime,contoursmth,contourtimesl4ext,'UniformOutput',false);
+                        contourfreqsl4ext   = cellfun(@(x) x{:}, contourfreqsl4ext,'UniformOutput',false); 
+                        slopeall   = cellfun(@(x) x(5:end)-x(1:end-4),contourfreqsl4ext,'UniformOutput',false);
+                        thresh_pos = cell2mat(slopeall);
+                        thresh_pos = thresh_pos(thresh_pos > 0);
+                        %thresh_pos = median(thresh_pos);
+                        thresh_pos_steep = quantile(thresh_pos,0.6);
+                        thresh_pos_shall = quantile(thresh_pos,0.2);
+                        thresh_neg = cell2mat(slopeall);
+                        thresh_neg = thresh_neg(thresh_neg < 0);
+                        %thresh_neg = median(thresh_neg);
+                        thresh_neg_steep = quantile(thresh_neg,0.4);
+                        thresh_neg_shall = quantile(thresh_neg,0.8);
+
+                        %nextpt     = cellfun(@(x) get_infl_pts(x,thresh_pos,thresh_neg),slopeall,'UniformOutput',false);
+                        n0pos1 = cellfun(@(x) get_infl_pts(x,thresh_pos_steep,thresh_pos_shall),slopeall,'UniformOutput',false);
+                        n0neg1 = cellfun(@(x) get_infl_pts(x,thresh_neg_shall,thresh_neg_steep),slopeall,'UniformOutput',false);
+                        nextpt = cellfun(@plus,n0pos1,n0neg1,'UniformOutput',false);
+                        ClusteringData(:,'NumExtPts') = nextpt;
+                        %vecext = cellfun(@(x) getIPcont(x,thresh_pos,thresh_neg),slopeall,'UniformOutput',false);
+                        vecext0pos1 = cellfun(@(x) getIPcont(x,thresh_pos_steep,thresh_pos_shall),slopeall,'UniformOutput',false);
+                        vecext0neg1 = cellfun(@(x) getIPcont(x,thresh_neg_shall,thresh_neg_steep),slopeall,'UniformOutput',false);
+                        vecext = cellfun( @(x,y) [x,y], vecext0pos1, vecext0neg1, 'UniformOutput', false );
+                        ClusteringData(:,'ExtPtVec') = vecext;
+                        
+                        %% TSNE
+                        embed = tsne(data);
+                        % Rescale values between 0 and 1
+                        embed = (embed - min(embed)) ./ (max(embed)-min(embed));
+                        embedY = 1-embed(:,2); % flip Y coordinates so the images looks like the UMAP figure
+                        embedX = embed(:,1);
+                        figTSNE = figure();
+                        gscatter(embedX, embedY, clustAssign,'rgbcmyk','o+*xsdvph',8);
+                        title('t-SNE')
     
                         %% Centroid contours
                         if relfreq_weight > 0
@@ -235,7 +271,7 @@ function UnsupClust(hObject, eventdata, handles)
                                 nexttile
                                 plot(1:num_pts,thiscent,1:num_pts,maxcont,'r--',1:num_pts,mincont,'r--')
                                 ylim([minylim maxylim])
-                                title(sprintf('(%d)  n = %d',i,size(thisclust,1)))
+                                title(sprintf('(%d)  n = %d',i,size(thisclust,1)),'Units','normalized','Position',[0.5,0.02,0])
                             end
     
                             title(montTile, 'Centroid Contours with Max and Min Call Variation')
@@ -250,8 +286,18 @@ function UnsupClust(hObject, eventdata, handles)
                     %% Silhouette Graph for This Run
                     figure()
                     [s,~] = silhouette(data,clustAssign);
-                    % Stats         
-                    maxS = max(s);
+                    % Stats
+                    %First count singletons
+                    [thisct,uniqCA] = groupcounts(clustAssign);
+                    ctsing = length(thisct(thisct == 1));
+                    singclust = uniqCA(thisct == 1);
+                    snosing = s(~ismember(clustAssign,singclust));
+                    % Other metrics
+                    if ~isempty(snosing)
+                        maxS = max(snosing);
+                    else
+                        maxS = 1;
+                    end
                     %minS = min(s);
                     meanS = mean(s);
                     medianS = median(s);
@@ -268,18 +314,12 @@ function UnsupClust(hObject, eventdata, handles)
                     % clusters with zero negative members
                     greater0 = length(s(s>0))/length(s);
 
-                    % Count singleton clusters
-                    ctsing = 0;
                     % Calc proportion of clusters > mean S value
                     ct1 = 0;
                     ct2 = 0;
                     accummu = 0;
-                    uniqCA = unique(clustAssign);
                     for i=1:length(uniqCA)
                         accummu = accummu + mean(s(clustAssign==uniqCA(i)));
-                        if sum(clustAssign==uniqCA(i)) == 1
-                            ctsing = ctsing+1;
-                        end
                     end
                     accummu = accummu/length(uniqCA);
                     for i=1:length(uniqCA)
@@ -298,8 +338,8 @@ function UnsupClust(hObject, eventdata, handles)
                     xlim([-1 1])
                     yticklabels(1:size(C,1))
                     title(sprintf('Silhouettes of Clusters - %d Clusters',size(C,1)),...
-                        {sprintf('Mean1 (all whis, red dashed) = %0.2f  Mean2 (by clust, green dotted) = %0.2f',meanS, accummu),...
-                        sprintf('Med = %0.2f  Max = %0.2f  Prop<=0 = %0.2f',...
+                        {sprintf('Mean1 (overall mean, red dashed) = %0.2f  Mean2 (mean by clust, green dotted) = %0.2f',meanS, accummu),...
+                        sprintf('Med = %0.2f  Max (no Sngtons) = %0.2f  Prop<=0 = %0.2f',...
                         medianS, maxS, below_zero),...
                         sprintf('Prop of Cl>Mean1 = %0.2f  Prop of Cl>Mean2 = %0.2f  # Sngtons = %d', ...
                         propCAbMean1,propCAbMean2,ctsing)})
@@ -340,7 +380,7 @@ function UnsupClust(hObject, eventdata, handles)
     
                             nexttile
                             image(imtile(floor(imresize(tmp,[maxBandwidth,maxlength])), inferno, 'BackgroundColor', 'w', 'GridSize',[1 1]))
-                            title(sprintf('(%d)  ID = %s',i,ClusteringData.UserID(index)))
+                            title(sprintf('(%d)  ID = %s',i,ClusteringData.UserID(index)),'Units','normalized','Position',[0.5,0.02,0],'Color','white')
                             %title(num2str(i))
                             axis off
                         end
@@ -489,7 +529,7 @@ function UnsupClust(hObject, eventdata, handles)
                         pname = pname(1:pind);
                         [FileName, PathName] = uiputfile(fullfile(pname, 'KMeans Model.mat'), 'Save clustering model (centroids and parameters)');
                         if ~isnumeric(FileName)
-                            save(fullfile(PathName, FileName), 'C', 'num_pts','RES','freq_weight',...
+                            save(fullfile(PathName, FileName), 'C', 'num_pts','RES','delta8_weight','freq_weight',...
                                 'relfreq_weight', 'slope_weight', 'concav_weight', 'duration_weight', 'pc_weight',... % 'pc2_weight',
                                 'ninflpt_weight','clusterName', 'spectrogramOptions');
                         end
@@ -497,13 +537,11 @@ function UnsupClust(hObject, eventdata, handles)
                         PathName = exportpath;
                         FileName = sprintf('KMeansModel_%s_%dClusters.mat',batchtable.modelname{j},size(C,1));
                         if ~isnumeric(FileName)
-                            save(fullfile(PathName, FileName), 'C', 'num_pts','RES','freq_weight',...
+                            save(fullfile(PathName, FileName), 'C', 'num_pts','RES','delta8_weight','freq_weight',...
                                 'relfreq_weight', 'slope_weight', 'concav_weight', 'duration_weight', 'pc_weight',... % 'pc2_weight',
                                 'ninflpt_weight','spectrogramOptions');
                         end
                     end
-                    %[FileName, PathName] = uiputfile(fullfile(handles.data.squeakfolder, 'Clustering Models', 'K-Means Model.mat'), 'Save clustering model');
-                    
                 case 'ARTwarp'
                     [FileName, PathName] = uiputfile(fullfile(handles.data.squeakfolder, 'Clustering Models', 'ARTwarp Model.mat'), 'Save clustering model');
                     if ~isnumeric(FileName)
@@ -566,7 +604,7 @@ function D = dtw2(ZI,ZJ)
     end
 end
 
-function data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight)%, pc2_weight)
+function data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight)
     % Parameterize the data for kmeans
     %ReshapedX   = cell2mat(cellfun(@(x) imresize(x',[1 num_pts+1]) ,ClusteringData.xFreq,'UniformOutput',0));
     % Smooth contour
@@ -585,11 +623,22 @@ function data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, conc
     % Pull concavity based on 20-pt contour
     timelsp     = cellfun(@(x) linspace(min(x),max(x),num_pts+4),ClusteringData.xTime,'UniformOutput',false);
     concavall   = cellfun(@(x,y,z) interp1(x,y,z),ClusteringData.xTime,allconts,timelsp,'UniformOutput',false);
-    % First deriv (deltax = 2 pts)
-    %concavall   = concavall(:,5:end)-concavall(:,1:end-4);
+    % First deriv (deltax = 4 pts)
     concavall   = cellfun(@(x) x(5:end)-x(1:end-4),concavall,'UniformOutput',false);
     %Better (smoothed) slope
     slope = zscore(cell2mat(concavall),[],'all');
+
+    % Calculate Delta-8 Measure
+    % I.e. if >=8% change relative to larger frequency, +/- 1, otherwise 0
+    % First get 21-pt version of slope
+    timelsp     = cellfun(@(x) linspace(min(x),max(x),num_pts+5),ClusteringData.xTime,'UniformOutput',false);
+    concavall   = cellfun(@(x,y,z) interp1(x,y,z),ClusteringData.xTime,allconts,timelsp,'UniformOutput',false);
+    % First deriv (deltax = 4 pts)
+    %concavall   = cellfun(@(x) x(5:end)-x(1:end-4),concavall,'UniformOutput',false);
+    % +/-1s for changes in freq >= 8% of the max in each adjacent pair of
+    % frequencies
+    delta8      = cellfun(@(x) get_delta8(x),concavall,'UniformOutput',false);
+    delta8      = zscore(cell2mat(delta8),[],'all');
     
     timelsp     = cellfun(@(x) linspace(min(x),max(x),num_pts+8),ClusteringData.xTime,'UniformOutput',false);
     concavall   = cellfun(@(x,y,z) interp1(x,y,z),ClusteringData.xTime,allconts,timelsp,'UniformOutput',false);
@@ -654,8 +703,29 @@ function data = get_kmeans_data(ClusteringData, num_pts, RES, slope_weight, conc
         duration    .*  duration_weight+.001,...
         pc          .*  pc_weight+0.001,...
         ninflpt     .*  ninflpt_weight+0.001...
+        delta8      .*  delta8_weight+0.001...
     %     pc2       .*  pc2_weight+0.001,...
         ];
+end
+
+% Track Changes of >=8% Frequency
+function ndelta8 = get_delta8(contour)
+    % maxesd8 = the max value in every adjacent pair of frequencies (w/
+    % smoothing factor)
+    maxesd8 = max(contour(1:end-4),contour(5:end));
+    % minsd8 = the min value in every adjacent pair of frequencies (w/
+    % smoothing factor)
+    minsd8 = min(contour(1:end-4),contour(5:end));
+    % the absolute change in freq b/w adjacent pairs of freqs
+    diffd8 = maxesd8-minsd8;
+    % ndelta8 = change in freq change b/w adjacent pairs of freqs
+    ndelta8 = (contour(5:end)-contour(1:end-4));
+    % ndelta8 = +/- 1s (or 0s for no change)
+    ndelta8(diffd8~=0) = ndelta8(diffd8~=0)./diffd8(diffd8~=0);
+    % diffd8 = logical T/F if slope change is <8% of max in pair of freqs
+    diffd8 = diffd8 < 0.08*maxesd8;
+    % make any changes <8% = 0 in ndelta8
+    ndelta8(diffd8) = 0;
 end
 
 % # of Inflection Pt Calculations
@@ -664,11 +734,43 @@ function ninflpt = get_infl_pts(cont_concav,thresh_pos,thresh_neg)
     ninflpt = cont_concav;
     % Separate concav values into three categories using +/- 1 SD as
     % cut-offs
-    ninflpt(ninflpt<=thresh_neg) = -1;
-    ninflpt(ninflpt>=thresh_pos) = 1;
-    ninflpt(ninflpt>thresh_neg & ninflpt<thresh_pos) = 0;
+    ninflpt(cont_concav<=thresh_neg) = -1;
+    ninflpt(cont_concav>=thresh_pos) = 1;
+    ninflpt(cont_concav>thresh_neg & cont_concav<thresh_pos) = 0;
     % Remove zeros and count changes between -1 and 1 and vice versa
     ninflpt = length(find(diff(ninflpt(ninflpt~=0))));
+end
+
+% Indices of Inflection Point Calculations
+function xvals = getIPcont(cont_concav,thresh_pos,thresh_neg)
+    % Given a contour of concavity values
+    ninflpt = cont_concav;
+    % Initialized IP vec to zeros
+    xvals = zeros(1, length(ninflpt));
+    % Separate concav values into three categories using +/- 1 SD as
+    % cut-offs
+    ninflpt(cont_concav<=thresh_neg) = -1;
+    ninflpt(cont_concav>=thresh_pos) = 1;
+    ninflpt(cont_concav>thresh_neg & cont_concav<thresh_pos) = 0;
+    % For every contour point
+    for i = 1:length(ninflpt)
+        % If it's nonzero
+        if ninflpt(i) ~= 0
+            % Look at the rest of the future contour
+            subvec = ninflpt(i+1:end);
+            % Find the next nonzero value
+            testind = find(subvec,1,'first')+i;
+            testval = ninflpt(testind);
+            % If there's a sign switch, it's an inflection point!
+            if ninflpt(i)*testval == -1
+                % Store the index of the inflection point as halfway
+                % between the sign change (or as close as you can get)
+                xvals(i) = floor((testind-i)/2)+i;
+            end
+        end
+    end
+    % Remove zeros
+    xvals = xvals(xvals~=0);
 end
 
 function C = get_kmeans_centroids(data,varargin)
@@ -791,6 +893,7 @@ function C = get_kmeans_centroids(data,varargin)
                 greater8 = zeros(1,(maxclust-minclust+1));
                 greater0 = zeros(1,(maxclust-minclust+1));
                 ctsing = zeros(1,(maxclust-minclust+1));
+                propsing = zeros(1,(maxclust-minclust+1));
                 accummu = zeros(1,(maxclust-minclust+1));
                 propCAbMean1 = zeros(1,(maxclust-minclust+1));
                 propCAbMean2 = zeros(1,(maxclust-minclust+1));
@@ -810,8 +913,20 @@ function C = get_kmeans_centroids(data,varargin)
                     s = silhouette(data,clust);
                     ind = k-minclust+1;
     
-                    % Making numeric vectors for line plots         
-                    maxS(ind) = max(s);
+                    % Making numeric vectors for line plots
+
+                    %First count singletons
+                    [thisct,uniqCA] = groupcounts(clust);
+                    ctsing(ind) = length(thisct(thisct == 1));
+                    propsing(ind) = ctsing(ind)/length(uniqCA);
+                    singclust = uniqCA(thisct == 1);
+                    snosing = s(~ismember(clust,singclust));
+                    % Other metrics
+                    if ~isempty(snosing)
+                        maxS(ind) = max(snosing);
+                    else
+                        maxS(ind) = 1;
+                    end
                     %minS(ind) = min(s);
                     meanS(ind) = mean(s);
                     medianS(ind) = median(s);
@@ -828,20 +943,13 @@ function C = get_kmeans_centroids(data,varargin)
                     % clusters with zero negative members
                     greater0(ind) = length(s(s>0))/length(s);
                     
-                    % Count singleton clusters
-                    thisctsing = 0;
                     % Calc proportion of clusters > mean S value
                     ct1 = 0;
                     ct2 = 0;
                     thisaccummu = 0;
-                    uniqCA = unique(clust);
                     for i=1:length(uniqCA)
                         thisaccummu = thisaccummu + mean(s(clust==uniqCA(i)));
-                        if sum(clust==uniqCA(i)) == 1
-                            thisctsing = thisctsing+1;
-                        end
                     end
-                    ctsing(ind) = thisctsing;
                     accummu(ind) = thisaccummu/length(uniqCA);
                     for i=1:length(uniqCA)
                         if mean(s(clust==uniqCA(i)))>=meanS(ind)
@@ -859,29 +967,31 @@ function C = get_kmeans_centroids(data,varargin)
     
                 %% Silhouettes Plot
                 figure()
-                yyaxis left
+                %colororder({'b','k'})
+                %yyaxis left
                 xvals = minclust:maxclust;
                 %plot(xvals, greater8, 'Color', 'blue');
-                plot(xvals, meanS, 'Color', 'blue');
+                plot(xvals, meanS, '-b');
                 hold on;
                 %plot(xvals, greater0, 'Color', 'red');
-                plot(xvals, accummu, 'Color', 'red');
-                plot(xvals, maxS, 'Color', 'green');
-                plot(xvals, medianS, 'Color', 'yellow');
+                %plot(xvals, accummu, '-r');
+                plot(xvals, maxS, '-g');
+                %plot(xvals, medianS, '-y');
                 %plot(xvals, below_zero, 'Color', 'yellow');
                 %plot(xvals, meanAbv_zero, 'Color', 'magenta');
-                plot(xvals, propCAbMean1, 'Color', 'magenta');
-                plot(xvals, propCAbMean2, 'Color', 'cyan');
-                ylabel('Silhouette Value')
-                yyaxis right
-                plot(xvals, ctsing, 'Color', 'black');
+                plot(xvals, propCAbMean1, '-m');
+                plot(xvals, propCAbMean2, '-c');
+                plot(xvals, propsing,'-k');
+                ylabel('Silhouette Value');
+                %yyaxis right
+                %plot(xvals, ctsing, '-k');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
-                legend('Mean1', 'Mean2', 'Max S', 'Median S', 'Prop > Mean1', 'Prop > Mean2', 'Prop Singletons',...
+                legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', 'Prop Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
-                ylabel('# of Singleton Clusters')
+                %ylabel('# of Singleton Clusters')
                 
                 if nargin == 3
                     figfilename = sprintf('BatchSilhouette_%s_%dClusters.png',batchtable.modelname{:},k);

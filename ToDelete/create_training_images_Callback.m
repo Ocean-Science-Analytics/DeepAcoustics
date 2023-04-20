@@ -194,17 +194,26 @@ y1 = axes2pix(length(fr), fr./1000, Calls.Box(:,2));
 y2 = axes2pix(length(fr), fr./1000, Calls.Box(:,4));
 box = ceil([x1, length(fr)-y1-y2, x2, y2]);
 box = box(Calls.Accept == 1, :);
+% No zeros (must be at least 1)
 box(box == 0) = 1;
-box(box(:,1) > length(ti),1) = length(ti);
-box(box(:,3) > length(ti),3) = length(ti);
-box(box(:,2) > length(fr),2) = length(fr);
-box(box(:,4) > length(fr),4) = length(fr);
+% start time index must be at least 1 less than length of ti
+box(box(:,1) > length(ti)-1,1) = length(ti)-1;
+% 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
+box((box(:,3)+box(:,1)) > length(ti),3) = length(ti)-box((box(:,3)+box(:,1)) > length(ti),1);
+% start freq index must be at least 1 less than length of fr
+box(box(:,2) > length(fr)-1,2) = length(fr)-1;
+% 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
+box((box(:,4)+box(:,2)) > length(fr),4) = length(fr)-box((box(:,4)+box(:,2)) > length(fr),2);
 
 % resize images for 300x300 YOLO Network (Could be bigger but works nice)
 targetSize = [300 300];
 sz=size(im);
 im = imresize(im,targetSize);
 box = bboxresize(box,targetSize./sz);
+
+if any((box(:,1)+box(:,3)) > 300,'all') || any((box(:,2)+box(:,4)) > 300,'all')
+    error('Training image bounding indices still not working right - talk to Gabi')
+end
 
 % Insert box for testing
 % im = insertShape(im, 'rectangle', box);

@@ -39,14 +39,14 @@ switch choice
     case 'Yes'
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
         load([NetPath NetName],'detector');
-        if (~any(strcmp(TTable.Properties.VariableNames,'USV')) && detector.Network.Layers(end).Classes==categorical({'USV'}))
+        if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && detector.Network.Layers(end).Classes==categorical({'USV'}))
             choice = questdlg('It looks like you are trying to build on an older USV model.  Do you want to make sure new detections are also labelled USV? (Recommend Yes unless you know what you are doing.)', 'Yes', 'No');
             switch choice
                 case 'Yes'
-                    if length(TTable.Properties.VariableNames) ~= 2
+                    if length(TrainingTables.Properties.VariableNames) ~= 2
                         error('Cannot proceed as desired - talk to Gabi.')
                     else
-                        TTable.Properties.VariableNames{2} = 'USV';
+                        TrainingTables.Properties.VariableNames{2} = 'USV';
                     end
             end
         end
@@ -61,7 +61,7 @@ wind = max(AllSettings(:,1));
 noverlap = max(AllSettings(:,2));
 nfft = max(AllSettings(:,3));
 
-version = handles.DSVersion;
+version = handles.DWVersion;
 save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength');
 
 %% Update the menu

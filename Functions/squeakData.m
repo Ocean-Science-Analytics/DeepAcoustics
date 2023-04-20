@@ -1,6 +1,8 @@
 classdef squeakData < handle
     properties
         calls
+        anncalls
+        bAnnotate = false
         currentcall = 1
         current_call_valid = true
         windowposition = 1;
