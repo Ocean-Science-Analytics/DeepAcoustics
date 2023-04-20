@@ -995,7 +995,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             % Create menuSelectDet
             app.menuSelectDet = uimenu(app.menuFile);
             app.menuSelectDet.MenuSelectedFcn = createCallbackFcn(app, @menuSelectDet_Callback, true);
-            app.menuSelectDet.Text = 'Load Detection File';
+            app.menuSelectDet.Text = 'Load Detections';
             app.menuSelectDet.Tag = 'load_detectionFolder';
 
             % Create menuSaveSess
@@ -1479,7 +1479,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonFwdALot.FontWeight = 'bold';
             app.buttonFwdALot.FontColor = [1 1 1];
             app.buttonFwdALot.Tooltip = 'Next Page';
-            app.buttonFwdALot.Position = [899 88 40 24];
+            app.buttonFwdALot.Position = [910 88 40 24];
             app.buttonFwdALot.Text = '>>>';
 
             % Create buttonFwdABit
@@ -1491,7 +1491,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonFwdABit.FontWeight = 'bold';
             app.buttonFwdABit.FontColor = [1 1 1];
             app.buttonFwdABit.Tooltip = 'Next Window';
-            app.buttonFwdABit.Position = [864 88 31 24];
+            app.buttonFwdABit.Position = [875 88 31 24];
             app.buttonFwdABit.Text = '>>';
 
             % Create buttonNextCall
@@ -1503,7 +1503,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonNextCall.FontWeight = 'bold';
             app.buttonNextCall.FontColor = [1 1 1];
             app.buttonNextCall.Tooltip = 'Next Call';
-            app.buttonNextCall.Position = [827 88 33.0000000000001 24];
+            app.buttonNextCall.Position = [838 88 33.0000000000001 24];
             app.buttonNextCall.Text = '>';
 
             % Create buttonPrevCall
@@ -1515,7 +1515,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonPrevCall.FontWeight = 'bold';
             app.buttonPrevCall.FontColor = [1 1 1];
             app.buttonPrevCall.Tooltip = 'Previous Call';
-            app.buttonPrevCall.Position = [784 88 31 24];
+            app.buttonPrevCall.Position = [795 88 31 24];
             app.buttonPrevCall.Text = '<';
 
             % Create buttonBackABit
@@ -1527,7 +1527,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonBackABit.FontWeight = 'bold';
             app.buttonBackABit.FontColor = [1 1 1];
             app.buttonBackABit.Tooltip = 'Previous Window';
-            app.buttonBackABit.Position = [743 88 37.0000000000001 24];
+            app.buttonBackABit.Position = [754 88 37.0000000000001 24];
             app.buttonBackABit.Text = '<<';
 
             % Create buttonBackALot
@@ -1539,7 +1539,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonBackALot.FontWeight = 'bold';
             app.buttonBackALot.FontColor = [1 1 1];
             app.buttonBackALot.Tooltip = 'Previous Page';
-            app.buttonBackALot.Position = [700 88 40 24];
+            app.buttonBackALot.Position = [711 88 40 24];
             app.buttonBackALot.Text = '<<<';
 
             % Create textNavigation
@@ -1551,7 +1551,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.textNavigation.FontSize = 13.3333333333333;
             app.textNavigation.FontWeight = 'bold';
             app.textNavigation.FontColor = [1 1 1];
-            app.textNavigation.Position = [700 115 239 18];
+            app.textNavigation.Position = [711 115 239 18];
             app.textNavigation.Text = 'Navigation -----------------------------------------';
 
             % Create buttonPlayCall
@@ -1561,7 +1561,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonPlayCall.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
             app.buttonPlayCall.FontWeight = 'bold';
             app.buttonPlayCall.FontColor = [1 1 1];
-            app.buttonPlayCall.Position = [598 57 90 24];
+            app.buttonPlayCall.Position = [599 56 90 24];
             app.buttonPlayCall.Text = 'Play Call (p)';
 
             % Create buttonDraw
@@ -1571,7 +1571,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonDraw.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
             app.buttonDraw.FontWeight = 'bold';
             app.buttonDraw.FontColor = [1 1 1];
-            app.buttonDraw.Position = [490 57 94 24];
+            app.buttonDraw.Position = [495 56 94 24];
             app.buttonDraw.Text = 'Draw (d)';
 
             % Create buttonRejectCall
@@ -1581,7 +1581,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonRejectCall.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
             app.buttonRejectCall.FontWeight = 'bold';
             app.buttonRejectCall.FontColor = [1 1 1];
-            app.buttonRejectCall.Position = [596 88 89 24];
+            app.buttonRejectCall.Position = [599 88 89 24];
             app.buttonRejectCall.Text = 'Reject Call (r)';
 
             % Create buttonAcceptCall
@@ -1593,7 +1593,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonAcceptCall.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
             app.buttonAcceptCall.FontWeight = 'bold';
             app.buttonAcceptCall.FontColor = [1 1 1];
-            app.buttonAcceptCall.Position = [492 88 94 24];
+            app.buttonAcceptCall.Position = [495 88 94 24];
             app.buttonAcceptCall.Text = 'Accept Call (a)';
 
             % Create textDetReview
@@ -1605,7 +1605,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.textDetReview.FontSize = 13.3333333333333;
             app.textDetReview.FontWeight = 'bold';
             app.textDetReview.FontColor = [1 1 1];
-            app.textDetReview.Position = [494 115 196 18];
+            app.textDetReview.Position = [495 116 196 18];
             app.textDetReview.Text = 'Detection Review ------------------';
 
             % Create buttonRecordAudio
@@ -1616,7 +1616,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonRecordAudio.BackgroundColor = [0.392156862745098 0.831372549019608 0.0745098039215686];
             app.buttonRecordAudio.FontWeight = 'bold';
             app.buttonRecordAudio.FontColor = [1 1 1];
-            app.buttonRecordAudio.Position = [274 24 92.0000000000001 25];
+            app.buttonRecordAudio.Position = [262 24 108 25];
 
             % Create buttonLoadAudio
             app.buttonLoadAudio = uibutton(app.mainfigure, 'push');
@@ -1625,18 +1625,18 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonLoadAudio.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
             app.buttonLoadAudio.FontWeight = 'bold';
             app.buttonLoadAudio.FontColor = [1 1 1];
-            app.buttonLoadAudio.Position = [374 56 85.0000000000001 24];
+            app.buttonLoadAudio.Position = [377 56 108 24];
             app.buttonLoadAudio.Text = 'Load Audio';
 
-            % Create buttonLoadCalls
-            app.buttonLoadCalls = uibutton(app.mainfigure, 'push');
-            app.buttonLoadCalls.ButtonPushedFcn = createCallbackFcn(app, @buttonLoadCalls_Callback, true);
-            app.buttonLoadCalls.Tag = 'loadcalls';
-            app.buttonLoadCalls.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
-            app.buttonLoadCalls.FontWeight = 'bold';
-            app.buttonLoadCalls.FontColor = [1 1 1];
-            app.buttonLoadCalls.Position = [275 56 91.0000000000001 24];
-            app.buttonLoadCalls.Text = 'Load Calls';
+            % Create buttonLoadDets
+            app.buttonLoadDets = uibutton(app.mainfigure, 'push');
+            app.buttonLoadDets.ButtonPushedFcn = createCallbackFcn(app, @buttonLoadDets_Callback, true);
+            app.buttonLoadDets.Tag = 'loadcalls';
+            app.buttonLoadDets.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
+            app.buttonLoadDets.FontWeight = 'bold';
+            app.buttonLoadDets.FontColor = [1 1 1];
+            app.buttonLoadDets.Position = [262 56 108 24];
+            app.buttonLoadDets.Text = 'Load Detections';
 
             % Create buttonDetectCalls
             app.buttonDetectCalls = uibutton(app.mainfigure, 'push');
@@ -1645,7 +1645,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonDetectCalls.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
             app.buttonDetectCalls.FontWeight = 'bold';
             app.buttonDetectCalls.FontColor = [1 1 1];
-            app.buttonDetectCalls.Position = [275 86 90 24];
+            app.buttonDetectCalls.Position = [262 86 108 24];
             app.buttonDetectCalls.Text = 'Detect Calls';
 
             % Create textDetectLoadRecord
@@ -1657,7 +1657,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.textDetectLoadRecord.FontSize = 13.3333333333333;
             app.textDetectLoadRecord.FontWeight = 'bold';
             app.textDetectLoadRecord.FontColor = [1 1 1];
-            app.textDetectLoadRecord.Position = [277 115 203 18];
+            app.textDetectLoadRecord.Position = [265 115 218 18];
             app.textDetectLoadRecord.Text = {'Detect, Load, & Record -------'; '________________________________________'};
 
             % Create dropdownAudioFiles
@@ -1738,7 +1738,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonNextFile.FontWeight = 'bold';
             app.buttonNextFile.FontColor = [1 1 1];
             app.buttonNextFile.Tooltip = 'Next File';
-            app.buttonNextFile.Position = [827 57 33.0000000000001 24];
+            app.buttonNextFile.Position = [838 57 33.0000000000001 24];
             app.buttonNextFile.Text = '>|';
 
             % Create buttonPrevFile
@@ -1750,7 +1750,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonPrevFile.FontWeight = 'bold';
             app.buttonPrevFile.FontColor = [1 1 1];
             app.buttonPrevFile.Tooltip = 'Prev File';
-            app.buttonPrevFile.Position = [784 57 33.0000000000001 24];
+            app.buttonPrevFile.Position = [795 57 33.0000000000001 24];
             app.buttonPrevFile.Text = '|<';
 
             % Create textContour

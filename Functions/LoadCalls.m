@@ -23,7 +23,7 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
     end
     
     % Select new detections file
-    [newdetfile,newdetpath] = uigetfile('*.mat');
+    [newdetfile,newdetpath] = uigetfile([handles.data.settings.detectionfolder,'*.mat']);
     % If cancel, return
     if isequal(newdetfile,0)
        return;
