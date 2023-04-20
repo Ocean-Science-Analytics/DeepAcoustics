@@ -350,7 +350,7 @@ if nargin == 1
     end
 
     [detector,info] = trainYOLOv4ObjectDetector(dsTrain,lgraph,options);
-elseif nargin == 2
+elseif nargin == 3
     [detector,info] = trainYOLOv4ObjectDetector(dsTrain,layers,sameopts);
 else
      error('This should not happen')   
