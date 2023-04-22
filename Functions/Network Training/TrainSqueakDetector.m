@@ -334,8 +334,9 @@ if nargin == 1
             featureExtractionLayers = ["activation_22_relu","activation_40_relu"];
     
             lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers,InputSize=inputSize);
-        %case 'Other'
+        %case 'Other' - not fleshed out needs work
         case 4
+            error('This implementation has not been developed yet')
             numAnchorsThird = ceil(numAnchors/3);
             anchorBoxes = {sortedAnchors(1:numAnchorsThird,:)
                 sortedAnchors(numAnchorsThird+1:numAnchorsThird*2,:)
@@ -348,8 +349,6 @@ if nargin == 1
             end
             lgraph = basenet;
     end
-
-    [detector,info] = trainYOLOv4ObjectDetector(dsTrain,lgraph,options);
 elseif nargin == 3
     warn_msg = ['If you get the following error:\n',...
         'Error using images.dltrain.internal.dltrain>iValidateSupportedTrainingOptions\n',...
@@ -357,10 +356,14 @@ elseif nargin == 3
         'This may be because you used ValidationData to create your network and then moved your training images.\n',...
         'Find out where Matlab is looking for your training images (by loading your network into an empty Matlab environment -\n%s'];
     warning(warn_msg,'should produce a helpful error with the filepath for which it is searching) and put your images back in that directory.')
-    [detector,info] = trainYOLOv4ObjectDetector(dsTrain,layers,sameopts);
+    lgraph = layers;
+    options = sameopts;
 else
      error('This should not happen')   
 end
+
+% Train network
+[detector,info] = trainYOLOv4ObjectDetector(dsTrain,lgraph,options);
 end
 
 function data = preprocessData(data,targetSize)
