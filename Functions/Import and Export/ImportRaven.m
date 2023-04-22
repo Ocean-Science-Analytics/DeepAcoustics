@@ -227,7 +227,7 @@ for i = 1:length(ravenname)
         % Auto-name Detections.mat using audioname
         [~ ,FileName] = fileparts(audioname{i}{j});
         % Save Detections.mat
-        save(fullfile(outpath,[FileName '_Detections.mat']),'Calls', 'audiodata','-append');
+        save(fullfile(outpath,[FileName '_Detections.mat']),'Calls', 'audiodata');
         close(hc);
     end
 end
