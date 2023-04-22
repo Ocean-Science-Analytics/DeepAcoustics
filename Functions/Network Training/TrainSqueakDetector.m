@@ -104,7 +104,7 @@ if nargin == 1
                      
             %% Validation Data
                 % Used to determine if network is overfitting
-            bValData = questdlg({'Would you like to use ~10% of your training data to validate (recommended to assess overfitting)?';...
+            bValData = questdlg({'Would you like to use a proportion of your training data to validate (recommended to assess overfitting)?';...
                 "WARNING: Due to data type restrictions and unclear Matlab documentation, using validation data may prevent data shuffling between epochs, possibly (ironically) leading to overfitting."},...
                 'Validation Data?','Yes','No','No');
             switch bValData
@@ -112,54 +112,63 @@ if nargin == 1
                 % labels, so may need to give up (may need to
                 % replace/supplement with a user-selected set of data)
                 case 'Yes'
-                    % Get the indices & count of each label in TrainingTables
-                    indLabs = table2cell(TrainingTables(:,2:end));
-                    indLabs = ~cellfun(@isempty,indLabs);
-                    numEachLabs = sum(indLabs,1);
-                    % Find the # of data to select based on 10% of the
-                    % whichever label has the smallest representation in the
-                    % data, but must be at least 1
-                    num2select = max(1,floor(min(0.1*numEachLabs)));
-                    % Set order of label selection from min to max
-                    % representation
-                    [~,ordLab] = sort(numEachLabs);
-                    indSel = false(size(indLabs,1),1);
-                    for i = 1:length(numEachLabs)
-                        % Amt to select from this label, accounting for
-                        % representation pulled from previous iterations of
-                        % this for loop
-                        numThisSelect = num2select - sum(indSel & indLabs(:,i));
-                        % Get the indices of data rows containing this label
-                        thisColInd = find(indLabs(:,ordLab(i)));
-                        % Randomly select num2select indices for valdata
-                        indSel(randsample(thisColInd,numThisSelect)) = true;
+                    % Have user supply %
+                    valprop = inputdlg('What proportion of your training data would you like to allocate for validation (default = 0.1)?:','Validation Data Proportion');
+                    valprop = str2double(valprop{1});
+                    if valprop <= 0 || valprop >= 1
+                        msgbox('Improper validation % - proceeding without validation data')
+                        dsVal = [];
+                    else
+                        % Get the indices & count of each label in TrainingTables
+                        indLabs = table2cell(TrainingTables(:,2:end));
+                        indLabs = ~cellfun(@isempty,indLabs);
+                        numEachLabs = sum(indLabs,1);
+                        % Find the # of data to select based on 10% of the
+                        % whichever label has the smallest representation in the
+                        % data, but must be at least 1
+                        num2select = max(1,floor(min(valprop*numEachLabs)));
+                        % Set order of label selection from min to max
+                        % representation
+                        [~,ordLab] = sort(numEachLabs);
+                        indSel = false(size(indLabs,1),1);
+                        for i = 1:length(numEachLabs)
+                            % Amt to select from this label, accounting for
+                            % representation pulled from previous iterations of
+                            % this for loop
+                            numThisSelect = num2select - sum(indSel & indLabs(:,i));
+                            % Get the indices of data rows containing this label
+                            thisColInd = find(indLabs(:,ordLab(i)));
+                            % Randomly select num2select indices for valdata
+                            indSel(randsample(thisColInd,numThisSelect)) = true;
+                        end
+                        % Calculate proportion of each label represented in
+                        % validation data
+                        propSel = sum(indSel & indLabs)./numEachLabs;
+                        dispInfo = [TrainingTables.Properties.VariableNames(2:end);num2cell(propSel*100)];
+                        dispInfo = sprintf('%s: %0.1f%% ',dispInfo{:});
+                        answer = questdlg({'Here are the proportions corresponding to each label selected for validation:';...
+                            dispInfo; 'Do you wish to proceed?'}, ...
+                            'Check Proportions', ...
+                            'Yes','No','Yes');
+                        switch answer
+                            case 'No'
+                                return
+                            case 'Yes'
+                                valTT = TrainingTables(indSel,:);
+                                TrainingTables = TrainingTables(~indSel,:);
+                                
+                                % Convert training and validation data to
+                                % datastores for dumb YOLO fn
+                                imdsTrain = imageDatastore(TrainingTables{:,1});
+                                bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
+                                dsTrain = combine(imdsTrain,bldsTrain);
+                                %dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
+                                
+                                imdsVal = imageDatastore(valTT{:,1});
+                                bldsVal = boxLabelDatastore(valTT(:,2:end));
+                                dsVal = combine(imdsVal,bldsVal);                        
+                        end
                     end
-                    % Calculate proportion of each label represented in
-                    % validation data
-                    propSel = sum(indSel & indLabs)./numEachLabs;
-                    dispInfo = [TrainingTables.Properties.VariableNames(2:end);num2cell(propSel*100)];
-                    dispInfo = sprintf('%s: %0.1f%% ',dispInfo{:});
-                    answer = questdlg({'Here are the proportions corresponding to each label selected for validation:';...
-                        dispInfo; 'Do you wish to proceed?'}, ...
-                        'Check Proportions', ...
-                        'Yes','No','Yes');
-                    switch answer
-                        case 'No'
-                            return
-                        case 'Yes'
-                            valTT = TrainingTables(indSel,:);
-                            TrainingTables = TrainingTables(~indSel,:);
-                            
-                            % Convert training and validation data to
-                            % datastores for dumb YOLO fn
-                            imdsTrain = imageDatastore(TrainingTables{:,1});
-                            bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
-                            dsTrain = combine(imdsTrain,bldsTrain);
-                            
-                            imdsVal = imageDatastore(valTT{:,1});
-                            bldsVal = boxLabelDatastore(valTT(:,2:end));
-                            dsVal = combine(imdsVal,bldsVal);                        
-                    end                
                 case 'No'
                     dsVal = [];
                     dsTrain = TrainingTables;
