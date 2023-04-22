@@ -8,7 +8,7 @@ bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
 dsTrain = combine(imdsTrain,bldsTrain);
 
 if nargin == 1
-    list = {'Tiny YOLO v4 COCO','CSP-DarkNet-53','ResNet-50','Other'};
+    list = {'Tiny YOLO v4 COCO','CSP-DarkNet-53','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
     [basemodels,tf] = listdlg('PromptString','Choose a base network','ListString',list,'SelectionMode','single','Name','Base Network');
     if ~tf
         return
@@ -23,12 +23,15 @@ if nargin == 1
         sampleImg = sampleData{1};
     end
     
+    % Probably 300 x 300
     dim1 = size(sampleImg,1);
     dim2 = size(sampleImg,2);
     
+    % Tiny - probably 288 x 288
     if basemodels == 1
         dim1 = 32*round(size(sampleImg,1)/32);
         dim2 = 32*round(size(sampleImg,2)/32);
+    % DarkNet - probably 288 x 288 unless downsizing necessary for GPU
     elseif basemodels == 2
         if dim1 ~= dim2
             error('Oops, image not square, talk to Gabi')
@@ -44,6 +47,10 @@ if nargin == 1
             dim1 = 32*round(dim1/32);
         end
         dim2 = dim1;
+    % ResNet50 (pre-trained) 224 x 224
+    elseif basemodels == 3
+        dim1 = 224;
+        dim2 = 224;
     end
     
     % Training image dims need to matchcase 'Tiny YOLO v4 COCO' or 'CSP-DarkNet-53
@@ -56,11 +63,11 @@ if nargin == 1
         %Default
         case 'Defaults'
             % Set anchor boxes (default = 8/9)
-            % Must be even number for Tiny YOLO v4 and divisible by 3 for
-            % Darknet
+            % Must be even number for Tiny YOLO v4  & ResNet50 and divisible by 3 for
+            % Darknet (# of detection heads)
             switch basemodels
-            %case 'Tiny YOLO v4 COCO'
-            case 1
+            %case 'Tiny YOLO v4 COCO' or 'ResNet50'
+            case {1,3,4}
                 nAnchors = 8;
             %case 'CSP Darknet53 COCO'
             case 2
@@ -99,8 +106,8 @@ if nargin == 1
             % Must be even number for Tiny YOLO v4 and divisible by 3 for
             % Darknet
             switch basemodels
-            %case 'Tiny YOLO v4 COCO'
-            case 1
+            %case 'Tiny YOLO v4 COCO' or 'ResNet50'
+            case {1,3,4}
                 if mod(nAnchors,2) ~= 0
                     nAnchors = nAnchors + 1;
                 end
@@ -315,26 +322,33 @@ if nargin == 1
                 sortedAnchors(numAnchorsThird+1:numAnchorsThird*2,:)
                 sortedAnchors(numAnchorsThird*2+1:end,:)};
             lgraph = yolov4ObjectDetector("csp-darknet53-coco",classes,anchorBoxes,InputSize=inputSize);
-        %case 'ResNet-50'
-        case 3
+        %case ResNet-50
+        case {3,4}
             numAnchorsHalf = ceil(numAnchors/2);
             anchorBoxes = {sortedAnchors(1:numAnchorsHalf,:) 
                 sortedAnchors(numAnchorsHalf+1:end,:)};
-    
-            S = load('Base_ResNet50.mat','blankNet');
-            basenet = S.blankNet;
+            
+            % Pre-trained
+            if basemodel == 3
+                basenet = resnet50;
+                lgraph = layerGraph(basenet);
+            % Blank
+            else
+                S = load('Base_ResNet50.mat','blankNet');
+                basenet = S.blankNet;
+                lgraph = basenet;
+            end
     
             % To create a YOLO v4 deep learning network you must make these changes to the base network:
             % Set the Normalization property of the ImageInputLayer in the base network to 'none'.
             % Remove the fully connected classification layer.
             
             % Define an image input layer with Normalization property value as 'none' and other property values same as that of the base network.
-            %imageSize = basenet.Layers(1).InputSize;
             layerName = basenet.Layers(1).Name;
             newinputLayer = imageInputLayer(inputSize,'Normalization','none','Name',layerName);
             
             % Remove the fully connected layer in the base network.
-            lgraph = basenet;
+            
             lgraph = removeLayers(lgraph,'ClassificationLayer_fc1000');
             lgraph = replaceLayer(lgraph,layerName,newinputLayer);
             
@@ -342,20 +356,6 @@ if nargin == 1
             featureExtractionLayers = ["activation_22_relu","activation_40_relu"];
     
             lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers,InputSize=inputSize);
-        %case 'Other' - not fleshed out needs work
-        case 4
-            error('This implementation has not been developed yet')
-            numAnchorsThird = ceil(numAnchors/3);
-            anchorBoxes = {sortedAnchors(1:numAnchorsThird,:)
-                sortedAnchors(numAnchorsThird+1:numAnchorsThird*2,:)
-                sortedAnchors(numAnchorsThird*2+1:end)};
-            [fn,pn] = uigetfile('*.mat');
-            S = load(fullfile(pn,fn),'blankNet');
-            basenet = S.blankNet;
-            if isa(basenet,'nnet.cnn.LayerGraph')
-                error('Selected file does not contain the right variable or variable type')
-            end
-            lgraph = basenet;
     end
 elseif nargin == 3
     warn_msg = ['If you get the following error:\n',...
