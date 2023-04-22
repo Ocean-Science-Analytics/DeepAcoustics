@@ -205,13 +205,13 @@ if nargin == 1
     
     lgraph = addLayers(blankNet,detectionLayers);
     lgraph = connectLayers(lgraph,featureExtractionLayer,"yolov2Conv1");
-    
-    % Train the YOLO v2 network.
-    [detector,info] = trainYOLOv2ObjectDetector(dsTrain,lgraph,options);
 elseif nargin == 2
-    [detector,info] = trainYOLOv2ObjectDetector(dsTrain,layers,sameopts);
+    lgraph = layers;
+    options = sameopts;
 else
      error('This should not happen')   
 end
+% Train the YOLO v2 network.
+[detector,info] = trainYOLOv2ObjectDetector(dsTrain,lgraph,options);
 end
 
