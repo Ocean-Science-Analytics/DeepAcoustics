@@ -1,40 +1,7 @@
 function TrainDetNet(hObject, eventdata, handles)
 %% Train a new neural network
-cd(handles.data.squeakfolder);
-
-% Apparently, "wind" is a function name, so initialize it as empty
-wind = [];
-
-%% Select the tables that contains the training data
-waitfor(msgbox('Select Image Tables'))
-[trainingdata, trainingpath] = uigetfile(['Training/*.mat'],'Select Training File(s) for Training ','MultiSelect', 'on');
-TrainingTables = [];
-%Return if cancel
-if trainingdata == 0
-    return
-end
-trainingdata = cellstr(trainingdata);
-
-
-%% Load the data into a single table
-AllSettings = [];
-for i = 1:length(trainingdata)
-    load([trainingpath trainingdata{i}],'TTable','wind','noverlap','nfft','imLength');
-    TrainingTables = [TrainingTables; TTable];
-    AllSettings = [AllSettings; wind noverlap nfft];
-end
-if ~all([isfile(TrainingTables.imageFilename)])
-    error('Images Could Not Be Found On Path Specified in Images.mat')
-end
-
-%% Create a warning if training files were created with different parameters
-warningmsg = 'Train anyway';
-if size(unique(AllSettings,'rows'),1) ~= 1
-    warningmsg = questdlg({'Not all images were created with the same spectrogram settings','Network may not work as expected'}, ...
-        'Warning','Train anyway','Cancel','Cancel');
-    waitfor(warningmsg)
-end
-if ~strcmp(warningmsg,'Train anyway'); return; end
+[TrainingTables, AllSettings, ~] = ImportTrainingImgs(handles);
+if isempty(TrainingTables); return; end
 
 %% Train the network
 choice = questdlg('Train from existing network?', 'Existing Network?', 'Yes', 'Yes - TensorFlow', 'No', 'Yes');
@@ -66,6 +33,7 @@ end
 wind = max(AllSettings(:,1));
 noverlap = max(AllSettings(:,2));
 nfft = max(AllSettings(:,3));
+imLength = max(AllSettings(:,4));
 
 version = handles.DWVersion;
 save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength');
