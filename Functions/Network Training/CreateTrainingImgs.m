@@ -118,12 +118,15 @@ for k = 1:length(trainingdata)
             TTable = [TTable;{fullfile('Training','Images',filename,IMname), box}];
         end
         catch
-            disp("Image/Box is Bad... You Should Feel Bad");
+            disp("Something wrong with calculating bounding box indices - talk to Gabi!");
         end
         waitbar(bin/length(unique(bins)), h, sprintf('Processing File %g of %g', k, length(trainingdata)));        
         
     end
-    save(fullfile(handles.data.squeakfolder,'Training',[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
+    matpath = uigetdir(fullfile(handles.data.squeakfolder,'Training'),'Select Directory to Save Images.mat');
+    pathtodet = fullfile(trainingpath,trainingdata{k});
+    save(fullfile(matpath,[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength','pathtodet');
+    %save(fullfile(handles.data.squeakfolder,'Training',[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
     disp(['Created ' num2str(height(TTable)) ' Training Images']);
 end
 close(h)
@@ -200,10 +203,14 @@ box(box == 0) = 1;
 box(box(:,1) > length(ti)-1,1) = length(ti)-1;
 % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
 box((box(:,3)+box(:,1)) > length(ti),3) = length(ti)-box((box(:,3)+box(:,1)) > length(ti),1);
-% start freq index must be at least 1 less than length of fr
-box(box(:,2) > length(fr)-1,2) = length(fr)-1;
+% start freq index must be at least 1 less than (length of fr - 1)
+% actual axis of im = length(fr)-1 (frequencies must correspond
+% to between pixels not the pixels themselves
+box(box(:,2) > length(fr)-1,2) = length(fr)-2;
 % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
-box((box(:,4)+box(:,2)) > length(fr),4) = length(fr)-box((box(:,4)+box(:,2)) > length(fr),2);
+% <= because actual axis of im = length(fr)-1 (frequencies must correspond
+% to between pixels not the pixels themselves
+box((box(:,4)+box(:,2)) >= length(fr),4) = length(fr)-1-box((box(:,4)+box(:,2)) >= length(fr),2);
 
 % resize images for 300x300 YOLO Network (Could be bigger but works nice)
 targetSize = [300 300];
