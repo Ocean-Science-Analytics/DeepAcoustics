@@ -329,7 +329,7 @@ if nargin == 1
                 sortedAnchors(numAnchorsHalf+1:end,:)};
             
             % Pre-trained
-            if basemodel == 3
+            if basemodels == 3
                 basenet = resnet50;
                 lgraph = layerGraph(basenet);
             % Blank
