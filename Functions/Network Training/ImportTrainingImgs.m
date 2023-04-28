@@ -19,7 +19,10 @@ trainingdata = cellstr(trainingdata);
 
 %% Load the data into a single table
 for i = 1:length(trainingdata)
+    orig_state = warning;
+    warning('off','all')
     load([trainingpath trainingdata{i}],'TTable','wind','noverlap','nfft','imLength','pathtodet');
+    warning(orig_state)
     TrainingTables = [TrainingTables; TTable];
     AllSettings = [AllSettings; wind noverlap nfft imLength];
     if exist('pathtodet','var')

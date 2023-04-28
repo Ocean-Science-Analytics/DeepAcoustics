@@ -53,8 +53,9 @@ if nargin == 1
         dim2 = 224;
     end
     
-    % Training image dims need to matchcase 'Tiny YOLO v4 COCO' or 'CSP-DarkNet-53
-    inputSize = [dim1 dim2];
+    % Training image dims need to matchcase 'Tiny YOLO v4 COCO' or
+    % 'CSP-DarkNet-53'
+    inputSize = [dim1 dim2 3];
     dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
     
     %% Set training options
@@ -239,15 +240,16 @@ if nargin == 1
                                 imdsTrain = imageDatastore(TrainingTables{:,1});
                                 bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
                                 dsTrain = combine(imdsTrain,bldsTrain);
-                                %dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
+                                dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
                                 
                                 imdsVal = imageDatastore(valTT{:,1});
                                 bldsVal = boxLabelDatastore(valTT(:,2:end));
-                                dsVal = combine(imdsVal,bldsVal);                        
+                                dsVal = combine(imdsVal,bldsVal);   
+                                dsValReSize = transform(dsVal,@(data)preprocessData(data,inputSize));                     
                         end
                     end
                 case 'No'
-                    dsVal = [];
+                    dsValReSize = [];
                     %Not sure why this is here so commenting until I'm forced
                     %to remember why
                     %dsTrain = TrainingTables;
@@ -258,7 +260,7 @@ if nargin == 1
                       'InitialLearnRate',nInitLearnRate,...
                       'MiniBatchSize',nMiniBatchSz,...
                       'MaxEpochs',nNumEpochs,...
-                      'ValidationData',dsVal,...
+                      'ValidationData',dsValReSize,...
                       'Shuffle','every-epoch',...
                       'Verbose',true,...
                       'VerboseFrequency',30,...
@@ -371,7 +373,7 @@ else
 end
 
 % Train network
-[detector,info] = trainYOLOv4ObjectDetector(dsTrain,lgraph,options);
+[detector,info] = trainYOLOv4ObjectDetector(dsTrainReSize,lgraph,options);
 end
 
 function data = preprocessData(data,targetSize)
@@ -383,7 +385,9 @@ for ii = 1:size(data,1)
     imgSize = size(I);
     
     bboxes = data{ii,2};
-
+    
+    map = gray(256);
+    I = ind2rgb(I,map);
     I = im2single(imresize(I,targetSize(1:2)));
     scale = targetSize(1:2)./imgSize(1:2);
     bboxes = bboxresize(bboxes,scale);

@@ -44,7 +44,7 @@ numTrainBoxes = 0;
 for i = 1:height(bldsTest.LabelData)
     numTrainBoxes = numTrainBoxes + length(bldsTest.LabelData{i,2});
 end
-if height(CallsAnn ~= numTrainBoxes)
+if height(CallsAnn) ~= numTrainBoxes
     msgbox('Something went wrong with creating your image table - talk to Gabi')
 end
 
