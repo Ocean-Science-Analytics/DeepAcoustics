@@ -30,7 +30,7 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
     % Else get ready to load new file
     else
         % Update detection file info
-        matsindir = dir([handles.data.settings.detectionfolder '/*.mat*']);
+        matsindir = dir([newdetpath '/*.mat*']);
         matsindir = {matsindir.name};
         handles.current_file_id = find(strcmp(newdetfile,matsindir));
         handles.current_detection_file = newdetfile;
