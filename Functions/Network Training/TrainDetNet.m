@@ -7,6 +7,7 @@ if isempty(TrainingTables); return; end
 choice = questdlg('Train from existing network?', 'Existing Network?', 'Yes', 'Yes - TensorFlow', 'No', 'Yes');
 switch choice
     case 'Yes'
+        detname = [];
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
         load([NetPath NetName],'detector','options');
         if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && detector.ClassNames==categorical({'USV'}))
@@ -20,7 +21,7 @@ switch choice
                     end
             end
         end
-        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector,options);
+        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector,options,detname);
     case 'Yes - TensorFlow'
         detector = importTensorFlowLayers(uigetdir(pwd,'Please select the folder containing saved TensorFlow 2 model (saved_model.pb & variables subfolder)'));
         [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector);
@@ -34,6 +35,7 @@ wind = max(AllSettings(:,1));
 noverlap = max(AllSettings(:,2));
 nfft = max(AllSettings(:,3));
 imLength = max(AllSettings(:,4));
+options.ValidationData = [];
 
 version = handles.DWVersion;
 save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength');
