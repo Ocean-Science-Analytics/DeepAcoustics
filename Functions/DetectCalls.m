@@ -1,7 +1,6 @@
 % --- Executes on button press in multinetdect.
 function DetectCalls(hObject, eventdata, handles, SingleDetect)
 
-
 if isempty(handles.audiofiles)
     errordlg('No Audio Selected')
     return
@@ -10,15 +9,15 @@ if isempty(handles.networkfiles)
     errordlg('No Network Selected')
     return
 end
-if exist(handles.data.settings.detectionfolder,'dir')==0
+%if exist(handles.data.settings.detectionfolder,'dir')==0
     % Find audio in folder
-    path=uigetdir(handles.data.settings.detectionfolder,'Select Detection File Folder');
+    path=uigetdir(handles.data.settings.detectionfolder,'Select Output Detection File Folder');
     if isnumeric(path);return;end
     handles.data.settings.detectionfolder = path;
     handles.data.saveSettings();
     update_folders(hObject, eventdata, handles);
     handles = guidata(hObject);  % Get newest version of handles
-end
+%end
 
 %% Do this if button Multi-Detect is clicked
 if ~SingleDetect
@@ -31,7 +30,6 @@ if ~SingleDetect
         return
     end
     
-  
     %% Do this if button Single-Detect is clicked
 elseif SingleDetect
     audioselections = get(handles.AudioFilespopup,'Value');
