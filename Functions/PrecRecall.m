@@ -1,6 +1,6 @@
 function PrecRecall(hObject, eventdata, handles)
 % Select Images for testing network
-[TestingTables, AllSettings, PathToDet] = ImportTrainingImgs(handles);
+[TestingTables, ~, PathToDet] = ImportTrainingImgs(handles);
 % Extract boxes delineations and store as boxLabelDatastore
 % Convert training and validation data to
 % datastores for dumb YOLO fns
@@ -8,7 +8,12 @@ imdsTest = imageDatastore(TestingTables{:,1});
 bldsTest = boxLabelDatastore(TestingTables(:,2:end));
 
 [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
+lastwarn('');
 netload = load([NetPath NetName]);
+[warnMsg, ~] = lastwarn;
+if ~isempty(warnMsg)
+    error('Problem pathing to ValidationData - Talk to Gabi')
+end
 detector = netload.detector;
 
 results = detect(detector,imdsTest);
