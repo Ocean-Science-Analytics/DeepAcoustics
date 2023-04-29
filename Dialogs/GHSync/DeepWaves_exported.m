@@ -72,8 +72,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         dropdownAudioFiles        matlab.ui.control.DropDown
         textDetectLoadRecord      matlab.ui.control.Label
         buttonDetectCalls         matlab.ui.control.Button
-        buttonMultiDetect         matlab.ui.control.Button
-        buttonLoadCalls           matlab.ui.control.Button
+        buttonLoadDets            matlab.ui.control.Button
         buttonLoadAudio           matlab.ui.control.Button
         buttonRecordAudio         matlab.ui.control.StateButton
         textDetReview             matlab.ui.control.Label
@@ -755,14 +754,8 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             DetectCalls(hObject, eventdata, handles, true)
         end
 
-        % Button pushed function: buttonMultiDetect
-        function buttonMultiDetect_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
-            DetectCalls(hObject, eventdata, handles, false)
-        end
-
-        % Button pushed function: buttonLoadCalls
-        function buttonLoadCalls_Callback(app, event)
+        % Button pushed function: buttonLoadDets
+        function buttonLoadDets_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             LoadCalls(hObject, eventdata, handles)
         end
@@ -1644,16 +1637,6 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.buttonLoadCalls.FontColor = [1 1 1];
             app.buttonLoadCalls.Position = [275 56 91.0000000000001 24];
             app.buttonLoadCalls.Text = 'Load Calls';
-
-            % Create buttonMultiDetect
-            app.buttonMultiDetect = uibutton(app.mainfigure, 'push');
-            app.buttonMultiDetect.ButtonPushedFcn = createCallbackFcn(app, @buttonMultiDetect_Callback, true);
-            app.buttonMultiDetect.Tag = 'multinetdect_1';
-            app.buttonMultiDetect.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
-            app.buttonMultiDetect.FontWeight = 'bold';
-            app.buttonMultiDetect.FontColor = [1 1 1];
-            app.buttonMultiDetect.Position = [374 87 85.0000000000001 24];
-            app.buttonMultiDetect.Text = 'Multi Detect';
 
             % Create buttonDetectCalls
             app.buttonDetectCalls = uibutton(app.mainfigure, 'push');
