@@ -54,6 +54,7 @@ guidata(hObject, handles);
 
 %% Update display
 update_folders(hObject, eventdata, handles);
+handles = guidata(hObject);  % Get newest version of handles
 if isfield(handles,'current_detection_file')
     LoadCalls(hObject, eventdata, handles, true)
 end

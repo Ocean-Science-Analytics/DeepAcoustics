@@ -23,7 +23,7 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
     end
     
     % Select new detections file
-    [newdetfile,newdetpath] = uigetfile([handles.data.settings.detectionfolder,'*.mat']);
+    [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file',handles.data.settings.detectionfolder);
     % If cancel, return
     if isequal(newdetfile,0)
        return;
@@ -38,6 +38,7 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
         handles.data.settings.detectionfolder = newdetpath;
         handles.data.saveSettings();
         update_folders(hObject, eventdata, handles);
+        handles = guidata(hObject);  % Get newest version of handles
     end
 end
 
