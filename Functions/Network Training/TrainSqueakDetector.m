@@ -194,7 +194,7 @@ if nargin == 1
                 % labels, so may need to give up (may need to
                 % replace/supplement with a user-selected set of data)
                 case 'Yes'
-                    splitValData(TrainingTables,inputSize);
+                    [dsTrainReSize, dsValReSize] = splitValData(TrainingTables,inputSize);
                 case 'No'
                     dsValReSize = [];
                     %Not sure why this is here so commenting until I'm forced

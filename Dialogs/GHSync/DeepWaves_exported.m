@@ -741,7 +741,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         % Button pushed function: buttonDetectCalls
         function buttonDetectCalls_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
-            DetectCalls(hObject, eventdata, handles, true)
+            DetectCalls(hObject, eventdata, handles)
         end
 
         % Button pushed function: buttonLoadDets
