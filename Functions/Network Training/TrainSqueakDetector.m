@@ -100,7 +100,7 @@ if nargin == 1
             for k = 1:maxNumAnchors
                 % Estimate anchors and mean IoU.
                 [arranchorBoxes{k},meanIoU(k)] = estimateAnchorBoxes(dsTrainReSize,k);
-                waitbar(k/maxNumAnchors, h, sprintf('Trying %g # of Anchor Boxes', k));      
+                waitbar(k/maxNumAnchors, h, sprintf('Trying #%g of %g Anchor Boxes', k,maxNumAnchors));      
             end
             close(h)
     

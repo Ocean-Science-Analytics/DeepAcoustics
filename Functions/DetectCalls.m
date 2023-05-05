@@ -70,7 +70,7 @@ for j = 1:length(audioselections)
         NeuralNetwork=load(networkpath);%get currently selected option from menu
         close(h);
         
-        Calls = [Calls; SqueakDetect(AudioFile,NeuralNetwork,handles.audiofiles(CurrentAudioFile).name,Settings(:,k),j,length(audioselections),networkname)];
+        Calls = [Calls; SqueakDetect(AudioFile,NeuralNetwork,Settings(:,k),j,length(audioselections))];
 
     end
     

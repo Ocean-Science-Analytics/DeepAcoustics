@@ -1,6 +1,6 @@
 function TrainDetNet(hObject, eventdata, handles)
 %% Train a new neural network
-[TrainingTables, AllSettings, ~] = ImportTrainingImgs(handles);
+[TrainingTables, AllSettings, ~] = ImportTrainingImgs(handles,true);
 if isempty(TrainingTables); return; end
 
 %% Train the network

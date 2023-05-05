@@ -6,7 +6,8 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         menuFile                  matlab.ui.container.Menu
         menuSelectNet             matlab.ui.container.Menu
         menuSelectAudio           matlab.ui.container.Menu
-        menuSelectDet             matlab.ui.container.Menu
+        menuLoadDet               matlab.ui.container.Menu
+        menuLoadAnn               matlab.ui.container.Menu
         menuSaveSess              matlab.ui.container.Menu
         menuImpExp                matlab.ui.container.Menu
         menuExpRaven              matlab.ui.container.Menu
@@ -480,8 +481,8 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             update_folders(hObject, eventdata, handles);
         end
 
-        % Menu selected function: menuSelectDet
-        function menuSelectDet_Callback(app, event)
+        % Menu selected function: menuLoadDet
+        function menuLoadDet_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             LoadCalls(hObject, eventdata, handles)
@@ -668,7 +669,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
         function menuPrecRecall_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            PrecRecall(hObject, eventdata, handles);
+            PrecRecall(handles);
         end
 
         % Menu selected function: menuAbout
@@ -947,6 +948,13 @@ classdef DeepWaves_exported < matlab.apps.AppBase
                     end
             end
         end
+
+        % Menu selected function: menuLoadAnn
+        function menuLoadAnn_Callback(app, event)
+            % Create GUIDE-style callback args - Added by Migration Tool
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            DispAnnotations(hObject, eventdata, handles);
+        end
     end
 
     % Component initialization
@@ -982,11 +990,16 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.menuSelectAudio.Text = 'Select Audio Folder';
             app.menuSelectAudio.Tag = 'select_audio';
 
-            % Create menuSelectDet
-            app.menuSelectDet = uimenu(app.menuFile);
-            app.menuSelectDet.MenuSelectedFcn = createCallbackFcn(app, @menuSelectDet_Callback, true);
-            app.menuSelectDet.Text = 'Load Detections';
-            app.menuSelectDet.Tag = 'load_detectionFolder';
+            % Create menuLoadDet
+            app.menuLoadDet = uimenu(app.menuFile);
+            app.menuLoadDet.MenuSelectedFcn = createCallbackFcn(app, @menuLoadDet_Callback, true);
+            app.menuLoadDet.Text = 'Load Detections';
+            app.menuLoadDet.Tag = 'load_detectionFolder';
+
+            % Create menuLoadAnn
+            app.menuLoadAnn = uimenu(app.menuFile);
+            app.menuLoadAnn.MenuSelectedFcn = createCallbackFcn(app, @menuLoadAnn_Callback, true);
+            app.menuLoadAnn.Text = 'Load Annotations';
 
             % Create menuSaveSess
             app.menuSaveSess = uimenu(app.menuFile);

@@ -1,4 +1,4 @@
-function  Calls=SqueakDetect(inputfile,networkfile,fname,Settings,currentFile,totalFiles,networkname)
+function  Calls=SqueakDetect(inputfile,networkfile,Settings,currentFile,totalFiles)
 % Find Squeaks
 Calls = table();
 h = waitbar(0,'Initializing');
@@ -25,6 +25,8 @@ nfft = round(nfft * audio_info.SampleRate);
 % (1) Detection length (s)
 if Settings(1)>audio_info.Duration
     DetectLength=audio_info.Duration;
+    [~,fname,fext] = fileparts(inputfile);
+    fname = [fname fext];
     disp([fname ' is shorter then the requested analysis duration. Only the first ' num2str(audio_info.Duration) ' will be processed.'])
 elseif Settings(1)==0
     DetectLength=audio_info.Duration;
@@ -159,15 +161,6 @@ if isempty(AllScores); close(h); return; end
 
 h = waitbar(1,h,'Merging Boxes...');
 Calls = merge_boxes(AllBoxes, AllScores, AllClass, audio_info, 1, score_cuttoff, 0);
-
-% Merge long 22s if detected with a long 22 network
-if contains(networkname,'long','IgnoreCase',true) & ~isempty(Calls)
-    try
-        Calls = SeparateLong22s([],[],[],inputfile,Calls);
-    catch ME
-        disp(ME)
-    end
-end
 
 close(h);
 end
