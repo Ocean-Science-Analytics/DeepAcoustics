@@ -91,14 +91,18 @@ if nargin == 1
                       'ResetInputNormalization',false, ... %YOLOv4
                       'Plots','training-progress');
         case 'Customize'
+
+            h = waitbar(0,'Calculating Anchor Boxes');
             %% Dynamically choose # of Anchor Boxes
             maxNumAnchors = 15;
             meanIoU = zeros([maxNumAnchors,1]);
             arranchorBoxes = cell(maxNumAnchors, 1);
             for k = 1:maxNumAnchors
                 % Estimate anchors and mean IoU.
-                [arranchorBoxes{k},meanIoU(k)] = estimateAnchorBoxes(dsTrainReSize,k);    
+                [arranchorBoxes{k},meanIoU(k)] = estimateAnchorBoxes(dsTrainReSize,k);
+                waitbar(k/maxNumAnchors, h, sprintf('Trying %g # of Anchor Boxes', k));      
             end
+            close(h)
     
             figure
             plot(1:maxNumAnchors,meanIoU,'-o')
