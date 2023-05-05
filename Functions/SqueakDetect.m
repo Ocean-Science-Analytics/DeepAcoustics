@@ -105,8 +105,12 @@ for i = 1:length(chunks)-1
         im = adapthisteq(flipud(pow),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
         end
 
+        if size(network.InputSize,2) == 3
+            map = gray(256);
+            im = ind2rgb(im2uint8(im),map);
+        end
         % Detect!
-        [bboxes, scores, Class] = detect(network, im2uint8(im), 'ExecutionEnvironment','auto','SelectStrongest',1);
+        [bboxes, scores, Class] = detect(network, im, 'ExecutionEnvironment','auto','SelectStrongest',1);
         % Convert bboxes to ints (I'm not sure why they're not...)
         nbboxes = int16(bboxes);
         % Check bbox limits
@@ -117,9 +121,9 @@ for i = 1:length(chunks)-1
         % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
         nbboxes((nbboxes(:,3)+nbboxes(:,1)) > length(ti),3) = length(ti)-nbboxes((nbboxes(:,3)+nbboxes(:,1)) > length(ti),1);
         % start freq index must be at least 1 less than length of fr
-        nbboxes(nbboxes(:,2) > length(fr)-1,2) = length(fr)-1;
+        nbboxes(nbboxes(:,2) > length(fr)-1,2) = length(fr)-2;
         % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
-        nbboxes((nbboxes(:,4)+nbboxes(:,2)) > length(fr),4) = length(fr)-nbboxes((nbboxes(:,4)+nbboxes(:,2)) > length(fr),2);
+        nbboxes((nbboxes(:,4)+nbboxes(:,2)) >= length(fr),4) = length(fr)-1-nbboxes((nbboxes(:,4)+nbboxes(:,2)) >= length(fr),2);
 
         % Convert boxes from pixels to time and kHz
         bboxes(:,1) = ti(nbboxes(:,1)) + (windL ./ audio_info.SampleRate);
