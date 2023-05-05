@@ -115,7 +115,7 @@ for i = 1:length(chunks)-1
         nbboxes = int16(bboxes);
         % Check bbox limits
         % No zeros (must be at least 1)
-        nbboxes(nbboxes==0) = 1;
+        nbboxes(nbboxes<=0) = 1;
         % start time index must be at least 1 less than length of ti
         nbboxes(nbboxes(:,1) > length(ti)-1,1) = length(ti)-1;
         % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)

@@ -199,7 +199,7 @@ y2 = axes2pix(length(fr), fr./1000, Calls.Box(:,4));
 box = ceil([x1, length(fr)-y1-y2, x2, y2]);
 box = box(Calls.Accept == 1, :);
 % No zeros (must be at least 1)
-box(box == 0) = 1;
+box(box <= 0) = 1;
 % start time index must be at least 1 less than length of ti
 box(box(:,1) > length(ti)-1,1) = length(ti)-1;
 % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
