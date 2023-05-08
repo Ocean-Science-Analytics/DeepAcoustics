@@ -13,7 +13,7 @@ if bTraining
     waitfor(msgbox('Select Image Tables for TRAINING the network (creating a network from scratch or building on an existing network)'))
     [trainingdata, trainingpath] = uigetfile('Training/*.mat','Select File(s) for Training','MultiSelect', 'on');
 else
-    waitfor(msgbox('Select Image Tables for EVALUATING the network (do NOT choose the images use to train the network)'))
+    waitfor(msgbox('Select Ground-Truthed Image Tables for EVALUATING the network (do NOT choose the images use to train the network)'))
     [trainingdata, trainingpath] = uigetfile('Training/*.mat','Select File(s) for Evaluation','MultiSelect', 'on');
 end
 %Return if cancel
