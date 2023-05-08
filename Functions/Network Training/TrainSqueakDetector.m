@@ -338,8 +338,10 @@ for ii = 1:size(data,1)
     
     bboxes = data{ii,2};
     
-    map = gray(256);
-    I = ind2rgb(I,map);
+    if size(targetSize,2) == 3 && targetSize(:,3) == 3
+        map = gray(256);
+        I = ind2rgb(I,map);
+    end
     I = im2single(imresize(I,targetSize(1:2)));
     scale = targetSize(1:2)./imgSize(1:2);
     bboxes = bboxresize(bboxes,scale);

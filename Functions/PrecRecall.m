@@ -44,7 +44,7 @@ recall = recallvec(end);
 
 if isempty(PathToDet)
     warning('If selected Detections.mats do not match those used to create the Image Tables, P/R statistics will be incorrect.')
-    [trainingdata, trainingpath] = uigetfile([char(handles.data.settings.detectionfolder) '/*.mat'],'Select Detection File(s) used for Testing ','MultiSelect', 'on');
+    [trainingdata, trainingpath] = uigetfile([char(handles.data.settings.detectionfolder) '/*.mat'],'Select Ground-Truthed Detection File(s) to Use for Testing ','MultiSelect', 'on');
     if isnumeric(trainingdata); return; end
     trainingdata = cellstr(trainingdata);
     for i = 1:length(trainingdata)
