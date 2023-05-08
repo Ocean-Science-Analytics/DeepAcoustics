@@ -21,12 +21,12 @@ switch choice
                     end
             end
         end
-        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector,options,detname);
+        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables,detector,options,detname);
     case 'Yes - TensorFlow'
         detector = importTensorFlowLayers(uigetdir(pwd,'Please select the folder containing saved TensorFlow 2 model (saved_model.pb & variables subfolder)'));
-        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector);
+        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables,detector);
     case 'No'
-        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables);
+        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables);
 end
 
 %% Save the new network
@@ -38,7 +38,7 @@ imLength = max(AllSettings(:,4));
 options.ValidationData = [];
 
 version = handles.DWVersion;
-save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength');
+save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength','detname');
 
 %% Update the menu
 update_folders(hObject, eventdata, handles);

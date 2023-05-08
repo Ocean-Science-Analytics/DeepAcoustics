@@ -7,7 +7,7 @@ function PrecRecall(handles)
 imdsTest = imageDatastore(TestingTables{:,1});
 bldsTest = boxLabelDatastore(TestingTables(:,2:end));
 
-[NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
+[NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Network to Evaluate');
 lastwarn('');
 netload = load([NetPath NetName]);
 [warnMsg, ~] = lastwarn;

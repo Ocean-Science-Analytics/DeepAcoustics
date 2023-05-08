@@ -1,4 +1,4 @@
-function [detector, lgraph, options, info] = TrainSqueakDetector(TrainingTables, layers, sameopts, detname)
+function [detector, lgraph, options, info, detname] = TrainSqueakDetector(TrainingTables, layers, sameopts, detname)
 
 % Extract boxes delineations and store as boxLabelDatastore
 % Convert training and validation data to
@@ -8,11 +8,17 @@ bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
 dsTrain = combine(imdsTrain,bldsTrain);
 
 list = {'Tiny YOLO v4 COCO','CSP-DarkNet-53','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
-if nargin == 1
-    [basemodels,tf] = listdlg('PromptString','Choose a base network','ListString',list,'SelectionMode','single','Name','Base Network');
+if nargin == 1 || isempty(detname)
+    if nargin == 1
+        strPrompt = 'Choose a base network';
+    else
+        strPrompt = 'Which network architecture was used to create this?';
+    end
+    [basemodels,tf] = listdlg('PromptString',strPrompt,'ListString',list,'SelectionMode','single','Name','Base Network');
     if ~tf
         return
     end
+    detname = list{basemodels};
 elseif nargin == 4
     basemodels = find(strcmp(detname,list));
 end
@@ -30,30 +36,38 @@ end
 dim1 = size(sampleImg,1);
 dim2 = size(sampleImg,2);
 
-% Tiny - probably 288 x 288
-if basemodels == 1
-    dim1 = 32*round(size(sampleImg,1)/32);
-    dim2 = 32*round(size(sampleImg,2)/32);
-% DarkNet - probably 288 x 288 unless downsizing necessary for GPU
-elseif basemodels == 2
-    if dim1 ~= dim2
-        error('Oops, image not square, talk to Gabi')
-    end
-    warning('If GPU crashes, Darknet COCO may require a smaller image size.')
-    prompt = {'Enter image size (square):'};
-    dlgtitle = 'Image Size';
-    dims = [1 35];
-    definput = {num2str(dim1)};
-    dim1 = str2double(inputdlg(prompt,dlgtitle,dims,definput));
-    if mod(dim1,32) ~= 0
-        warning('COCO models require image size be a multiple of 32; automatically rounding to nearest multiple')
-        dim1 = 32*round(dim1/32);
-    end
-    dim2 = dim1;
-% ResNet50 (pre-trained) 224 x 224
-elseif basemodels == 3
-    dim1 = 224;
-    dim2 = 224;
+% Set model defaults
+switch basemodels
+    % Tiny & DarkNet - probably 288 x 288
+    case {1,2}
+        dim1 = 32*round(size(sampleImg,1)/32);
+        dim2 = 32*round(size(sampleImg,2)/32);
+    % ResNet50 (pre-trained) 224 x 224
+    case 3
+        dim1 = 224;
+        dim2 = 224;
+end
+if dim1 ~= dim2
+    error('Oops, image not square, talk to Gabi')
+end
+
+% User input so can reduce size if memory error
+warning('If GPU crashes (out of memory error), you may need to reduce the image size.')
+prompt = {'Enter image size (square):'};
+dlgtitle = 'Image Size';
+dims = [1 35];
+definput = {num2str(dim1)};
+dim1 = str2double(inputdlg(prompt,dlgtitle,dims,definput));
+dim2 = dim1;
+
+switch basemodels
+    % Tiny & DarkNet - probably 288 x 288
+    case {1,2}
+        if mod(dim1,32) ~= 0
+            warning('COCO models require image size be a multiple of 32; automatically rounding to nearest multiple')
+            dim1 = 32*round(dim1/32);
+            dim2 = dim1;
+        end
 end
 
 % Training image dims need to matchcase 'Tiny YOLO v4 COCO' or
