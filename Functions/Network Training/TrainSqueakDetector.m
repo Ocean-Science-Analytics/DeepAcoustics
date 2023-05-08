@@ -73,6 +73,11 @@ end
 % Training image dims need to matchcase 'Tiny YOLO v4 COCO' or
 % 'CSP-DarkNet-53'
 inputSize = [dim1 dim2 3];
+if nargin == 4
+    if size(layers.InputSize,2) ~= 3
+        inputSize = [dim1 dim2];
+    end
+end
 dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
 
 if nargin == 1
