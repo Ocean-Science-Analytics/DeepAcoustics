@@ -240,6 +240,8 @@ if nargin == 1
     end    
     classes = TrainingTables.Properties.VariableNames(2:end);
     
+    % Replace 0s with 1 (sometimes happens with reduced image sizes)
+    anchorBoxes(anchorBoxes == 0) = 1;
     %Compute the area of each anchor box and sort them in descending order.
     area = anchorBoxes(:,1).*anchorBoxes(:,2);
     [~,idx] = sort(area,"descend");
