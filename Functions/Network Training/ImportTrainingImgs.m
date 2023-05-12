@@ -17,10 +17,12 @@ else
     [trainingdata, trainingpath] = uigetfile('Training/*.mat','Select File(s) for Evaluation','MultiSelect', 'on');
 end
 %Return if cancel
-if trainingdata == 0
+if isa(trainingdata,'double') && trainingdata == 0
     return
 end
-trainingdata = cellstr(trainingdata);
+if isa(trainingdata,'char')
+    trainingdata = cellstr(trainingdata);
+end
 
 %% Load the data into a single table
 for i = 1:length(trainingdata)
