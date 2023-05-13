@@ -1,6 +1,6 @@
 function PrecRecall(handles)
 % Select Det File for testing network
-[TestingTables, ~, PathToDet] = ImportTrainingImgs(handles,false);
+[TestingTables, ~, Settings_Freq, PathToDet] = ImportTrainingImgs(handles,false);
 % Extract boxes delineations and store as boxLabelDatastore
 % Convert training and validation data to
 % datastores for dumb YOLO fns
@@ -15,6 +15,22 @@ if ~isempty(warnMsg)
     error('Problem pathing to ValidationData - Talk to Gabi')
 end
 detector = netload.detector;
+warningmsg = 'Continue anyway';
+if isfield(netload,'Settings_Freq')
+    netFreqSettings = netload.Settings_Freq;
+else
+    netFreqSettings = [0,0];
+    warningmsg = questdlg({'This is an older network.  If you did not use the full frequency spectrum','to create your training images, network may not work as expected'}, ...
+        'Warning','Continue anyway','Cancel','Cancel');
+    waitfor(warningmsg)
+end
+if ~strcmp(warningmsg,'Continue anyway')
+    return
+end
+
+if any(netFreqSettings ~= Settings_Freq) && ~all(~netFreqSettings)
+    error('Your network frequency settings do not match the frequencies used to generate your test images. Try using %d and %d kHz to create your images.',netFreqSettings(1),netFreqSettings(2))
+end
 
 if size(detector.InputSize,2) == 3
     imdsTest = transform(imdsTest, @(x) im2Dto3D(x));

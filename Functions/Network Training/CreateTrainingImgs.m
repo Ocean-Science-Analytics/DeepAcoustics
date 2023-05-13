@@ -23,6 +23,13 @@ imLength = spectSettings(4);
 repeats = spectSettings(5)+1;
 AmplitudeRange = [.5, 1.5];
 StretchRange = [0.75, 1.25];
+
+warning('FYI: Any annotated Calls that fall outside of your selected Frequency Range will either be excluded or clipped (a warning will appear in either case)')
+prompt = {'Low Frequency Cutoff (kHZ)','High Frequency Cutoff (kHZ)'};
+dlg_title = 'Freq Settings';
+num_lines=[1 100]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
+def = handles.data.settings.detectionSettings(2:3);
+Settings_Freq = str2double(inputdlg(prompt,dlg_title,num_lines,def,options))';
 h = waitbar(0,'Initializing');
 
 for k = 1:length(trainingdata)
@@ -44,7 +51,36 @@ for k = 1:length(trainingdata)
     % Find max call frequency for cutoff
     % freqCutoff = max(sum(Calls.Box(:,[2,4]), 2));
     freqCutoff = audioReader.audiodata.SampleRate / 2;
+    hiCut = min(freqCutoff,max(Settings_Freq));
+    lowCut = min(Settings_Freq);
+    Settings_Freq(1,1) = lowCut;
+    Settings_Freq(1,2) = hiCut;
     
+    % Rebox calls to fit frequency selection
+    indTooLow = (Calls.Box(:,2)+Calls.Box(:,4))<=lowCut;
+    indTooHi = Calls.Box(:,2)>=hiCut;
+    indClipLow = Calls.Box(:,2)<lowCut;
+    indClipHi = (Calls.Box(:,2)+Calls.Box(:,4))>hiCut;
+    if any(indTooLow) || any(indTooHi)
+        warning('Some annotated Calls are outside of your selected freq range and will be excluded from training')
+    end
+    if any(indClipLow) || any(indClipHi)
+        warning('Some parts of some annotated Calls fall outside of your selected freq range and will be clipped for training')
+    end
+    
+    Calls.Box(indClipLow,4) = Calls.Box(indClipLow,4)-(lowCut-Calls.Box(indClipLow,2));
+    Calls.Box(indClipLow,2) = lowCut;
+    Calls.Box(indClipHi,4) = hiCut-Calls.Box(indClipHi,2);
+    Calls(indTooLow | indTooHi,:) = [];
+    
+    % Double-check all good now
+    indTooLow = (Calls.Box(:,2)+Calls.Box(:,4))<=lowCut;
+    indTooHi = Calls.Box(:,2)>=hiCut;
+    indClipLow = Calls.Box(:,2)<lowCut;
+    indClipHi = (Calls.Box(:,2)+Calls.Box(:,4))>hiCut;
+    if any(indTooLow) || any(indTooHi) || any(indClipLow) || any(indClipHi)
+        error('Fitting boxes to frequency selection did not work right - talk to Gabi')
+    end
     %% Calculate Groups of Calls
     % Calculate the distance between the end of each box and the
     % beginning of the next
@@ -111,7 +147,7 @@ for k = 1:length(trainingdata)
                 audioReader.audiodata.SampleRate,...
                 BoutCalls,...
                 wind,noverlap,nfft,...
-                freqCutoff,...
+                lowCut,hiCut,...
                 fullfile(fname,IMname),...
                 AmplitudeRange,...
                 replicatenumber,...
@@ -126,7 +162,9 @@ for k = 1:length(trainingdata)
     end
     matpath = uigetdir(fullfile(handles.data.squeakfolder,'Training'),'Select Directory to Save Images.mat');
     pathtodet = fullfile(trainingpath,trainingdata{k});
-    save(fullfile(matpath,[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength','pathtodet');
+    Settings_Spec = table(wind,noverlap,nfft,imLength);
+    save(fullfile(matpath,[filename '_Images.mat']),'TTable','Settings_Spec','Settings_Freq','pathtodet');
+    %save(fullfile(matpath,[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength','pathtodet');
     %save(fullfile(handles.data.squeakfolder,'Training',[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
     disp(['Created ' num2str(height(TTable)) ' Training Images']);
 end
@@ -135,7 +173,7 @@ end
 
 
 % Create training images and boxes
-function [im, box] = CreateTrainingData(audio,rate,Calls,wind,noverlap,nfft,freqCutoff,filename,AmplitudeRange,replicatenumber,StretchRange)
+function [im, box] = CreateTrainingData(audio,rate,Calls,wind,noverlap,nfft,lowCut,hiCut,filename,AmplitudeRange,replicatenumber,StretchRange)
 
 % Augment by adjusting the gain
 % The first training image should not be augmented
@@ -159,9 +197,13 @@ end
     'yaxis');
 
 % -- remove frequencies bellow well outside of the box
-lowCut=(min(Calls.Box(:,2))-(min(Calls.Box(:,2))*.75))*1000;
-min_freq  = find(fr>lowCut);
-p = p(min_freq,:);
+% lowCut=(min(Calls.Box(:,2))-(min(Calls.Box(:,2))*.75))*1000;
+% min_freq  = find(fr>lowCut);
+% p = p(min_freq,:);
+
+use_freq = fr>lowCut*1000 & fr<hiCut*1000;
+p = p(use_freq,:);
+fr = fr(fr>lowCut*1000 & fr<hiCut*1000);
 
 % % Add brown noise to adjust the amplitude
 % if replicatenumber > 1
