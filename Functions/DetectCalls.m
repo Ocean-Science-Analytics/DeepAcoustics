@@ -28,21 +28,63 @@ if isempty(audioselections)
     return
 end
 
+NeuralNetworks = cell(1,length(networkselections));
+h = waitbar(0,'Loading neural network(s)...');
 Settings = [];
 for k=1:length(networkselections)
-    prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (kHZ)','High Frequency Cutoff (kHZ)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
-    dlg_title = ['Settings for ' handles.networkfiles(networkselections(k)).name];
+    % Load all networks first so that checks don't have to happen for every
+    % audio file
+    networkname = handles.networkfiles(networkselections(k)).name;
+    networkpath = fullfile(handles.networkfiles(networkselections(k)).folder,networkname);
+    networkfile=load(networkpath);%get currently selected option from menu
+
+    % Get network and spectrogram settings
+    dlg_title = ['Settings for ' networkname];
     num_lines=[1 100]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
     def = handles.data.settings.detectionSettings;
-    current_settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
-    
-    if isempty(current_settings) % Stop if user presses cancel
-        return
+    if isfield(networkfile,'Settings_Freq')
+        %netFreqSettings = networkfile.Settings_Freq;
+        %wind = networkfile.Settings_Spec.wind;
+        %noverlap = networkfile.Settings_Spec.noverlap;
+        %nfft = networkfile.Settings_Spec.nfft;
+        %imLength = networkfile.Settings_Spec.imLength;
+        % Settings for each network
+        prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
+        def = def([1,4:5]);
+        current_settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
+        
+        if isempty(current_settings) % Stop if user presses cancel
+            return
+        end
+        current_settings(4:5) = current_settings(2:3);
+        current_settings(2:3) = networkfile.Settings_Freq;
+    else
+        thisnet = networkfile;
+        networkfile = struct();
+        networkfile.Settings_Freq = [0,0];
+        warningmsg = questdlg({'This is an older network.  If you did not use the full frequency spectrum','to create your training images, network may not work as expected'}, ...
+            'Warning','Continue anyway','Cancel','Cancel');
+        waitfor(warningmsg)
+        if ~strcmp(warningmsg,'Continue anyway')
+            return
+        end
+        networkfile.Settings_Spec = cell2table(cell(0,4),'VariableNames',{'wind','noverlap','nfft','imLength'});
+        networkfile.Settings_Spec = [thisnet.wind, thisnet.noverlap, thisnet.nfft, thisnet.imLength];
+        networkfile.detector = thisnet.detector;
+        % Settings for each network
+        prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (kHZ)','High Frequency Cutoff (kHZ)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
+        current_settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
+        
+        if isempty(current_settings) % Stop if user presses cancel
+            return
+        end
     end
+    NeuralNetworks{k} = networkfile;
     
     Settings = [Settings, current_settings];
     handles.data.settings.detectionSettings = sprintfc('%g',Settings(:,1))';
 end
+close(h);
 
 if isempty(Settings)
     return
@@ -54,24 +96,14 @@ handles.data.saveSettings();
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);  % Get newest version of handles
 
-
 %% For Each File
 for j = 1:length(audioselections)
     CurrentAudioFile = audioselections(j);
+    AudioFile = fullfile(handles.audiofiles(CurrentAudioFile).folder,handles.audiofiles(CurrentAudioFile).name);
     % For Each Network
     Calls = [];
     for k=1:length(networkselections)
-        h = waitbar(0,'Loading neural network...');
-        
-        AudioFile = fullfile(handles.audiofiles(CurrentAudioFile).folder,handles.audiofiles(CurrentAudioFile).name);
-        
-        networkname = handles.networkfiles(networkselections(k)).name;
-        networkpath = fullfile(handles.networkfiles(networkselections(k)).folder,networkname);
-        NeuralNetwork=load(networkpath);%get currently selected option from menu
-        close(h);
-        
-        Calls = [Calls; SqueakDetect(AudioFile,NeuralNetwork,Settings(:,k),j,length(audioselections))];
-
+        Calls = [Calls; SqueakDetect(AudioFile,NeuralNetworks{k},Settings(:,k),j,length(audioselections))];
     end
     
     [~,audioname] = fileparts(AudioFile);

@@ -10,11 +10,12 @@ if audio_info.NumChannels > 1
     warning('Audio file contains more than one channel. Detection will use the mean of all channels.')
 end
 
-% Get network and spectrogram settings
-network=networkfile.detector;
-wind=networkfile.wind;
-noverlap=networkfile.noverlap;
-nfft=networkfile.nfft;
+network = networkfile.detector;
+netFreqSettings = networkfile.Settings_Freq;
+wind = networkfile.Settings_Spec.wind;
+noverlap = networkfile.Settings_Spec.noverlap;
+nfft = networkfile.Settings_Spec.nfft;
+imLength = networkfile.Settings_Spec.imLength;
 
 % Adjust settings, so spectrograms are the same for different sample rates
 wind = round(wind * audio_info.SampleRate);
@@ -35,11 +36,13 @@ else
 end
 
 %Detection chunk size (s)
-chunksize=networkfile.imLength*.8;
+chunksize=imLength*.8;
 
 %Overlap between chucks (s)
-overlap=networkfile.imLength*.2;
+overlap=imLength*.2;
 
+% GA note to self - don't ask for freq cut-offs unless they're not in
+% network
 % Switched high- and low-freq cutoff order in dialog, but should be back
 % compatible
 % (2) High frequency cutoff (kHz)
@@ -51,6 +54,9 @@ end
 
 % (3) Low frequency cutoff (kHz)
 LowCutoff = min(Settings(2),Settings(3));
+if any(netFreqSettings ~= [LowCutoff,HighCutoff]) && ~all(~netFreqSettings)
+    error('Your network frequency settings do not match the frequencies used to generate your test images. Try using %d and %d kHz to create your images.',netFreqSettings(1),netFreqSettings(2))
+end
 
 % (4) Score cutoff (kHz)
 score_cuttoff=Settings(4);
@@ -116,6 +122,8 @@ for i = 1:length(chunks)-1
         % Convert bboxes to ints (I'm not sure why they're not...)
         nbboxes = int16(bboxes);
         % Check bbox limits
+        % Adjust for frequency cut-offs of network
+        nbboxes(:,2) = nbboxes(:,2) + sum(fr<LowCutoff*1000);
         % No zeros (must be at least 1)
         nbboxes(nbboxes<=0) = 1;
         % start time index must be at least 1 less than length of ti
