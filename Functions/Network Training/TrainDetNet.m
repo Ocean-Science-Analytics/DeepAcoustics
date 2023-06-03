@@ -9,7 +9,11 @@ switch choice
     case 'Yes'
         detname = [];
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
-        load([NetPath NetName],'detector','options');
+        netload = load([NetPath NetName]);
+        detector = netload.detector;
+        options = netload.options;
+        detname = netload.detname;
+
         if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && detector.ClassNames==categorical({'USV'}))
             choice = questdlg('It looks like you are trying to build on an older USV model.  Do you want to make sure new detections are also labelled USV? (Recommend Yes unless you know what you are doing.)', 'Yes', 'No');
             switch choice
