@@ -25,6 +25,7 @@ switch choice
         end
         detector = netload.detector;
         options = netload.options;
+        detname = netload.detname;
         if any(netFreqSettings ~= Settings_Freq) && ~all(~netFreqSettings)
             error('Your network frequency settings do not match the frequencies used to generate your test images. Try using %d and %d kHz to create your images.',netFreqSettings(1),netFreqSettings(2))
         end
