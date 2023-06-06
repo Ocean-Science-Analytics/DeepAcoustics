@@ -1,4 +1,4 @@
-function [Calls,audiodata,spect,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT)
+function [Calls,audiodata,spect,detection_metadata,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT)
 
 modcheck = struct();
 data = load(filename);
@@ -6,6 +6,7 @@ data = load(filename);
 Calls = table();
 audiodata = struct();
 spect = [];
+detection_metadata = [];
 ClusteringData = table();
 
 if isfield(data, 'audiodata')
@@ -15,6 +16,9 @@ end
 %% Unpack the data
 if isfield(data, 'Calls')
     Calls = data.Calls;
+    if isfield(data,'detection_metadata')
+        detection_metadata = data.detection_metadata;
+    end
 
     %% Supply defaults for any misc missing variables
     if ~any(strcmp('CallID', Calls.Properties.VariableNames)) || length(unique(Calls.CallID)) ~= height(Calls)
