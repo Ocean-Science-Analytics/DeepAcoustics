@@ -91,7 +91,9 @@ for j = 1:length(audioselections)
     end
     
     h = waitbar(1,'Saving...');
-    Calls = Automerge_Callback(Calls, [], AudioFile);
+
+    %% Merge overlapping boxes
+    Calls = merge_boxes(Calls.Box, Calls.Score, Calls.Type, audioinfo(AudioFile), 1, 0, 0);
     
     % Correct power measure for merged calls
     % This should also now be consistent with the calculation in
