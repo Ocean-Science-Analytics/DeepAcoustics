@@ -1,11 +1,9 @@
 function PrecRecall(handles)
 % Select Det File for testing network
-[TestingTables, ~, PathToDet] = ImportTrainingImgs(handles,false);
-% Extract boxes delineations and store as boxLabelDatastore
-% Convert training and validation data to
-% datastores for dumb YOLO fns
-imdsTest = imageDatastore(TestingTables{:,1});
-bldsTest = boxLabelDatastore(TestingTables(:,2:end));
+[detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder);
+PathToDet = fullfile(detpath,detfile);
+[CallsAnn, detaudiodata, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
+AudioFile = detaudiodata.Filename;
 
 [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Network to Evaluate');
 lastwarn('');
@@ -14,17 +12,26 @@ netload = load([NetPath NetName]);
 if ~isempty(warnMsg)
     error('Problem pathing to ValidationData - Talk to Gabi')
 end
-detector = netload.detector;
 
-if size(detector.InputSize,2) == 3
-    imdsTest = transform(imdsTest, @(x) im2Dto3D(x));
+if ~isempty(detmetadata)
+    Settings = detmetadata.Settings;
+else
+    prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (kHZ)','High Frequency Cutoff (kHZ)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
+    dlg_title = ['Settings for ' handles.networkfiles(networkselections(k)).name];
+    num_lines=[1 100]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
+    def = handles.data.settings.detectionSettings;
+    Settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
+end
+
+if isempty(Settings) % Stop if user presses cancel
+    return
 end
 
 fig = uifigure;
 d = uiprogressdlg(fig,'Title','Detecting Calls',...
     'Indeterminate','on');
 drawnow
-results = detect(detector,imdsTest);
+Calls = SqueakDetect(AudioFile,netload,Settings,1,1);
 close(d)
 close(fig)
 
@@ -37,31 +44,15 @@ if percTPThresh < 0 || percTPThresh > 1
     error('Threshold for overlap must be between 0 and 1')
 end
 
-[avgprec, recallvec, precvec] = evaluateDetectionPrecision(results, bldsTest, percTPThresh);
+results = table({table2array(Calls(:,1))},{table2array(Calls(:,2))},{categorical(ones(197,1),1,'Call')});
+results = renamevars(results,1:3,{'Box','Scores','Label'});
+grdtruth = table({table2array(CallsAnn(:,1))});
+grdtruth = renamevars(grdtruth,1,'Call');
+
+[avgprec, recallvec, precvec] = evaluateDetectionPrecision(results, grdtruth, percTPThresh);
 % Retrieve only the precision and recall values if accept all scores
 prec = precvec(end);
 recall = recallvec(end);
-
-if isempty(PathToDet)
-    warning('If selected Detections.mats do not match those used to create the Image Tables, P/R statistics will be incorrect.')
-    [trainingdata, trainingpath] = uigetfile([char(handles.data.settings.detectionfolder) '/*.mat'],'Select Ground-Truthed Detection File(s) to Use for Testing ','MultiSelect', 'on');
-    if isnumeric(trainingdata); return; end
-    trainingdata = cellstr(trainingdata);
-    for i = 1:length(trainingdata)
-        PathToDet{i} = fullfile(trainingpath,trainingdata{i});
-    end
-end
-CallsAnn = [];
-for i = 1:length(PathToDet)
-    CallsAnn = [CallsAnn; loadCallfile(PathToDet{i},handles,false)];
-end
-numTrainBoxes = 0;
-for i = 1:height(bldsTest.LabelData)
-    numTrainBoxes = numTrainBoxes + length(bldsTest.LabelData{i,2});
-end
-if height(CallsAnn) ~= numTrainBoxes
-    msgbox('Something went wrong with creating your image table - talk to Gabi')
-end
 
 numTrueDets = height(CallsAnn);
 numTP = recall*numTrueDets;
