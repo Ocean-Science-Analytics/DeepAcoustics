@@ -60,7 +60,7 @@ if isfield(data, 'Calls')
     else
         spect = data.spect;
     end
-    if nargout == 5
+    if nargout == 6
         %% Output for detection mat modification check
         modcheck.calls = data.Calls;
         modcheck.spect = spect;
@@ -69,7 +69,7 @@ if isfield(data, 'Calls')
         % have the power to update handles...
         handles.data.settings.spect = spect;
     end
-elseif nargout < 4 % If ClusteringData is requested, we don't need Calls
+elseif nargout < 5 % If ClusteringData is requested, we don't need Calls
     error('This doesn''t appear to be a detection file!')
 end
 
@@ -86,7 +86,7 @@ if isfield(data, 'ClusteringData')
     end
 end
 
-if nargout < 4
+if nargout < 5
     
     %% Make sure there's nothing wrong with the call file
     if isempty(Calls)
