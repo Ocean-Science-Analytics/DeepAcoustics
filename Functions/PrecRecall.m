@@ -44,7 +44,7 @@ if percTPThresh < 0 || percTPThresh > 1
     error('Threshold for overlap must be between 0 and 1')
 end
 
-results = table({table2array(Calls(:,1))},{table2array(Calls(:,2))},{categorical(ones(197,1),1,'Call')});
+results = table({table2array(Calls(:,1))},{table2array(Calls(:,2))},{categorical(ones(height(Calls),1),1,'Call')});
 results = renamevars(results,1:3,{'Box','Scores','Label'});
 grdtruth = table({table2array(CallsAnn(:,1))});
 grdtruth = renamevars(grdtruth,1,'Call');
