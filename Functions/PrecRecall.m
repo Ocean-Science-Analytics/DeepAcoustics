@@ -17,7 +17,7 @@ if ~isempty(detmetadata)
     Settings = detmetadata.Settings;
 else
     prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (kHZ)','High Frequency Cutoff (kHZ)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
-    dlg_title = ['Settings for ' handles.networkfiles(networkselections(k)).name];
+    dlg_title = 'Settings for This Network';
     num_lines=[1 100]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
     def = handles.data.settings.detectionSettings;
     Settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
