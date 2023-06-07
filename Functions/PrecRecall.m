@@ -82,8 +82,29 @@ msgbox({'Values for Score Threshold == 0:'; ...
     sprintf('Recall: %.4f', recall);...
     sprintf('F-Score: %.4f', fscore)},'P/R Result');
 
-[file,path] = uiputfile([handles.data.settings.networkfolder '\PrecRecallResults.mat']);
+[file,path] = uiputfile([handles.data.settings.networkfolder '\PrecRecallResults.mat'],'Save P/R Results');
 save(fullfile(path,file),'NetPath','NetName','PathToDet','results','precvec','recallvec','prec','recall','numTrueDets','numTP','numDets','numFP','numFN','fscore')
+
+[~,audioname] = fileparts(AudioFile);
+detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
+
+% Append date to filename
+if Settings(5)
+    fname = [audioname ' ' detectiontime '_Detections.mat'];
+else
+    fname = [audioname '_Detections.mat'];
+end
+[fname,fpath] = uiputfile(fullfile(handles.data.settings.networkfolder, fname),'Save the Detected Calls');
+
+if ~isempty(Calls)
+    detection_metadata = struct(...
+        'Settings', Settings,...
+        'detectiontime', detectiontime,...
+        'networkselections', NetName);
+    audiodata = audioinfo(AudioFile);
+    save(fullfile(fpath,fname),'Calls', 'detection_metadata', 'audiodata' ,'-v7.3', '-mat');
+end
+
 end
 
 function imOut = im2Dto3D(imIn)
