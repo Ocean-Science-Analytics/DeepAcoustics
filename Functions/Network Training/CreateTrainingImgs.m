@@ -57,7 +57,11 @@ for k = 1:length(trainingdata)
     % Create chuncks of audio file that contain non-overlapping call bouts
     bn=1;
     while bn<height(Distance)
+        % For each row (beginning of call), find the last column (end of call)
+        % following it within imLength (delineate this call bout)
         lst=find(Distance(bn,bn:end)>0,1,'last')+bn-1;
+        % For every other call (beginning of call) in the call bout (within that imLength), delete
+        % all the distances to calls beyond the call bout
         for ii=bn+1:lst
             Distance(ii,lst+1:end)=zeros(length(Distance(ii,lst+1:end)),1);
         end
@@ -68,6 +72,7 @@ for k = 1:length(trainingdata)
         end
     end
     
+    % Identify & number call bouts
     G = graph(Distance,'upper');
     bins = conncomp(G);
     
@@ -158,7 +163,7 @@ end
     rate,...
     'yaxis');
 
-% -- remove frequencies bellow well outside of the box
+% -- remove frequencies below well outside of the box
 lowCut=(min(Calls.Box(:,2))-(min(Calls.Box(:,2))*.75))*1000;
 min_freq  = find(fr>lowCut);
 p = p(min_freq,:);
