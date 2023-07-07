@@ -29,7 +29,7 @@ hc = waitbar(0,'Initializing');
 for j = 1:length(fname) % Do this for each file
     currentfile = fullfile(fpath,fname{j});
     audioReader = squeakData([]);
-    [Calls, audioReader.audiodata] = loadCallfile(currentfile,handles);
+    [Calls, audioReader.audiodata] = loadCallfile(currentfile,handles,false);
     
     % Name the output file. If the file already exists, delete it so that
     % writetable overwrites the data instead of appending it to the table.    

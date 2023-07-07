@@ -83,7 +83,7 @@ rules(:,1) = num2cell(contains(rules(:,1),'Accept'));
 %% Loop
 h = waitbar(0,'Initializing');
 for currentfile = selections % Do this for each file
-    [Calls,  audiodata, loaded_ClusteringData] = loadCallfile(fullfile(handles.detectionfiles(currentfile).folder, handles.detectionfiles(currentfile).name),handles);
+    [Calls,  audiodata, spect] = loadCallfile(fullfile(handles.detectionfiles(currentfile).folder, handles.detectionfiles(currentfile).name),handles,false);
 
     reject = false(height(Calls),1);
     accept = false(height(Calls),1);
@@ -153,7 +153,9 @@ for currentfile = selections % Do this for each file
     Calls.Accept(reject) = false;
     Calls.Type(reject) = categorical({'Noise'});
     Calls.Accept(accept) = true;
-    spect = handles.data.settings.spect;
+    if isempty(spect)
+        spect = handles.data.settings.spect;
+    end
     save(fullfile(handles.detectionfiles(currentfile).folder,handles.detectionfiles(currentfile).name),'Calls','audiodata','spect','-v7.3');
 
 end
@@ -161,6 +163,7 @@ close(h);
 
 %update the display
 update_folders(hObject, eventdata, handles);
+handles = guidata(hObject);  % Get newest version of handles
 if isfield(handles,'current_detection_file')
     LoadCalls(hObject, eventdata, handles, true)
 end

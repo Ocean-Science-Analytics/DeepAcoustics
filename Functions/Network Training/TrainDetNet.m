@@ -1,45 +1,20 @@
 function TrainDetNet(hObject, eventdata, handles)
 %% Train a new neural network
-cd(handles.data.squeakfolder);
-
-% Apparently, "wind" is a function name, so initialize it as empty
-wind = [];
-
-%% Select the tables that contains the training data
-waitfor(msgbox('Select Image Tables'))
-[trainingdata, trainingpath] = uigetfile(['Training/*.mat'],'Select Training File(s) for Training ','MultiSelect', 'on');
-TrainingTables = [];
-%Return if cancel
-if trainingdata == 0
-    return
-end
-trainingdata = cellstr(trainingdata);
-
-
-%% Load the data into a single table
-AllSettings = [];
-for i = 1:length(trainingdata)
-    load([trainingpath trainingdata{i}],'TTable','wind','noverlap','nfft','imLength');
-    TrainingTables = [TrainingTables; TTable];
-    AllSettings = [AllSettings; wind noverlap nfft];
-end
-
-%% Create a warning if training files were created with different parameters
-warningmsg = 'Train anyway';
-if size(unique(AllSettings,'rows'),1) ~= 1
-    warningmsg = questdlg({'Not all images were created with the same spectrogram settings','Network may not work as expected'}, ...
-        'Warning','Train anyway','Cancel','Cancel');
-    waitfor(warningmsg)
-end
-if ~strcmp(warningmsg,'Train anyway'); return; end
+[TrainingTables, AllSettings, ~] = ImportTrainingImgs(handles,true);
+if isempty(TrainingTables); return; end
 
 %% Train the network
-choice = questdlg('Train from existing network?', 'Yes', 'No');
+choice = questdlg('Train from existing network?', 'Existing Network?', 'Yes', 'Yes - TensorFlow', 'No', 'Yes');
 switch choice
     case 'Yes'
+        detname = [];
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
-        load([NetPath NetName],'detector');
-        if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && detector.Network.Layers(end).Classes==categorical({'USV'}))
+        netload = load([NetPath NetName]);
+        detector = netload.detector;
+        options = netload.options;
+        detname = netload.detname;
+
+        if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && detector.ClassNames==categorical({'USV'}))
             choice = questdlg('It looks like you are trying to build on an older USV model.  Do you want to make sure new detections are also labelled USV? (Recommend Yes unless you know what you are doing.)', 'Yes', 'No');
             switch choice
                 case 'Yes'
@@ -50,9 +25,12 @@ switch choice
                     end
             end
         end
-        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables,detector);
+        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables,detector,options,detname);
+    case 'Yes - TensorFlow'
+        detector = importTensorFlowLayers(uigetdir(pwd,'Please select the folder containing saved TensorFlow 2 model (saved_model.pb & variables subfolder)'));
+        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables,detector);
     case 'No'
-        [detector, layers, options, info] = TrainSqueakDetector(TrainingTables);
+        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables);
 end
 
 %% Save the new network
@@ -60,9 +38,11 @@ end
 wind = max(AllSettings(:,1));
 noverlap = max(AllSettings(:,2));
 nfft = max(AllSettings(:,3));
+imLength = max(AllSettings(:,4));
+options.ValidationData = [];
 
 version = handles.DWVersion;
-save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength');
+save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength','detname');
 
 %% Update the menu
 update_folders(hObject, eventdata, handles);

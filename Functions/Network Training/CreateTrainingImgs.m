@@ -30,12 +30,13 @@ for k = 1:length(trainingdata)
     
     % Load the detection and audio files
     audioReader = squeakData();
-    [Calls, audioReader.audiodata] = loadCallfile([trainingpath trainingdata{k}],handles);
+    [Calls, audioReader.audiodata] = loadCallfile([trainingpath trainingdata{k}],handles,false);
     
     % Make a folder for the training images
     [~, filename] = fileparts(trainingdata{k});
-    fname = fullfile(handles.data.squeakfolder,'Training','Images',filename);
-    mkdir(fname);
+    fname = uigetdir(fullfile(handles.data.squeakfolder,'Training','Images'),'Select Folder to Output Training Images');
+%     fname = fullfile(handles.data.squeakfolder,'Training','Images',filename);
+%     mkdir(fname);
     
     % Remove Rejects
     Calls = Calls(Calls.Accept == 1, :);
@@ -56,7 +57,11 @@ for k = 1:length(trainingdata)
     % Create chuncks of audio file that contain non-overlapping call bouts
     bn=1;
     while bn<height(Distance)
+        % For each row (beginning of call), find the last column (end of call)
+        % following it within imLength (delineate this call bout)
         lst=find(Distance(bn,bn:end)>0,1,'last')+bn-1;
+        % For every other call (beginning of call) in the call bout (within that imLength), delete
+        % all the distances to calls beyond the call bout
         for ii=bn+1:lst
             Distance(ii,lst+1:end)=zeros(length(Distance(ii,lst+1:end)),1);
         end
@@ -67,6 +72,7 @@ for k = 1:length(trainingdata)
         end
     end
     
+    % Identify & number call bouts
     G = graph(Distance,'upper');
     bins = conncomp(G);
     
@@ -115,7 +121,7 @@ for k = 1:length(trainingdata)
                 AmplitudeRange,...
                 replicatenumber,...
                 StretchRange);
-            TTable = [TTable;{fullfile('Training','Images',filename,IMname), box}];
+            TTable = [TTable;{fullfile(fname,IMname), box}];
         end
         catch
             disp("Something wrong with calculating bounding box indices - talk to Gabi!");
@@ -157,7 +163,7 @@ end
     rate,...
     'yaxis');
 
-% -- remove frequencies bellow well outside of the box
+% -- remove frequencies below well outside of the box
 lowCut=(min(Calls.Box(:,2))-(min(Calls.Box(:,2))*.75))*1000;
 min_freq  = find(fr>lowCut);
 p = p(min_freq,:);
@@ -198,7 +204,7 @@ y2 = axes2pix(length(fr), fr./1000, Calls.Box(:,4));
 box = ceil([x1, length(fr)-y1-y2, x2, y2]);
 box = box(Calls.Accept == 1, :);
 % No zeros (must be at least 1)
-box(box == 0) = 1;
+box(box <= 0) = 1;
 % start time index must be at least 1 less than length of ti
 box(box(:,1) > length(ti)-1,1) = length(ti)-1;
 % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)

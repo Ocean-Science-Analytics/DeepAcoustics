@@ -1,4 +1,4 @@
-function  Calls=SqueakDetect(inputfile,networkfile,fname,Settings,currentFile,totalFiles,networkname)
+function  Calls=SqueakDetect(inputfile,networkfile,Settings,currentFile,totalFiles)
 % Find Squeaks
 Calls = table();
 h = waitbar(0,'Initializing');
@@ -25,6 +25,8 @@ nfft = round(nfft * audio_info.SampleRate);
 % (1) Detection length (s)
 if Settings(1)>audio_info.Duration
     DetectLength=audio_info.Duration;
+    [~,fname,fext] = fileparts(inputfile);
+    fname = [fname fext];
     disp([fname ' is shorter then the requested analysis duration. Only the first ' num2str(audio_info.Duration) ' will be processed.'])
 elseif Settings(1)==0
     DetectLength=audio_info.Duration;
@@ -105,21 +107,25 @@ for i = 1:length(chunks)-1
         im = adapthisteq(flipud(pow),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
         end
 
+        if size(network.InputSize,2) == 3
+            map = gray(256);
+            im = ind2rgb(im2uint8(im),map);
+        end
         % Detect!
-        [bboxes, scores, Class] = detect(network, im2uint8(im), 'ExecutionEnvironment','auto','SelectStrongest',1);
+        [bboxes, scores, Class] = detect(network, im, 'ExecutionEnvironment','auto','SelectStrongest',1);
         % Convert bboxes to ints (I'm not sure why they're not...)
         nbboxes = int16(bboxes);
         % Check bbox limits
         % No zeros (must be at least 1)
-        nbboxes(nbboxes==0) = 1;
+        nbboxes(nbboxes<=0) = 1;
         % start time index must be at least 1 less than length of ti
         nbboxes(nbboxes(:,1) > length(ti)-1,1) = length(ti)-1;
         % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
         nbboxes((nbboxes(:,3)+nbboxes(:,1)) > length(ti),3) = length(ti)-nbboxes((nbboxes(:,3)+nbboxes(:,1)) > length(ti),1);
         % start freq index must be at least 1 less than length of fr
-        nbboxes(nbboxes(:,2) > length(fr)-1,2) = length(fr)-1;
+        nbboxes(nbboxes(:,2) > length(fr)-1,2) = length(fr)-2;
         % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
-        nbboxes((nbboxes(:,4)+nbboxes(:,2)) > length(fr),4) = length(fr)-nbboxes((nbboxes(:,4)+nbboxes(:,2)) > length(fr),2);
+        nbboxes((nbboxes(:,4)+nbboxes(:,2)) >= length(fr),4) = length(fr)-1-nbboxes((nbboxes(:,4)+nbboxes(:,2)) >= length(fr),2);
 
         % Convert boxes from pixels to time and kHz
         bboxes(:,1) = ti(nbboxes(:,1)) + (windL ./ audio_info.SampleRate);
@@ -155,15 +161,6 @@ if isempty(AllScores); close(h); return; end
 
 h = waitbar(1,h,'Merging Boxes...');
 Calls = merge_boxes(AllBoxes, AllScores, AllClass, audio_info, 1, score_cuttoff, 0);
-
-% Merge long 22s if detected with a long 22 network
-if contains(networkname,'long','IgnoreCase',true) & ~isempty(Calls)
-    try
-        Calls = SeparateLong22s([],[],[],inputfile,Calls);
-    catch ME
-        disp(ME)
-    end
-end
 
 close(h);
 end

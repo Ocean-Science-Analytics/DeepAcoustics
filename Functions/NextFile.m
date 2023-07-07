@@ -1,5 +1,6 @@
 function NextFile(hObject, eventdata, handles)
 update_folders(hObject, eventdata, handles);
+handles = guidata(hObject);  % Get newest version of handles
 numfiles = length(handles.detectionfiles);
 %Make sure we actually have an active Detections folder
 if numfiles > 0

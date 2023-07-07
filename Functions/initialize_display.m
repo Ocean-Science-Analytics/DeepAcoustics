@@ -79,6 +79,8 @@ set(handles.topLeftButton, 'Visible', 'on');
 
 handles.PageWindowRectangles = {};
 handles.FocusWindowRectangles = {};
+handles.PageWindowAnnRectangles = {};
+handles.FocusWindowAnnRectangles = {};
 
 colormap(handles.focusWindow,handles.data.cmap);
 colormap(handles.spectrogramWindow,handles.data.cmap);

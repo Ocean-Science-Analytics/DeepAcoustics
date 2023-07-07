@@ -16,6 +16,8 @@ new_box.ClustCat = categorical({'None'});
 new_box.EntThresh = handles.data.settings.EntropyThreshold;
 new_box.AmpThresh = handles.data.settings.AmplitudeThreshold;
 new_box.Accept = true;
+new_box.Ovlp = 0;
+new_box.StTime = 0;
 handles.data.calls = [handles.data.calls; new_box];
 
 %Now delete the roi and render the figure. The roi will be rendered along

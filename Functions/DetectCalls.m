@@ -1,5 +1,5 @@
 % --- Executes on button press in multinetdect.
-function DetectCalls(hObject, eventdata, handles, SingleDetect)
+function DetectCalls(hObject, eventdata, handles)
 
 if isempty(handles.audiofiles)
     errordlg('No Audio Selected')
@@ -19,21 +19,13 @@ end
     handles = guidata(hObject);  % Get newest version of handles
 %end
 
-%% Do this if button Multi-Detect is clicked
-if ~SingleDetect
-    audioselections = listdlg('PromptString','Select Audio Files:','ListSize',[500 300],'ListString',handles.audiofilesnames);
-    if isempty(audioselections)
-        return
-    end
-    networkselections = listdlg('PromptString','Select Networks:','ListSize',[500 300],'ListString',handles.networkfilesnames);
-    if isempty(audioselections)
-        return
-    end
-    
-    %% Do this if button Single-Detect is clicked
-elseif SingleDetect
-    audioselections = get(handles.AudioFilespopup,'Value');
-    networkselections = get(handles.neuralnetworkspopup,'Value');
+audioselections = listdlg('PromptString','Select Audio Files:','ListSize',[500 300],'ListString',handles.audiofilesnames);
+if isempty(audioselections)
+    return
+end
+networkselections = listdlg('PromptString','Select Networks:','ListSize',[500 300],'ListString',handles.networkfilesnames);
+if isempty(audioselections)
+    return
 end
 
 Settings = [];
@@ -78,7 +70,7 @@ for j = 1:length(audioselections)
         NeuralNetwork=load(networkpath);%get currently selected option from menu
         close(h);
         
-        Calls = [Calls; SqueakDetect(AudioFile,NeuralNetwork,handles.audiofiles(CurrentAudioFile).name,Settings(:,k),j,length(audioselections),networkname)];
+        Calls = [Calls; SqueakDetect(AudioFile,NeuralNetwork,Settings(:,k),j,length(audioselections))];
 
     end
     

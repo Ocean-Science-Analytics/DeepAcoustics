@@ -19,9 +19,14 @@ set(handles.focusWindow,...
     'Xlim', [handles.current_focus_position(1), handles.current_focus_position(1) + handles.current_focus_position(3)],...
     'Ylim',[handles.data.settings.LowFreq, min(handles.data.settings.HighFreq, handles.data.audiodata.SampleRate/2000)]);
 
+if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && height(handles.data.calls) > 0 && isa(handles.data.calls.StTime(1),'datetime')
+    sttime = handles.data.calls.StTime(1) - handles.data.calls.Box(1,1)/86400;
+else
+    sttime = 0;
+end
 %Update spectrogram ticks and transform labels to
 %minutes:seconds.milliseconds
-set_tick_timestamps(handles.focusWindow, true);
+set_tick_timestamps(handles.focusWindow, true, sttime);
 
 % Don't update the call info the there aren't any calls in the page view
 if isempty(handles.data.calls) || ~any(handles.data.calls.Box(handles.data.currentcall,1) > ti_f(1) &...
@@ -64,6 +69,11 @@ handles.ContourLine.YData = [ls(1), ls(1) + ls(2) * size(I,2)];
 % Update call statistics text
 set(handles.Ccalls,'String',['Call: ' num2str(handles.data.currentcall) '/' num2str(height(handles.data.calls))]);
 set(handles.score,'String',['Score: ' num2str(handles.data.calls.Score(handles.data.currentcall))]);
+if any(strcmp('Ovlp', handles.data.calls.Properties.VariableNames))
+    set(handles.ovlp,'String',['Ovlp: ' num2str(handles.data.calls.Ovlp(handles.data.currentcall))]);
+else
+    set(handles.ovlp,'String','Ovlp: N/A')
+end
 if handles.data.calls.Accept(handles.data.currentcall)
     set(handles.status,'String','Accepted');
     set(handles.status,'ForegroundColor',[0,1,0]); 

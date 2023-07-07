@@ -4,8 +4,8 @@ update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);
 if nargin == 3 % if "Load Calls" button pressed, load the selected file, else reload the current file  
     %Check if pre-existing detection file has changed to save file before loading a new one.
-    if ~isempty(handles.data.calls)
-        [~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
+    if ~isempty(handles.data.calls) && ~isempty(handles.current_file_id)
+        [~, ~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
         if ~isequal(modcheck.calls, handles.data.calls) || ~isequal(modcheck.spect, handles.data.settings.spect)
             opts.Interpreter = 'tex';
             opts.Default='Yes';
@@ -23,7 +23,7 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
     end
     
     % Select new detections file
-    [newdetfile,newdetpath] = uigetfile([handles.data.settings.detectionfolder,'*.mat']);
+    [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file',handles.data.settings.detectionfolder);
     % If cancel, return
     if isequal(newdetfile,0)
        return;
@@ -38,13 +38,19 @@ if nargin == 3 % if "Load Calls" button pressed, load the selected file, else re
         handles.data.settings.detectionfolder = newdetpath;
         handles.data.saveSettings();
         update_folders(hObject, eventdata, handles);
+        handles = guidata(hObject);  % Get newest version of handles
     end
 end
 
 h = waitbar(0,'Loading Calls Please wait...');
+% Whenever load new file, reset bAnnotate to false
+handles.data.bAnnotate = false;
 handles.data.calls = [];
 handles.data.audiodata = [];
-[handles.data.calls, handles.data.audiodata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles);
+[handles.data.calls, handles.data.audiodata, handles.data.settings.spect, detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+if ~isempty(detmetadata)
+    handles.data.settings.detectionSettings = sprintfc('%g',detmetadata.Settings)';
+end
 
 % Position of the focus window to the first call in the file
 handles.data.focusCenter = handles.data.calls.Box(1,1) + handles.data.calls.Box(1,3)/2;

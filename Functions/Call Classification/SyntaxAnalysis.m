@@ -17,7 +17,7 @@ AllCalls = table([],[],[],[],[],'VariableNames',{'BeginTime_s_','Label','File','
 
 if strcmp(ext,'.mat')
     for i = 1:length(filename)
-        Calls = loadCallfile([filepath filename{i}],handles);
+        Calls = loadCallfile([filepath filename{i}],handles,false);
 
         Calls = Calls(Calls.Accept == 1, :);
         begintime = Calls.Box(:,1); % Get Box Position

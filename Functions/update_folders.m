@@ -13,14 +13,14 @@ end
 % Update Networks
 handles.networkfiles = {};
 if isempty(handles.data.settings.networkfolder)
-    set(handles.neuralnetworkspopup,'String','No Folder Selected','value',1);
+    set(handles.neuralnetworkspopup,'String',{'No Folder Selected'},'value',1);
 elseif exist(handles.data.settings.networkfolder,'dir')==0
-    set(handles.neuralnetworkspopup,'String','Invalid Folder','value',1);
+    set(handles.neuralnetworkspopup,'String',{'Invalid Folder'},'value',1);
 else
     handles.networkfiles=dir([handles.data.settings.networkfolder '/*.mat*']);
     handles.networkfilesnames = {handles.networkfiles.name};
     if isempty(handles.networkfilesnames)
-        set(handles.neuralnetworkspopup,'String','No Networks in Folder','value',1);
+        set(handles.neuralnetworkspopup,'String',{'No Networks in Folder'},'value',1);
     else
         set(handles.neuralnetworkspopup,'String',handles.networkfilesnames)
         if handles.neuralnetworkspopup.Value > length(handles.neuralnetworkspopup.String)
@@ -33,9 +33,9 @@ end
 % Update Audio
 handles.audiofiles = {};
 if isempty(handles.data.settings.audiofolder)
-    set(handles.AudioFilespopup,'String','No Folder Selected','value',1);
+    set(handles.AudioFilespopup,'String',{'No Folder Selected'},'value',1);
 elseif exist(handles.data.settings.audiofolder,'dir')==0
-    set(handles.AudioFilespopup,'String','Invalid Folder','value',1);
+    set(handles.AudioFilespopup,'String',{'Invalid Folder'},'value',1);
 else
     handles.audiofiles = [
         dir(fullfile(handles.data.settings.audiofolder, '*.wav'))
@@ -51,7 +51,7 @@ else
         ];
     handles.audiofilesnames = {handles.audiofiles.name};
     if isempty(handles.audiofilesnames)
-        set(handles.AudioFilespopup,'String','No Audio in Folder','value',1);
+        set(handles.AudioFilespopup,'String',{'No Audio in Folder'},'value',1);
     else
         set(handles.AudioFilespopup,'String',handles.audiofilesnames)
         if handles.AudioFilespopup.Value > length(handles.AudioFilespopup.String)
@@ -69,8 +69,8 @@ else
     handles.detectionfiles=dir([handles.data.settings.detectionfolder '/*.mat*']);
     
     % Sort the detection files by date modified
-    [~, idx] = sort([handles.detectionfiles.datenum],'descend');
-    handles.detectionfiles = handles.detectionfiles(idx);
+    %[~, idx] = sort([handles.detectionfiles.datenum],'descend');
+    %handles.detectionfiles = handles.detectionfiles(idx);
     
     % If there has been a change to the # of mats in the detections
     % directory, adjust variables so the right detection continues to be

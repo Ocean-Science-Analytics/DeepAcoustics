@@ -118,20 +118,20 @@ if ~bAutoTry
         % table...
         if bAutoTry
             % First look for YYMMDD.*HHMMSS
-            [datetime,~] = regexp(ravenname{i},'([0-9]{6}).*([0-9]{6})','tokens','match');
+            [thisdt,~] = regexp(ravenname{i},'([0-9]{6}).*([0-9]{6})','tokens','match');
             % If failure, then try YYMMDD.*HHMM
-            if isempty(datetime)
-                [datetime,~] = regexp(ravenname{i},'([0-9]{6}).*([0-9]{4})','tokens','match');
+            if isempty(thisdt)
+                [thisdt,~] = regexp(ravenname{i},'([0-9]{6}).*([0-9]{4})','tokens','match');
             end
             % If success, look for that date/time in audio file directory
-            if ~isempty(datetime)
+            if ~isempty(thisdt)
                 % First look for exact match
-                audiomatch = regexp({audiodir.name},['.*' datetime{1}{1} '.*' datetime{1}{2} '.*'],'match');
+                audiomatch = regexp({audiodir.name},['.*' thisdt{1}{1} '.*' thisdt{1}{2} '.*'],'match');
                 audiomatch = ~cellfun(@isempty, audiomatch);
                 % If failure, try HHMM (assumes match attempt is for
                 % HHMMSS)
                 if ~any(audiomatch)
-                    audiomatch = regexp({audiodir.name},['.*' datetime{1}{1} '.*' datetime{1}{2}(1:4) '.*'],'match');
+                    audiomatch = regexp({audiodir.name},['.*' thisdt{1}{1} '.*' thisdt{1}{2}(1:4) '.*'],'match');
                     audiomatch = ~cellfun(@isempty, audiomatch);
                 end
             end
@@ -139,7 +139,7 @@ if ~bAutoTry
             % or multiple audio files to the found date/time format, alert
             % user that they will have to do the Raven table import
             % one-by-one and initialize one import to start
-            if isempty(datetime) || length(find(audiomatch)) ~= 1
+            if isempty(thisdt) || length(find(audiomatch)) ~= 1
                 uiwait(msgbox('Could not automatically match all wav files to txt files - you will have to do them one-by-one'))
                 % Select single Raven selection table
                 [ravenname,ravenpath] = uigetfile(fullfile(ravenpath,'*.txt;*.csv'),'Select Raven Log');
@@ -209,8 +209,14 @@ for i = 1:length(ravenname)
 
         %% Get the classification from raven, from the variable 'Tags' or 'Annotation'
         if ismember('Tags', subTable.Properties.VariableNames)
+            if isa(subTable.Tags,'double')
+                subTable.Tags = cellstr(num2str(subTable.Tags));
+            end
             Type = categorical(subTable.Tags);
         elseif ismember('Annotation', subTable.Properties.VariableNames)
+            if isa(subTable.Annotation,'double')
+                subTable.Annotation = cellstr(num2str(subTable.Annotation));
+            end
             Type = categorical(subTable.Annotation);
         else
             Type = categorical(repmat({'Call'}, height(subTable), 1));

@@ -1,10 +1,12 @@
-function [Calls,audiodata,ClusteringData,modcheck] = loadCallfile(filename,handles)
+function [Calls,audiodata,spect,detection_metadata,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT)
 
 modcheck = struct();
 data = load(filename);
 
 Calls = table();
 audiodata = struct();
+spect = [];
+detection_metadata = [];
 ClusteringData = table();
 
 if isfield(data, 'audiodata')
@@ -14,6 +16,9 @@ end
 %% Unpack the data
 if isfield(data, 'Calls')
     Calls = data.Calls;
+    if isfield(data,'detection_metadata')
+        detection_metadata = data.detection_metadata;
+    end
 
     %% Supply defaults for any misc missing variables
     if ~any(strcmp('CallID', Calls.Properties.VariableNames)) || length(unique(Calls.CallID)) ~= height(Calls)
@@ -31,6 +36,18 @@ if isfield(data, 'Calls')
     if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames))
         Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
     end
+    if ~any(strcmp('Ovlp', Calls.Properties.VariableNames))
+        Calls.Ovlp(:) = 0;
+    end
+    if ~any(strcmp('StTime', Calls.Properties.VariableNames)) || all([Calls.StTime]==0)
+        if ~isempty(audiodata) && bTryDT
+            [~,fnonly,~] = fileparts(filename);
+            Calls = AddDateTime(Calls,audiodata,fnonly);
+        else
+            Calls.StTime(:) = 0;
+        end
+        save(filename,'Calls','-append');
+    end
 
     if ~isfield(data,'spect')
         if ~isempty(handles)
@@ -43,14 +60,16 @@ if isfield(data, 'Calls')
     else
         spect = data.spect;
     end
-    if nargout == 4
+    if nargout == 6
         %% Output for detection mat modification check
         modcheck.calls = data.Calls;
         modcheck.spect = spect;
     else
+        % This may not actually be working right because this fn doesn't
+        % have the power to update handles...
         handles.data.settings.spect = spect;
     end
-elseif nargout < 3 % If ClusteringData is requested, we don't need Calls
+elseif nargout < 5 % If ClusteringData is requested, we don't need Calls
     error('This doesn''t appear to be a detection file!')
 end
 
@@ -67,7 +86,7 @@ if isfield(data, 'ClusteringData')
     end
 end
 
-if nargout < 3
+if nargout < 5
     
     %% Make sure there's nothing wrong with the call file
     if isempty(Calls)
