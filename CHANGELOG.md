@@ -1,5 +1,23 @@
-﻿# Changelog
-## 3.1.0 2022-08-02
+# Changelog
+## 3.1.1 2023-04-04 (from KC)
+## MANY UPDATES & FIXES
+Improved Default Clustering
+- Default Variational Autoencoder Embeddings + Contour
+- Countour parameters only still available (was called: k-means)
+- Improved image normalization
+- Fixed Cluster Label Issue
+
+Updated Clustering Window
+- Removed frequency visualization
+- Right click to change clusters
+
+Improved TSNE/UMAp visualization
+
+Added File Name to Excel Batch Output
+
+Checks for File Changes Before Save
+
+## 3.1.0 2022-08-02 (GA)
 ## DeepWaves Fork
 - Forked DeepSqueak v3 for dedicated marine mammal version
 - Merged all changes made since gcalongi forked DeepSqueak to gcalongi/DeepSqueak/main_GA branch
