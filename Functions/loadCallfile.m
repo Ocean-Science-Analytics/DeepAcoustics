@@ -134,10 +134,10 @@ if nargout < 5
                 '*.aifc', 'AIFC'
                 '*.mp3', 'MP3 (it''s probably a bad idea to record in MP3'
                 '*.m4a;*.mp4' 'MPEG-4 AAC'
-                }, sprintf('Importing from standard DeepWaves. Select audio matching the detection file %s',detection_name), detection_name);
+                }, sprintf('Importing from standard DeepAcoustics. Select audio matching the detection file %s',detection_name), detection_name);
             audio_file = fullfile(path, file);
             if isequal(file,0) % If user pressed cancel
-                errordlg('DeepWaves requires the audio file accompanying the detection file.')
+                errordlg('DeepAcoustics requires the audio file accompanying the detection file.')
                 return
             end
         end

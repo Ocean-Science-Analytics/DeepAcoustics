@@ -41,7 +41,7 @@ nfft = max(AllSettings(:,3));
 imLength = max(AllSettings(:,4));
 options.ValidationData = [];
 
-version = handles.DWVersion;
+version = handles.DAVersion;
 save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength','detname');
 
 %% Update the menu

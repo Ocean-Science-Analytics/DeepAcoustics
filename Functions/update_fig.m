@@ -65,8 +65,8 @@ end
 
 % Deals with a random figure popping up rarely.... literally no idea why
 chkfig = findobj('type','figure');
-% Make sure not main window (which has Number == [] and Name = 'DeepWaves'
-if length(chkfig)==1 && ~isempty(chkfig.Number) && ~strcmp(chkfig.Name,'DeepWaves')
+% Make sure not main window (which has Number == [] and Name = 'DeepAcoustics'
+if length(chkfig)==1 && ~isempty(chkfig.Number) && ~strcmp(chkfig.Name,'DeepAcoustics')
     close(chkfig.Number); 
 end
 

@@ -2,7 +2,7 @@ classdef AboutDlg_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        dlgAboutDW  matlab.ui.Figure
+        dlgAboutDA  matlab.ui.Figure
         buttonOK    matlab.ui.control.Button
         labelTitle  matlab.ui.control.Label
         textInfo    matlab.ui.control.TextArea
@@ -10,7 +10,7 @@ classdef AboutDlg_exported < matlab.apps.AppBase
 
     
     properties (Access = private)
-        MainApp % Main DW GUI
+        MainApp % Main DA GUI
     end
     
 
@@ -28,7 +28,7 @@ classdef AboutDlg_exported < matlab.apps.AppBase
             delete(app)
         end
 
-        % Close request function: dlgAboutDW
+        % Close request function: dlgAboutDA
         function appCloseRequest(app, event)
             delete(app)
         end
@@ -40,34 +40,34 @@ classdef AboutDlg_exported < matlab.apps.AppBase
         % Create UIFigure and components
         function createComponents(app)
 
-            % Create dlgAboutDW and hide until all components are created
-            app.dlgAboutDW = uifigure('Visible', 'off');
-            app.dlgAboutDW.Color = [1 1 1];
-            app.dlgAboutDW.Position = [300 350 508 194];
-            app.dlgAboutDW.Name = 'About DeepWaves';
-            app.dlgAboutDW.CloseRequestFcn = createCallbackFcn(app, @appCloseRequest, true);
+            % Create dlgAboutDA and hide until all components are created
+            app.dlgAboutDA = uifigure('Visible', 'off');
+            app.dlgAboutDA.Color = [1 1 1];
+            app.dlgAboutDA.Position = [300 350 508 194];
+            app.dlgAboutDA.Name = 'About DeepAcoustics';
+            app.dlgAboutDA.CloseRequestFcn = createCallbackFcn(app, @appCloseRequest, true);
 
             % Create textInfo
-            app.textInfo = uitextarea(app.dlgAboutDW);
+            app.textInfo = uitextarea(app.dlgAboutDA);
             app.textInfo.HorizontalAlignment = 'center';
             app.textInfo.Position = [86 71 337 55];
             app.textInfo.Value = {'©Coffey & Marx & Ciszek, 2021'; 'Modified ©Sugarman, Ferguson, Schallert, & Alongi, 2022'; 'Version'};
 
             % Create labelTitle
-            app.labelTitle = uilabel(app.dlgAboutDW);
+            app.labelTitle = uilabel(app.dlgAboutDA);
             app.labelTitle.HorizontalAlignment = 'center';
             app.labelTitle.FontSize = 24;
-            app.labelTitle.Position = [187 139 135 30];
-            app.labelTitle.Text = 'DeepWaves';
+            app.labelTitle.Position = [172 137 165 32];
+            app.labelTitle.Text = 'DeepAcoustics';
 
             % Create buttonOK
-            app.buttonOK = uibutton(app.dlgAboutDW, 'push');
+            app.buttonOK = uibutton(app.dlgAboutDA, 'push');
             app.buttonOK.ButtonPushedFcn = createCallbackFcn(app, @buttonOK_Callback, true);
             app.buttonOK.Position = [205 28 100 22];
             app.buttonOK.Text = 'OK';
 
             % Show the figure after all components are created
-            app.dlgAboutDW.Visible = 'on';
+            app.dlgAboutDA.Visible = 'on';
         end
     end
 
@@ -81,7 +81,7 @@ classdef AboutDlg_exported < matlab.apps.AppBase
             createComponents(app)
 
             % Register the app with App Designer
-            registerApp(app, app.dlgAboutDW)
+            registerApp(app, app.dlgAboutDA)
 
             % Execute the startup function
             runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
@@ -95,7 +95,7 @@ classdef AboutDlg_exported < matlab.apps.AppBase
         function delete(app)
 
             % Delete UIFigure when app is deleted
-            delete(app.dlgAboutDW)
+            delete(app.dlgAboutDA)
         end
     end
 end

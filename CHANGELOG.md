@@ -1,4 +1,7 @@
 # Changelog
+## 3.1.2 2023-07-14 (GA)
+## DeepWaves -> DeepAcoustics rename
+
 ## 3.1.1 2023-04-04 (from KC)
 ## MANY UPDATES & FIXES
 Improved Default Clustering
