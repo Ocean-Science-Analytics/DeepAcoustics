@@ -25,9 +25,9 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
 
     
     properties (Access = private)
-        MainApp % Main DW GUI
-        Event % Event var from main DW GUI (for interfacing with old GUIDE methods)
-        Handles % Deprecated GUIDE handles from main DW GUI
+        MainApp % Main DA GUI
+        Event % Event var from main DA GUI (for interfacing with old GUIDE methods)
+        Handles % Deprecated GUIDE handles from main DA GUI
     end
     
 

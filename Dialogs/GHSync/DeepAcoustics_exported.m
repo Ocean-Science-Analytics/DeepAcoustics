@@ -1,4 +1,4 @@
-classdef DeepWaves_exported < matlab.apps.AppBase
+classdef DeepAcoustics_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -113,7 +113,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
 
     
     properties (Access = private)
-        appAbout % About DeepWaves Dialog
+        appAbout % About DeepAcoustics Dialog
         appDisplay % Display Settings Dialog
         appUnsupClustSave % Save Dialog for Unsupervised Clustering Runs
         appClustering % Description
@@ -174,7 +174,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function DeepWaves_OpeningFcn(app, varargin)
+        function DeepAcoustics_OpeningFcn(app, varargin)
             % Add paths
             addpath(genpath('Dialogs'))
             addpath(genpath('Functions'))
@@ -248,14 +248,14 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             
             % Add to MATLAB path and check for toolboxes
             if ~isdeployed
-                % Add DeepWaves to the path
+                % Add DeepAcoustics to the path
                 addpath(squeakfolder);
                 addpath(genpath(fullfile(squeakfolder, 'Functions')));
                 savepath
             
                 %% Display error message if running on matlab before 2017b or toolboxes not found
                 if verLessThan('matlab','9.9')
-                    errordlg(['Warning, DeepWaves V3 requires MATLAB 2021 or later. It looks like you are use MATLAB ' version('-release')],'upgrade your matlab')
+                    errordlg(['Warning, DeepAcoustics V3 requires MATLAB 2021 or later. It looks like you are use MATLAB ' version('-release')],'upgrade your matlab')
                 end
             
                 try
@@ -301,19 +301,19 @@ classdef DeepWaves_exported < matlab.apps.AppBase
                 changelog = fscanf(fid,'%c');
                 fclose(fid);
                 tokens = regexp(changelog, '## ([.\d])+', 'tokens');
-                handles.DWVersion =  tokens{1}{:};
+                handles.DAVersion =  tokens{1}{:};
             catch
-                handles.DWVersion = '? -- can''t read CHANGELOG.md. Make sure you have the latest version!';
+                handles.DAVersion = '? -- can''t read CHANGELOG.md. Make sure you have the latest version!';
             end
-            fprintf(1,'%s %s\n\n', 'DeepWaves version', handles.DWVersion);
+            fprintf(1,'%s %s\n\n', 'DeepAcoustics version', handles.DAVersion);
             try % Check if a new version is avaliable by comparing changelog to whats online
-                WebChangelog = webread('https://raw.githubusercontent.com/Ocean-Science-Analytics/DeepWaves/main/CHANGELOG.md');
+                WebChangelog = webread('https://raw.githubusercontent.com/Ocean-Science-Analytics/DeepAcoustics/main/CHANGELOG.md');
                 [changes, tokens] = regexp(WebChangelog, '## ([.\d])+', 'start', 'tokens');
                 WebVersion = tokens{1}{:};
-                if ~strcmp(WebVersion, handles.DWVersion)
+                if ~strcmp(WebVersion, handles.DAVersion)
                     fprintf(1,'%s\n%s\n\n%s\n',...
-                        'A new version of DeepWaves is avaliable.',...
-                        '<a href="https://github.com/Ocean-Science-Analytics/DeepWaves">Download it here!</a>',...
+                        'A new version of DeepAcoustics is avaliable.',...
+                        '<a href="https://github.com/Ocean-Science-Analytics/DeepAcoustics">Download it here!</a>',...
                         WebChangelog(1:changes(2)-1))
                 end
             catch
@@ -324,16 +324,16 @@ classdef DeepWaves_exported < matlab.apps.AppBase
                 disp('Background image not found')
                 background = zeros(280);
                 fonts = listTrueTypeFonts;
-                background = insertText(background,[10 8],'DeepWaves','Font',char(datasample(fonts,1)),'FontSize',30);
-                background = insertText(background,[10 80],'DeepWaves','Font',char(datasample(fonts,1)),'FontSize',30);
-                background = insertText(background,[10 150],'DeepWaves','Font',char(datasample(fonts,1)),'FontSize',30);
-                background = insertText(background,[10 220],'DeepWaves','Font',char(datasample(fonts,1)),'FontSize',30);
+                background = insertText(background,[10 8],'DeepAcoustics','Font',char(datasample(fonts,1)),'FontSize',30);
+                background = insertText(background,[10 80],'DeepAcoustics','Font',char(datasample(fonts,1)),'FontSize',30);
+                background = insertText(background,[10 150],'DeepAcoustics','Font',char(datasample(fonts,1)),'FontSize',30);
+                background = insertText(background,[10 220],'DeepAcoustics','Font',char(datasample(fonts,1)),'FontSize',30);
                 handles.background = background;
             else
                 handles.background=imread('Background.png');
             end
-%             if ~(exist(fullfile(handles.data.squeakfolder,'DeepWaves.fig'), 'file')==2)
-%                 errordlg('"DeepWaves.fig" not found');
+%             if ~(exist(fullfile(handles.data.squeakfolder,'DeepAcoustics.fig'), 'file')==2)
+%                 errordlg('"DeepAcoustics.fig" not found');
 %             end
             
             
@@ -680,7 +680,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             app.menuAbout.Enable = 'off';
 
             % Call About dialog
-            app.appAbout = AboutDlg(app,handles.DWVersion);
+            app.appAbout = AboutDlg(app,handles.DAVersion);
         end
 
         % Menu selected function: menuViewManual
@@ -966,7 +966,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             % Create mainfigure and hide until all components are created
             app.mainfigure = uifigure('Visible', 'off');
             app.mainfigure.Position = [680 230 1422 809];
-            app.mainfigure.Name = 'DeepWaves';
+            app.mainfigure.Name = 'DeepAcoustics';
             app.mainfigure.CloseRequestFcn = createCallbackFcn(app, @mainfigureCloseRequest, true);
             app.mainfigure.WindowKeyPressFcn = createCallbackFcn(app, @mainfigure_WindowKeyPressFcn, true);
             app.mainfigure.BusyAction = 'cancel';
@@ -1224,8 +1224,8 @@ classdef DeepWaves_exported < matlab.apps.AppBase
             % Create menuAbout
             app.menuAbout = uimenu(app.menuHelp);
             app.menuAbout.MenuSelectedFcn = createCallbackFcn(app, @menuAbout_Callback, true);
-            app.menuAbout.Text = 'About DeepWaves';
-            app.menuAbout.Tag = 'AboutDeepWaves';
+            app.menuAbout.Text = 'About DeepAcoustics';
+            app.menuAbout.Tag = 'AboutDeepAcoustics';
 
             % Create menuViewManual
             app.menuViewManual = uimenu(app.menuHelp);
@@ -1941,7 +1941,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = DeepWaves_exported(varargin)
+        function app = DeepAcoustics_exported(varargin)
 
             runningApp = getRunningApp(app);
 
@@ -1955,7 +1955,7 @@ classdef DeepWaves_exported < matlab.apps.AppBase
                 registerApp(app, app.mainfigure)
 
                 % Execute the startup function
-                runStartupFcn(app, @(app)DeepWaves_OpeningFcn(app, varargin{:}))
+                runStartupFcn(app, @(app)DeepAcoustics_OpeningFcn(app, varargin{:}))
             else
 
                 % Focus the running singleton app
