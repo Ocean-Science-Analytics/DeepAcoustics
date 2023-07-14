@@ -72,9 +72,13 @@ if ~isempty(Calls)
         else
             maxDuration = p.Results.scale_duration;
         end
-        time_padding = maxDuration  - sqrt(maxDuration ./ Calls.Box(:,3)) .* Calls.Box(:,3);
-        Calls.Box(:,3) = Calls.Box(:,3) + time_padding;
-        Calls.Box(:,1) = Calls.Box(:,1) - time_padding/2;
+%         time_padding = maxDuration  - sqrt(maxDuration ./ Calls.Box(:,3)) .* Calls.Box(:,3);
+%         Calls.Box(:,3) = Calls.Box(:,3) + time_padding;
+%         Calls.Box(:,1) = Calls.Box(:,1) - time_padding/2;
+
+        time_padding = Calls.Box(:,3)*.25;
+        Calls.Box(:,3) =  Calls.Box(:,3) + time_padding*2;
+        Calls.Box(:,1) = Calls.Box(:,1) - time_padding;
     end
     % Use the box, or a fixed frequency range?
     if p.Results.fixed_frequency || ~isempty(p.Results.freqRange)
@@ -84,8 +88,12 @@ if ~isempty(Calls)
             freqRange(1) = prctile(Calls.Box(:,2), 5);
             freqRange(2) = prctile(Calls.Box(:,4) + Calls.Box(:,2), 95);
         end
-        Calls.Box(:,2) = freqRange(1);
-        Calls.Box(:,4) = freqRange(2) - freqRange(1);
+%         Calls.Box(:,2) = freqRange(1);
+%         Calls.Box(:,4) = freqRange(2) - freqRange(1);
+
+        freq_padding = Calls.Box(:,4)*.25;
+        Calls.Box(:,2) = Calls.Box(:,2) - freq_padding;
+        Calls.Box(:,4) = Calls.Box(:,4) + freq_padding*2;
     end
 end
 %% for each call in the file, calculate stats for clustering
@@ -140,6 +148,7 @@ for i = 1:height(Calls)
     
     ClusteringData = [ClusteringData
         [{uint8(im .* 256)} % Image
+        {box}
         {box(2)} % Lower freq
         {stats.DeltaTime} % Delta time
         {xFreq} % Time points
@@ -159,8 +168,7 @@ for i = 1:height(Calls)
     clustAssign = [clustAssign; Calls.Type(i)];
 end
 
-
-ClusteringData = cell2table(ClusteringData(:,1:15), 'VariableNames', {'Spectrogram', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign'});
+ClusteringData = cell2table(ClusteringData(:,1:15), 'VariableNames', {'Spectrogram', 'Box', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign'});
 
 close(h)
 

@@ -1,4 +1,4 @@
-﻿# DeepWaves for Marine Mammals
+# DeepWaves for Marine Mammals
 **Forked from DeepSqueak v3: Using Machine Vision to Accelerate Bioacoustics Research**
 
 **Links below connect to DeepSqueak documentation at the time of forking (08/02/2022)**
@@ -25,6 +25,6 @@ Follow](https://camo.githubusercontent.com/51e14ceb3b49e0fb9965a09148568d11ec4ba
 -   Contour Invarient Clustering With Variational Auto Encoders
 -   Brand New Clustering GUI
 
-Copyright © 2021 by Russell Marx, Kevin Coffey, Robert Ciszek, & Lara Valderrabano All Rights Reserved.
+Copyright © 2021 by Ruby Marx, Kevin Coffey, Robert Ciszek, & Lara Valderrabano All Rights Reserved.
 
 Modified work Copyright © 2022 Peter Sugarman, Elizabeth Ferguson, Jennifer Pettis Schallert, & Gabriela Alongi  All Rights Reserved.

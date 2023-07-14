@@ -5,7 +5,12 @@ end
 
 %% Ridge Detection
 % Calculate entropy at each time point
-stats.Entropy = geomean(I,1) ./ mean(I,1);
+try
+    stats.Entropy = geo_mean(I,1) ./ mean(I,1);
+catch
+    warning('The function "geomean" has been renamed "geo_mean". Please update MATLAB to before it is discontinued');
+    stats.Entropy = geomean(I,1) ./ mean(I,1);
+end
 stats.Entropy = smooth(stats.Entropy,0.1,'rlowess')';
 
 if AmplitudeThreshold > .001 & AmplitudeThreshold < .999
@@ -52,7 +57,7 @@ try
     %GA211211: the "r" in "rlowess" is messing up when it is fed our
     %too-perfect artificial whistles
     %stats.ridgeFreq_smooth = smooth(stats.ridgeTime,stats.ridgeFreq,0.1,'rlowess');
-    stats.ridgeFreq_smooth = smooth(stats.ridgeTime,stats.ridgeFreq,0.1,'lowess');
+    stats.ridgeFreq_smooth = smooth(stats.ridgeTime,stats.ridgeFreq,0.025,'lowess');
     %stats.ridgeFreq_smooth = stats.ridgeFreq;
 catch
     disp('Cannot apply smoothing. The line is probably too short');

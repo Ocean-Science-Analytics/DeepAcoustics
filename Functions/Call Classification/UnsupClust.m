@@ -35,13 +35,13 @@ function UnsupClust(app,event)
         finished = 0; % Repeated until
         while ~finished
             if ~bSuperBatch
-                choice = questdlg('Choose clustering method:','Clustering Method','ARTwarp','K-means (recommended)', 'Variational Autoencoder','K-means (recommended)');
+                choice = questdlg('Choose clustering method:','Clustering Method','ARTwarp','Contour Parameters (recommended)', 'Auto Encoder + Contour','Contour Parameters (recommended)');
             end
             switch choice
                 case []
                     return
     
-                case {'K-means (recommended)', 'Variational Autoencoder'}
+                case {'Contour Parameters (recommended)', 'Auto Encoder + Contour'}
                     if ~bSuperBatch
                         FromExisting = questdlg('Use previously saved model? E.g. KMeans Model.mat','Load saved model mat?','Yes','No','No');
                     end
@@ -49,7 +49,7 @@ function UnsupClust(app,event)
                         case 'No'
                             % Get parameter weights
                             switch choice
-                                case 'K-means (recommended)'
+                                case 'Contour Parameters (recommended)'
                                     if ~bSuperBatch
                                         [ClusteringData, ~, ~, ~, spectrogramOptions] = CreateClusteringData(handles, 'forClustering', true, 'save_data', true);
                                         if isempty(ClusteringData); return; end
@@ -84,9 +84,13 @@ function UnsupClust(app,event)
                                     end
                                     ClusteringData{:,'NumContPts'} = num_pts;
                                     data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);
-                                case 'Variational Autoencoder'
+                                case 'Auto Encoder + Contour'
                                     [encoderNet, decoderNet, options, ClusteringData] = create_VAE_model(handles);
                                     data = extract_VAE_embeddings(encoderNet, options, ClusteringData);
+                                    freq = cell2mat(cellfun(@(x) imresize(x',[1 16]) ,ClusteringData.xFreq,'UniformOutput',0));
+                                    freq = zscore(freq,0,'all');
+                                    data = zscore(data,0,'all');
+                                    data = [data freq];
                             end
     
                             % Make a k-means model and return the centroids
@@ -106,7 +110,7 @@ function UnsupClust(app,event)
                                 'Select a previously created model .mat file (e.g. KMeans Model.mat)');
                             if isnumeric(FileName); return;end
                             switch choice
-                                case 'K-means (recommended)'
+                                case 'Contour Parameters (recommended)'
                                     spectrogramOptions = [];
                                     % Preset variables
                                     num_pts = 20;
@@ -131,12 +135,17 @@ function UnsupClust(app,event)
     
                                     ClusteringData{:,'NumContPts'} = num_pts;
                                     data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);
-                                case 'Variational Autoencoder'
+                                case 'Auto Encoder + Contour'
                                     C = [];
                                     load(fullfile(PathName,FileName),'C','encoderNet','decoderNet','options');
-                                    [ClusteringData] = CreateClusteringData(handles, 'spectrogramOptions', options.spectrogram, 'scale_duration', options.maxDuration, 'freqRange', options.freqRange, 'save_data', true);
+                                    [ClusteringData, ~, options.freqRange, options.maxDuration, options.spectrogram] = CreateClusteringData(handles, ...
+                                        'scale_duration', true, 'fixed_frequency', true,'forClustering', true, 'save_data', true);
                                     if isempty(ClusteringData); return; end
                                     data = extract_VAE_embeddings(encoderNet, options, ClusteringData);
+                                    freq = cell2mat(cellfun(@(x) imresize(x',[1 16]) ,ClusteringData.xFreq,'UniformOutput',0));
+                                    freq = zscore(freq,0,'all');
+                                    data = zscore(data,0,'all');
+                                    data = [data freq];
     
                                     % If the model was created through create_tsne_Callback, C won't exist, so make it.
                                     if isempty(C)
@@ -453,8 +462,12 @@ function UnsupClust(app,event)
     
             %% Assign Names
             % If the
-            if strcmp(choice, 'K-means (recommended)') && strcmp(FromExisting, 'Yes')
-                clustAssign = categorical(clustAssign, 1:size(C,1), cellstr(clusterName));
+            if strcmp(FromExisting, 'Yes')
+                try
+                    clustAssign = categorical(clustAssign, 1:size(C,1), cellstr(clusterName));
+                catch
+                    disp('No Centroids Available');
+                end
             end
     
             %% Sort the calls by how close they are to the cluster center
@@ -528,7 +541,7 @@ function UnsupClust(app,event)
         drawnow
         if finished == 1 && FromExisting(1) == 'N'
             switch choice
-                case 'K-means (recommended)'
+                case 'Contour Parameters (recommended)'
                     if ~bSuperBatch
                         if app.bModel
                             save(fullfile(app.strUnsupSaveLoc, 'KMeans Model.mat'), 'C', 'num_pts','RES','delta8_weight','freq_weight',...
@@ -549,7 +562,7 @@ function UnsupClust(app,event)
                     if ~isnumeric(FileName)
                         save(fullfile(PathName, FileName), 'ARTnet', 'settings');
                     end
-                case 'Variational Autoencoder'
+                case 'Auto Encoder + Contour'
                     [FileName, PathName] = uiputfile(fullfile(handles.data.squeakfolder, 'Clustering Models', 'Variational Autoencoder Model.mat'), 'Save clustering model');
                     if ~isnumeric(FileName)
                         save(fullfile(PathName, FileName), 'C', 'encoderNet', 'decoderNet', 'options', 'clusterName');
