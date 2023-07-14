@@ -40,12 +40,12 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
         
         function render_GUI(app)
             %% Colormap
-            xdata = app.minfreq:app.maxfreq;
-            caxis = axes(app.dlgClustering,'Units','Normalized','Position',[.92 .05 .04 .8]);
-            image(1,xdata,app.ColorData,'parent',caxis)
-            caxis.YDir = 'normal';
-            set(caxis,'YColor','w','box','off','YAxisLocation','right');
-            ylabel(caxis, 'Frequency (kHz)')
+%             xdata = app.minfreq:app.maxfreq;
+%             caxis = axes(app.dlgClustering,'Units','Normalized','Position',[.92 .05 .04 .8]);
+%             image(1,xdata,app.ColorData,'parent',caxis)
+%             caxis.YDir = 'normal';
+%             set(caxis,'YColor','w','box','off','YAxisLocation','right');
+%             ylabel(caxis, 'Frequency (kHz)')
             
             %% Make the axes
             aspectRatio = median(cellfun(@(im) size(im,1) ./ size(im,2), app.ClusteringData.Spectrogram));
@@ -54,8 +54,8 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
 
             axes_spacing = .70; % Relative width of each image
             y_range = [.07, .8]; % [Start, End] of the grid
-            x_range = [.05, .9];
-            x_grids = 9; % Number of x grids
+            x_range = [.05, .95];
+            x_grids = 8; % Number of x grids
             y_grids = 3; % Number of y grids
 
             ypos = linspace(y_range(1), y_range(2) - axes_spacing * range(y_range) / y_grids, y_grids );
@@ -173,7 +173,8 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
             rel_y = [rel_size(1), 1-rel_size(1)];
             
             % Apply color to the greyscale images
-            colorIM = ind2rgb(im,inferno(256));
+            Map = inferno(255);
+            colorIM = ind2rgb(im, Map);
             
             if ismember('NumContPts',ClusteringData.Properties.VariableNames) && ~all(ClusteringData.NumContPts==0)
                 %Overlay the contour used for the k-means clustering
@@ -367,7 +368,7 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
             app.currentCluster = 1;
             app.page = 1;
             app.count = 0;
-            app.thumbnail_size = [200 200];
+            app.thumbnail_size = [50 100];
             app.rejected = zeros(1,length(app.clustAssign)); 
             %This is going to be scaled from 0 to the Nyquist, not the
             %boxed call
