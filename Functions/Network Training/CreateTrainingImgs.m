@@ -25,16 +25,25 @@ AmplitudeRange = [.5, 1.5];
 StretchRange = [0.75, 1.25];
 h = waitbar(0,'Initializing');
 
+[~, filename] = fileparts(trainingdata{1});
+if length(trainingdata) > 1
+    filename = [filename '&More'];
+end
+% Make a folder for the training images
+defImgDir = fullfile(handles.data.squeakfolder,'Training','Images');
+status = mkdir(defImgDir);
+if ~status
+    warning('Problem making default Images directory')
+end
+fname = uigetdir(defImgDir,'Select Folder to Output Training Images');
+TTable = table({},{},'VariableNames',{'imageFilename','Call'});
 for k = 1:length(trainingdata)
-    TTable = table({},{},'VariableNames',{'imageFilename','Call'});
-    
     % Load the detection and audio files
     audioReader = squeakData();
     [Calls, audioReader.audiodata] = loadCallfile([trainingpath trainingdata{k}],handles,false);
     
     % Make a folder for the training images
-    [~, filename] = fileparts(trainingdata{k});
-    fname = uigetdir(fullfile(handles.data.squeakfolder,'Training','Images'),'Select Folder to Output Training Images');
+%     fname = uigetdir(fullfile(handles.data.squeakfolder,'Training','Images'),'Select Folder to Output Training Images');
 %     fname = fullfile(handles.data.squeakfolder,'Training','Images',filename);
 %     mkdir(fname);
     
@@ -110,7 +119,7 @@ for k = 1:length(trainingdata)
         
         try
         for replicatenumber = 1:repeats
-            IMname = sprintf('%g_%g.png', bin, replicatenumber);
+            IMname = sprintf('%g_%g_%g.png', k, bin, replicatenumber);
             [~,box] = CreateTrainingData(...
                 audio,...
                 audioReader.audiodata.SampleRate,...
@@ -126,16 +135,18 @@ for k = 1:length(trainingdata)
         catch
             disp("Something wrong with calculating bounding box indices - talk to Gabi!");
         end
-        waitbar(bin/length(unique(bins)), h, sprintf('Processing File %g of %g', k, length(trainingdata)));        
-        
+        waitbar(bin/length(unique(bins)), h, sprintf('Processing File %g of %g', k, length(trainingdata)));         
     end
-    matpath = uigetdir(fullfile(handles.data.squeakfolder,'Training'),'Select Directory to Save Images.mat');
-    pathtodet = fullfile(trainingpath,trainingdata{k});
-    save(fullfile(matpath,[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength','pathtodet');
-    %save(fullfile(handles.data.squeakfolder,'Training',[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
-    disp(['Created ' num2str(height(TTable)) ' Training Images']);
 end
 close(h)
+
+%matpath = uigetdir(fullfile(handles.data.squeakfolder,'Training'),'Select Directory to Save Images.mat');
+%pathtodet = fullfile(trainingpath,trainingdata{k});
+%save(fullfile(matpath,[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength','pathtodet');
+[filename,matpath] = uiputfile(fullfile(handles.data.squeakfolder,'Training',[filename,'_Images.mat']));
+save(fullfile(matpath,filename),'TTable','wind','noverlap','nfft','imLength');
+%save(fullfile(handles.data.squeakfolder,'Training',[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
+disp(['Created ' num2str(height(TTable)) ' Training Images']);
 end
 
 
