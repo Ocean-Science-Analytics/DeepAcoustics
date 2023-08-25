@@ -17,8 +17,8 @@ classdef squeakData < handle
         labelShortcuts = {'1','2','3','4','5','6','7','8','9','0','-','=','!','@','#','$','%','^','&','*','(',')','_','+'}
         page_spect = struct() % spectrogram of the page view
         focusCenter = 0; % center of the current focus window
-        pageSizes = [2, 3, 5, 10, 30] % List of page size values in the dropdown box
-        focusSizes = [.25, .5, 1, 2, 5] % List of focus size values in the dropdown box
+        pageSizes = {'2s', '3s', '5s', '10s', '30s', 'Custom'} % List of page size values in the dropdown box
+        focusSizes = {'.25s', '.5s', '1s', '2s', '5s', 'Custom'} % List of focus size values in the dropdown box
         clim = [0 1];
     end
     properties (Access = private)
