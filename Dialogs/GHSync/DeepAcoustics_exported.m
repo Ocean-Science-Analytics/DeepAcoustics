@@ -383,11 +383,16 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             set(handles.TonalitySlider, 'Value', handles.data.settings.EntropyThreshold);
             
             % Set the page and focus window dropdown boxes to the values defined in
-            % squeakData, and set the current value to the one closest to the save value.
-            handles.epochWindowSizePopup.String = compose('%gs', handles.data.pageSizes);
-            [~, handles.epochWindowSizePopup.Value] =  min(abs(handles.data.pageSizes - handles.data.settings.pageSize));
-            handles.focusWindowSizePopup.String = compose('%gs', handles.data.focusSizes);
-            [~, handles.focusWindowSizePopup.Value] =  min(abs(handles.data.focusSizes - handles.data.settings.focus_window_size));
+            % squeakData (handles.data)
+            % If Focus or Page Width setting coming in from settings.mat is not in
+            % default list, add value to dropdown, and then set as Value
+            app.dropdownFocus.Items = [handles.data.focusSizes, [num2str(handles.data.settings.focus_window_size),'s']];
+            app.dropdownFocus.Items = unique(app.dropdownFocus.Items);
+            app.dropdownFocus.Value = [num2str(handles.data.settings.focus_window_size),'s'];
+
+            app.dropdownPage.Items = [handles.data.pageSizes, [num2str(handles.data.settings.pageSize),'s']];
+            app.dropdownPage.Items = unique(app.dropdownPage.Items);
+            app.dropdownPage.Value = [num2str(handles.data.settings.pageSize),'s'];
             
             %epochWindowSizePopup_CreateFcn
             handles.data.settings.pagesize = handles.epochWindowSizePopup.Value;
@@ -881,14 +886,12 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Value changed function: dropdownFocus
         function dropdownFocus_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            ChangeFocusWidth(hObject, eventdata, handles);
+            ChangeFocusWidth(app, event);
         end
 
         % Value changed function: dropdownPage
         function dropdownPage_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            ChangePageWidth(hObject, eventdata, handles);
+            ChangePageWidth(app, event);
         end
 
         % Value changed function: dropdownColorMap
