@@ -15,9 +15,10 @@ fr_f = handles.data.page_spect.f;
 
 % Plot Spectrogram
 set(handles.spect,'CData',s_f,'XData', ti_f,'YData',fr_f/1000);
+handles.data.settings.HighFreq = min(handles.data.settings.HighFreq, handles.data.audiodata.SampleRate/2000);
 set(handles.focusWindow,...
     'Xlim', [handles.current_focus_position(1), handles.current_focus_position(1) + handles.current_focus_position(3)],...
-    'Ylim',[handles.data.settings.LowFreq, min(handles.data.settings.HighFreq, handles.data.audiodata.SampleRate/2000)]);
+    'Ylim',[handles.data.settings.LowFreq, handles.data.settings.HighFreq]);
 
 if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && height(handles.data.calls) > 0 && isa(handles.data.calls.StTime(1),'datetime')
     sttime = handles.data.calls.StTime(1) - handles.data.calls.Box(1,1)/86400;

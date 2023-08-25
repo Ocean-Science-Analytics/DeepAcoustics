@@ -688,8 +688,14 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Menu selected function: menuChangeDisplayRange
         function menuChangeDisplayRange_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            ChangeDisplayRange(hObject, eventdata, handles);
+            [~, ~, handles] = convertToGUIDECallbackArguments(app, event); 
+
+            % Disable About menu option while About dialog open
+            app.menuChangeDisplayRange.Enable = 'off';
+            app.buttonDisplaySettings.Enable = 'off';
+
+            % Call About dialog
+            app.appDisplay = DisplayDlg(app, event, handles);
         end
 
         % Menu selected function: menuChangeContourThresh
@@ -950,6 +956,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             [~, ~, handles] = convertToGUIDECallbackArguments(app, event); 
 
             % Disable About menu option while About dialog open
+            app.menuChangeDisplayRange.Enable = 'off';
             app.buttonDisplaySettings.Enable = 'off';
 
             % Call About dialog
