@@ -85,10 +85,10 @@ handles.FocusWindowAnnRectangles = {};
 colormap(handles.focusWindow,handles.data.cmap);
 colormap(handles.spectrogramWindow,handles.data.cmap);
 
-callPositionAxesXLim = xlim(handles.detectionAxes);
 callPositionAxesXLim(1) = 0;
 callPositionAxesXLim(2) = handles.data.audiodata.Duration;
 xlim(handles.detectionAxes,callPositionAxesXLim);
+set(handles.detectionAxes,'ButtonDownFcn', @(hObject,eventdata) mousePositionSelection_Callback(hObject,eventdata,guidata(hObject)));
 
 % Rectangle that shows the current position in the spectrogram
 handles.currentWindowRectangle = rectangle(handles.spectrogramWindow,...
