@@ -90,7 +90,13 @@ function UnsupClust(app,event)
                                     freq = cell2mat(cellfun(@(x) imresize(x',[1 16]) ,ClusteringData.xFreq,'UniformOutput',0));
                                     freq = zscore(freq,0,'all');
                                     data = zscore(data,0,'all');
-                                    data = [data freq];
+                                    % GA 230908 Turned off addition of
+                                    % frequency to k-means data structure
+                                    % for now so we can play with turning
+                                    % it on and off and see what the
+                                    % repercussions are for different
+                                    % sounds
+                                    %data = [data freq];
                             end
     
                             % Make a k-means model and return the centroids
