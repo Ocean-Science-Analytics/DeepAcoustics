@@ -15,7 +15,7 @@ function UnsupClust(app,event)
             nruns = height(batchtable);
             
             % Default questdlg options
-            choice = 'K-means (recommended)';
+            choice = 'Contour Parameters (recommended)';
             FromExisting = 'No';
             saveChoice = false;
             %bJen = 'Yes';
@@ -35,7 +35,8 @@ function UnsupClust(app,event)
         finished = 0; % Repeated until
         while ~finished
             if ~bSuperBatch
-                choice = questdlg('Choose clustering method:','Clustering Method','ARTwarp','Contour Parameters (recommended)', 'Auto Encoder + Contour','Contour Parameters (recommended)');
+                %choice = questdlg('Choose clustering method:','Clustering Method','ARTwarp','Contour Parameters (recommended)', 'Auto Encoder + Contour','Contour Parameters (recommended)');
+                choice = questdlg('Choose clustering method:','Clustering Method','Contour Parameters (recommended)', 'Auto Encoder + Contour','Contour Parameters (recommended)');
             end
             switch choice
                 case []
@@ -87,7 +88,9 @@ function UnsupClust(app,event)
                                 case 'Auto Encoder + Contour'
                                     [encoderNet, decoderNet, options, ClusteringData] = create_VAE_model(handles);
                                     data = extract_VAE_embeddings(encoderNet, options, ClusteringData);
-                                    freq = cell2mat(cellfun(@(x) imresize(x',[1 16]) ,ClusteringData.xFreq,'UniformOutput',0));
+                                    num_pts = 16;
+                                    ClusteringData{:,'NumContPts'} = num_pts;
+                                    freq = cell2mat(cellfun(@(x) imresize(x',[1 num_pts]) ,ClusteringData.xFreq,'UniformOutput',0));
                                     freq = zscore(freq,0,'all');
                                     data = zscore(data,0,'all');
                                     % GA 230908 Turned off addition of
@@ -148,10 +151,18 @@ function UnsupClust(app,event)
                                         'scale_duration', true, 'fixed_frequency', true,'forClustering', true, 'save_data', true);
                                     if isempty(ClusteringData); return; end
                                     data = extract_VAE_embeddings(encoderNet, options, ClusteringData);
-                                    freq = cell2mat(cellfun(@(x) imresize(x',[1 16]) ,ClusteringData.xFreq,'UniformOutput',0));
+                                    num_pts = 16;
+                                    ClusteringData{:,'NumContPts'} = num_pts;
+                                    freq = cell2mat(cellfun(@(x) imresize(x',[1 num_pts]) ,ClusteringData.xFreq,'UniformOutput',0));
                                     freq = zscore(freq,0,'all');
                                     data = zscore(data,0,'all');
-                                    data = [data freq];
+                                    % GA 230908 Turned off addition of
+                                    % frequency to k-means data structure
+                                    % for now so we can play with turning
+                                    % it on and off and see what the
+                                    % repercussions are for different
+                                    % sounds
+                                    %data = [data freq];
     
                                     % If the model was created through create_tsne_Callback, C won't exist, so make it.
                                     if isempty(C)
