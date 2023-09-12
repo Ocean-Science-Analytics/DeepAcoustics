@@ -270,7 +270,7 @@ function UnsupClust(app,event)
                         title('t-SNE')
     
                         %% Centroid contours
-                        if relfreq_weight > 0
+                        if strcmp(choice,'Contour Parameters (recommended)') && relfreq_weight > 0
                             % Generate relative frequencies
                             allrelfreq = cellfun(@(x) x{:},contourfreqsl,'UniformOutput',false);
                             allrelfreq = cell2mat(allrelfreq);
