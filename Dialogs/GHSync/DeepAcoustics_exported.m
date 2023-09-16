@@ -196,8 +196,12 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.bUpdateDets = false;  % Update detections.mat with cluster assignments
 
             % Matlab bug fix
+            function disableIntProperly(ax)
+                ax.Interactions = [];
+                ax.Toolbar = [];
+            end
         	allAxes = findall(app.mainfigure, 'Type', 'axes');
-	        arrayfun(@(ax) disableDefaultInteractivity(ax), allAxes)      
+	        arrayfun(@(ax) disableIntProperly(ax), allAxes)      
 	        oncleanup = onCleanup(@() arrayfun(@(ax) enableDefaultInteractivity(ax), allAxes));
             
             % Create GUIDE-style callback args - Added by Migration Tool
