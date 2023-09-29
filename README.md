@@ -1,4 +1,4 @@
-# DeepAcoustics for Marine Mammals
+# DeepAcoustics for Marine & Terrestrial Data
 **Forked from DeepSqueak v3: Using Machine Vision to Accelerate Bioacoustics Research**
 
 **Links below connect to DeepSqueak documentation at the time of forking (08/02/2022)**
