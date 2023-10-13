@@ -56,7 +56,6 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
         % Callback function: buttonCancel, dlgDisplay
         function appCloseRequestFcn_Callback(app, event)
             % Re-enable the Display Settings button in main app
-            app.MainApp.menuChangeDisplayRange.Enable = 'on';
             app.MainApp.buttonDisplaySettings.Enable = 'on';
             
             % Delete Dialog Settings app

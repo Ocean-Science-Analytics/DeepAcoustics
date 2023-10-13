@@ -2,113 +2,110 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        mainfigure                matlab.ui.Figure
-        menuFile                  matlab.ui.container.Menu
-        menuSelectNet             matlab.ui.container.Menu
-        menuSelectAudio           matlab.ui.container.Menu
-        menuLoadDet               matlab.ui.container.Menu
-        menuLoadAnn               matlab.ui.container.Menu
-        menuSaveSess              matlab.ui.container.Menu
-        menuImpExp                matlab.ui.container.Menu
-        menuExpRaven              matlab.ui.container.Menu
-        menuExpSpect              matlab.ui.container.Menu
-        menuExpAudio              matlab.ui.container.Menu
-        menuExpExcel              matlab.ui.container.Menu
-        menuExpSV                 matlab.ui.container.Menu
-        menuImpRaven              matlab.ui.container.Menu
-        menuImpSV                 matlab.ui.container.Menu
-        menuImpUV                 matlab.ui.container.Menu
-        menuImpMUPET              matlab.ui.container.Menu
-        menuImpXBAT               matlab.ui.container.Menu
-        menuTools                 matlab.ui.container.Menu
-        menuNetTrain              matlab.ui.container.Menu
-        menuCreateTrainImg        matlab.ui.container.Menu
-        menuTrainDetNet           matlab.ui.container.Menu
-        menuTrainPostHocDenoiser  matlab.ui.container.Menu
-        menuTrainSupClass         matlab.ui.container.Menu
-        menuAutoReview            matlab.ui.container.Menu
-        menuBatchReject           matlab.ui.container.Menu
-        menuRemoveRejects         matlab.ui.container.Menu
-        menuPostHocDenoising      matlab.ui.container.Menu
-        menuSetStaticBoxHeight    matlab.ui.container.Menu
-        menuCallClass             matlab.ui.container.Menu
-        menuAddCustomLabels       matlab.ui.container.Menu
-        menuUnsupClust            matlab.ui.container.Menu
-        menuSupClass              matlab.ui.container.Menu
-        menuViewClust             matlab.ui.container.Menu
-        menuSyntaxAnalysis        matlab.ui.container.Menu
-        menuCreatetSNE            matlab.ui.container.Menu
-        menuMergeDetFiles         matlab.ui.container.Menu
-        menuChangePlaybackRate    matlab.ui.container.Menu
-        menuChangeDisplayRange    matlab.ui.container.Menu
-        menuChangeContourThresh   matlab.ui.container.Menu
-        menuPrecRecall            matlab.ui.container.Menu
-        menuAddDateTime           matlab.ui.container.Menu
-        menuHelp                  matlab.ui.container.Menu
-        menuAbout                 matlab.ui.container.Menu
-        menuViewManual            matlab.ui.container.Menu
-        menuKeyboardShortcuts     matlab.ui.container.Menu
-        textFileName              matlab.ui.control.Label
-        textCalls                 matlab.ui.control.Label
-        textScore                 matlab.ui.control.Label
-        textOvlp                  matlab.ui.control.Label
-        textStatus                matlab.ui.control.Label
-        textUserID                matlab.ui.control.Label
-        textLabel                 matlab.ui.control.Label
-        textClustAssign           matlab.ui.control.Label
-        textFrequency             matlab.ui.control.Label
-        textDuration              matlab.ui.control.Label
-        textSlope                 matlab.ui.control.Label
-        textSinuosity             matlab.ui.control.Label
-        textRelPwr                matlab.ui.control.Label
-        textTonality              matlab.ui.control.Label
-        textContour               matlab.ui.control.Label
-        buttonPrevFile            matlab.ui.control.Button
-        buttonNextFile            matlab.ui.control.Button
-        textWaveform              matlab.ui.control.Label
-        sliderTonality            matlab.ui.control.Slider
-        textNeuralNet             matlab.ui.control.Label
-        dropdownNeuralNet         matlab.ui.control.DropDown
-        textAudioFiles            matlab.ui.control.Label
-        dropdownAudioFiles        matlab.ui.control.DropDown
-        textDetectLoadRecord      matlab.ui.control.Label
-        buttonDetectCalls         matlab.ui.control.Button
-        buttonLoadDets            matlab.ui.control.Button
-        buttonLoadAudio           matlab.ui.control.Button
-        buttonRecordAudio         matlab.ui.control.StateButton
-        textDetReview             matlab.ui.control.Label
-        buttonAcceptCall          matlab.ui.control.Button
-        buttonRejectCall          matlab.ui.control.Button
-        buttonDraw                matlab.ui.control.Button
-        buttonPlayCall            matlab.ui.control.Button
-        textNavigation            matlab.ui.control.Label
-        buttonBackALot            matlab.ui.control.Button
-        buttonBackABit            matlab.ui.control.Button
-        buttonPrevCall            matlab.ui.control.Button
-        buttonNextCall            matlab.ui.control.Button
-        buttonFwdABit             matlab.ui.control.Button
-        buttonFwdALot             matlab.ui.control.Button
-        textSettings              matlab.ui.control.Label
-        textFocus                 matlab.ui.control.Label
-        dropdownFocus             matlab.ui.control.DropDown
-        textPage                  matlab.ui.control.Label
-        dropdownPage              matlab.ui.control.DropDown
-        textScale                 matlab.ui.control.Label
-        buttonDisplaySettings     matlab.ui.control.Button
-        textColorMap              matlab.ui.control.Label
-        dropdownColorMap          matlab.ui.control.DropDown
-        buttonInvertCmap          matlab.ui.control.Button
-        textHighCLim              matlab.ui.control.Label
-        buttonHighCLimMinus       matlab.ui.control.Button
-        buttonHighCLimPlus        matlab.ui.control.Button
-        textLowCLim               matlab.ui.control.Label
-        buttonLowCLimMinus        matlab.ui.control.Button
-        buttonLowCLimPlus         matlab.ui.control.Button
-        winContour                matlab.ui.control.UIAxes
-        winWaveform               matlab.ui.control.UIAxes
-        winFocus                  matlab.ui.control.UIAxes
-        winPage                   matlab.ui.control.UIAxes
-        axesPage                  matlab.ui.control.UIAxes
+        mainfigure                  matlab.ui.Figure
+        menuFile                    matlab.ui.container.Menu
+        menuSelectNet               matlab.ui.container.Menu
+        menuSelectAudio             matlab.ui.container.Menu
+        menuLoadDet                 matlab.ui.container.Menu
+        menuLoadAnn                 matlab.ui.container.Menu
+        menuChangePlaybackRate      matlab.ui.container.Menu
+        menuChangeContourThreshold  matlab.ui.container.Menu
+        menuSaveSess                matlab.ui.container.Menu
+        menuImpExp                  matlab.ui.container.Menu
+        menuExpRaven                matlab.ui.container.Menu
+        menuExpSpect                matlab.ui.container.Menu
+        menuExpAudio                matlab.ui.container.Menu
+        menuExpExcel                matlab.ui.container.Menu
+        menuExpSV                   matlab.ui.container.Menu
+        menuImpRaven                matlab.ui.container.Menu
+        menuImpSV                   matlab.ui.container.Menu
+        menuImpUV                   matlab.ui.container.Menu
+        menuImpMUPET                matlab.ui.container.Menu
+        menuImpXBAT                 matlab.ui.container.Menu
+        menuTools                   matlab.ui.container.Menu
+        menuNetTrain                matlab.ui.container.Menu
+        menuCreateTrainImg          matlab.ui.container.Menu
+        menuTrainDetNet             matlab.ui.container.Menu
+        menuAutoPruning             matlab.ui.container.Menu
+        menuBatchReject             matlab.ui.container.Menu
+        menuRemoveRejects           matlab.ui.container.Menu
+        menuSetStaticBoxHeight      matlab.ui.container.Menu
+        menuCallClass               matlab.ui.container.Menu
+        menuAddCustomLabels         matlab.ui.container.Menu
+        menuUnsupClust              matlab.ui.container.Menu
+        menuViewClust               matlab.ui.container.Menu
+        menuSyntaxAnalysis          matlab.ui.container.Menu
+        menuCreatetSNE              matlab.ui.container.Menu
+        menuFileMgmt                matlab.ui.container.Menu
+        menuMergeDetFiles           matlab.ui.container.Menu
+        menuAddDateTime             matlab.ui.container.Menu
+        menuDecimation              matlab.ui.container.Menu
+        menuPrecRecall              matlab.ui.container.Menu
+        menuHelp                    matlab.ui.container.Menu
+        menuAbout                   matlab.ui.container.Menu
+        menuViewManual              matlab.ui.container.Menu
+        menuKeyboardShortcuts       matlab.ui.container.Menu
+        textFileName                matlab.ui.control.Label
+        textCalls                   matlab.ui.control.Label
+        textScore                   matlab.ui.control.Label
+        textOvlp                    matlab.ui.control.Label
+        textStatus                  matlab.ui.control.Label
+        textUserID                  matlab.ui.control.Label
+        textLabel                   matlab.ui.control.Label
+        textClustAssign             matlab.ui.control.Label
+        textFrequency               matlab.ui.control.Label
+        textDuration                matlab.ui.control.Label
+        textSlope                   matlab.ui.control.Label
+        textSinuosity               matlab.ui.control.Label
+        textRelPwr                  matlab.ui.control.Label
+        textTonality                matlab.ui.control.Label
+        textContour                 matlab.ui.control.Label
+        buttonPrevFile              matlab.ui.control.Button
+        buttonNextFile              matlab.ui.control.Button
+        textWaveform                matlab.ui.control.Label
+        sliderTonality              matlab.ui.control.Slider
+        textNeuralNet               matlab.ui.control.Label
+        dropdownNeuralNet           matlab.ui.control.DropDown
+        textAudioFiles              matlab.ui.control.Label
+        dropdownAudioFiles          matlab.ui.control.DropDown
+        textDetectLoadRecord        matlab.ui.control.Label
+        buttonDetectCalls           matlab.ui.control.Button
+        buttonLoadDets              matlab.ui.control.Button
+        buttonLoadAudio             matlab.ui.control.Button
+        buttonRecordAudio           matlab.ui.control.StateButton
+        textDetReview               matlab.ui.control.Label
+        buttonAcceptCall            matlab.ui.control.Button
+        buttonRejectCall            matlab.ui.control.Button
+        buttonDraw                  matlab.ui.control.Button
+        buttonPlayCall              matlab.ui.control.Button
+        textNavigation              matlab.ui.control.Label
+        buttonBackALot              matlab.ui.control.Button
+        buttonBackABit              matlab.ui.control.Button
+        buttonPrevCall              matlab.ui.control.Button
+        buttonNextCall              matlab.ui.control.Button
+        buttonFwdABit               matlab.ui.control.Button
+        buttonFwdALot               matlab.ui.control.Button
+        textSettings                matlab.ui.control.Label
+        textFocus                   matlab.ui.control.Label
+        dropdownFocus               matlab.ui.control.DropDown
+        textPage                    matlab.ui.control.Label
+        dropdownPage                matlab.ui.control.DropDown
+        textScale                   matlab.ui.control.Label
+        buttonDisplaySettings       matlab.ui.control.Button
+        textColorMap                matlab.ui.control.Label
+        dropdownColorMap            matlab.ui.control.DropDown
+        buttonInvertCmap            matlab.ui.control.Button
+        textHighCLim                matlab.ui.control.Label
+        buttonHighCLimMinus         matlab.ui.control.Button
+        buttonHighCLimPlus          matlab.ui.control.Button
+        textLowCLim                 matlab.ui.control.Label
+        buttonLowCLimMinus          matlab.ui.control.Button
+        buttonLowCLimPlus           matlab.ui.control.Button
+        winContour                  matlab.ui.control.UIAxes
+        winWaveform                 matlab.ui.control.UIAxes
+        winFocus                    matlab.ui.control.UIAxes
+        winPage                     matlab.ui.control.UIAxes
+        axesPage                    matlab.ui.control.UIAxes
     end
 
     
@@ -605,18 +602,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             TrainDetNet(hObject, eventdata, handles);
         end
 
-        % Menu selected function: menuTrainPostHocDenoiser
-        function menuTrainPostHocDenoiser_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            TrainPostHocDenoiser(hObject, eventdata, handles);
-        end
-
-        % Menu selected function: menuTrainSupClass
-        function menuTrainSupClass_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            TrainSupClass(hObject, eventdata, handles);
-        end
-
         % Menu selected function: menuBatchReject
         function menuBatchReject_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
@@ -627,12 +612,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function menuRemoveRejects_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             RemoveRejects(hObject, eventdata, handles);
-        end
-
-        % Menu selected function: menuPostHocDenoising
-        function menuPostHocDenoising_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            PostHocDenoising(hObject, eventdata, handles);
         end
 
         % Menu selected function: menuSetStaticBoxHeight
@@ -651,12 +630,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         % Menu selected function: menuUnsupClust
         function menuUnsupClust_Callback(app, event)
             UnsupClust(app, event);
-        end
-
-        % Menu selected function: menuSupClass
-        function menuSupClass_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            SupClass(hObject, eventdata, handles);
         end
 
         % Menu selected function: menuViewClust
@@ -690,19 +663,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             ChangePlaybackRate(hObject, eventdata, handles);
         end
 
-        % Menu selected function: menuChangeDisplayRange
-        function menuChangeDisplayRange_Callback(app, event)
-            [~, ~, handles] = convertToGUIDECallbackArguments(app, event); 
-
-            % Disable About menu option while About dialog open
-            app.menuChangeDisplayRange.Enable = 'off';
-            app.buttonDisplaySettings.Enable = 'off';
-
-            % Call About dialog
-            app.appDisplay = DisplayDlg(app, event, handles);
-        end
-
-        % Menu selected function: menuChangeContourThresh
+        % Menu selected function: menuChangeContourThreshold
         function menuChangeContourThresh_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
@@ -960,7 +921,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             [~, ~, handles] = convertToGUIDECallbackArguments(app, event); 
 
             % Disable About menu option while About dialog open
-            app.menuChangeDisplayRange.Enable = 'off';
             app.buttonDisplaySettings.Enable = 'off';
 
             % Call About dialog
@@ -1043,6 +1003,19 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuLoadAnn = uimenu(app.menuFile);
             app.menuLoadAnn.MenuSelectedFcn = createCallbackFcn(app, @menuLoadAnn_Callback, true);
             app.menuLoadAnn.Text = 'Load Annotations';
+
+            % Create menuChangePlaybackRate
+            app.menuChangePlaybackRate = uimenu(app.menuFile);
+            app.menuChangePlaybackRate.MenuSelectedFcn = createCallbackFcn(app, @menuChangePlaybackRate_Callback, true);
+            app.menuChangePlaybackRate.Separator = 'on';
+            app.menuChangePlaybackRate.Text = 'Change Playback Rate';
+            app.menuChangePlaybackRate.Tag = 'Change_Playback_Rate';
+
+            % Create menuChangeContourThreshold
+            app.menuChangeContourThreshold = uimenu(app.menuFile);
+            app.menuChangeContourThreshold.MenuSelectedFcn = createCallbackFcn(app, @menuChangeContourThresh_Callback, true);
+            app.menuChangeContourThreshold.Text = 'Change Contour Threshold';
+            app.menuChangeContourThreshold.Tag = 'ChangeContourThreshold';
 
             % Create menuSaveSess
             app.menuSaveSess = uimenu(app.menuFile);
@@ -1141,47 +1114,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuTrainDetNet.Text = 'Train Detection Network';
             app.menuTrainDetNet.Tag = 'trainnew';
 
-            % Create menuTrainPostHocDenoiser
-            app.menuTrainPostHocDenoiser = uimenu(app.menuNetTrain);
-            app.menuTrainPostHocDenoiser.MenuSelectedFcn = createCallbackFcn(app, @menuTrainPostHocDenoiser_Callback, true);
-            app.menuTrainPostHocDenoiser.Text = 'Train Post Hoc Denoiser';
-            app.menuTrainPostHocDenoiser.Tag = 'TrainPostHocDenoiser';
-
-            % Create menuTrainSupClass
-            app.menuTrainSupClass = uimenu(app.menuNetTrain);
-            app.menuTrainSupClass.MenuSelectedFcn = createCallbackFcn(app, @menuTrainSupClass_Callback, true);
-            app.menuTrainSupClass.Text = 'Train Supervised Classifier';
-            app.menuTrainSupClass.Tag = 'TrainSupervisedClassifier';
-
-            % Create menuAutoReview
-            app.menuAutoReview = uimenu(app.menuTools);
-            app.menuAutoReview.Text = 'Automatic Review';
-            app.menuAutoReview.Tag = 'Untitled_3';
-
-            % Create menuBatchReject
-            app.menuBatchReject = uimenu(app.menuAutoReview);
-            app.menuBatchReject.MenuSelectedFcn = createCallbackFcn(app, @menuBatchReject_Callback, true);
-            app.menuBatchReject.Text = 'Batch Reject by Threshold';
-            app.menuBatchReject.Tag = 'Batch_Reject_by_Threshold';
-
-            % Create menuRemoveRejects
-            app.menuRemoveRejects = uimenu(app.menuAutoReview);
-            app.menuRemoveRejects.MenuSelectedFcn = createCallbackFcn(app, @menuRemoveRejects_Callback, true);
-            app.menuRemoveRejects.Text = 'Remove Rejected Calls';
-            app.menuRemoveRejects.Tag = 'removereject';
-
-            % Create menuPostHocDenoising
-            app.menuPostHocDenoising = uimenu(app.menuAutoReview);
-            app.menuPostHocDenoising.MenuSelectedFcn = createCallbackFcn(app, @menuPostHocDenoising_Callback, true);
-            app.menuPostHocDenoising.Text = 'Post Hoc Denoising';
-            app.menuPostHocDenoising.Tag = 'PostHocDenoising';
-
-            % Create menuSetStaticBoxHeight
-            app.menuSetStaticBoxHeight = uimenu(app.menuAutoReview);
-            app.menuSetStaticBoxHeight.MenuSelectedFcn = createCallbackFcn(app, @menuSetStaticBoxHeight_Callback, true);
-            app.menuSetStaticBoxHeight.Text = 'Set Static Box Height (Frequency)';
-            app.menuSetStaticBoxHeight.Tag = 'set_static_box_height';
-
             % Create menuCallClass
             app.menuCallClass = uimenu(app.menuTools);
             app.menuCallClass.Text = 'Call Classification';
@@ -1199,12 +1131,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuUnsupClust.Text = 'Unsupervised Clustering';
             app.menuUnsupClust.Tag = 'UnsupervisedClustering';
 
-            % Create menuSupClass
-            app.menuSupClass = uimenu(app.menuCallClass);
-            app.menuSupClass.MenuSelectedFcn = createCallbackFcn(app, @menuSupClass_Callback, true);
-            app.menuSupClass.Text = 'Supervised Classification';
-            app.menuSupClass.Tag = 'SupervisedClassification';
-
             % Create menuViewClust
             app.menuViewClust = uimenu(app.menuCallClass);
             app.menuViewClust.MenuSelectedFcn = createCallbackFcn(app, @menuViewClust_Callback, true);
@@ -1220,44 +1146,58 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             % Create menuCreatetSNE
             app.menuCreatetSNE = uimenu(app.menuCallClass);
             app.menuCreatetSNE.MenuSelectedFcn = createCallbackFcn(app, @menuCreatetSNE_Callback, true);
-            app.menuCreatetSNE.Text = 'Create t-SNE / UMAP embedding';
+            app.menuCreatetSNE.Text = 'Create t-SNE / UMAP Embedding';
             app.menuCreatetSNE.Tag = 'create_tsne';
 
+            % Create menuFileMgmt
+            app.menuFileMgmt = uimenu(app.menuTools);
+            app.menuFileMgmt.Text = 'File Management';
+
             % Create menuMergeDetFiles
-            app.menuMergeDetFiles = uimenu(app.menuTools);
+            app.menuMergeDetFiles = uimenu(app.menuFileMgmt);
             app.menuMergeDetFiles.MenuSelectedFcn = createCallbackFcn(app, @menuMergeDetFiles_Callback, true);
             app.menuMergeDetFiles.Text = 'Merge Detection Files';
             app.menuMergeDetFiles.Tag = 'merge';
 
-            % Create menuChangePlaybackRate
-            app.menuChangePlaybackRate = uimenu(app.menuTools);
-            app.menuChangePlaybackRate.MenuSelectedFcn = createCallbackFcn(app, @menuChangePlaybackRate_Callback, true);
-            app.menuChangePlaybackRate.Text = 'Change Playback Rate';
-            app.menuChangePlaybackRate.Tag = 'Change_Playback_Rate';
+            % Create menuAddDateTime
+            app.menuAddDateTime = uimenu(app.menuFileMgmt);
+            app.menuAddDateTime.MenuSelectedFcn = createCallbackFcn(app, @menuAddDateTime_Callback, true);
+            app.menuAddDateTime.Text = 'Add Date/Time';
+            app.menuAddDateTime.Tag = 'AddDateTime';
 
-            % Create menuChangeDisplayRange
-            app.menuChangeDisplayRange = uimenu(app.menuTools);
-            app.menuChangeDisplayRange.MenuSelectedFcn = createCallbackFcn(app, @menuChangeDisplayRange_Callback, true);
-            app.menuChangeDisplayRange.Text = 'Change Display Range';
-            app.menuChangeDisplayRange.Tag = 'Change_Display_Range';
+            % Create menuDecimation
+            app.menuDecimation = uimenu(app.menuFileMgmt);
+            app.menuDecimation.Enable = 'off';
+            app.menuDecimation.Text = 'Decimation';
 
-            % Create menuChangeContourThresh
-            app.menuChangeContourThresh = uimenu(app.menuTools);
-            app.menuChangeContourThresh.MenuSelectedFcn = createCallbackFcn(app, @menuChangeContourThresh_Callback, true);
-            app.menuChangeContourThresh.Text = 'Change Contour Threshold';
-            app.menuChangeContourThresh.Tag = 'ChangeContourThreshold';
+            % Create menuAutoPruning
+            app.menuAutoPruning = uimenu(app.menuTools);
+            app.menuAutoPruning.Text = 'Automatic Pruning';
+            app.menuAutoPruning.Tag = 'Untitled_3';
+
+            % Create menuBatchReject
+            app.menuBatchReject = uimenu(app.menuAutoPruning);
+            app.menuBatchReject.MenuSelectedFcn = createCallbackFcn(app, @menuBatchReject_Callback, true);
+            app.menuBatchReject.Text = 'Batch Reject by Threshold';
+            app.menuBatchReject.Tag = 'Batch_Reject_by_Threshold';
+
+            % Create menuRemoveRejects
+            app.menuRemoveRejects = uimenu(app.menuAutoPruning);
+            app.menuRemoveRejects.MenuSelectedFcn = createCallbackFcn(app, @menuRemoveRejects_Callback, true);
+            app.menuRemoveRejects.Text = 'Remove Rejected Calls';
+            app.menuRemoveRejects.Tag = 'removereject';
+
+            % Create menuSetStaticBoxHeight
+            app.menuSetStaticBoxHeight = uimenu(app.menuAutoPruning);
+            app.menuSetStaticBoxHeight.MenuSelectedFcn = createCallbackFcn(app, @menuSetStaticBoxHeight_Callback, true);
+            app.menuSetStaticBoxHeight.Text = 'Set Static Box Height (Frequency)';
+            app.menuSetStaticBoxHeight.Tag = 'set_static_box_height';
 
             % Create menuPrecRecall
             app.menuPrecRecall = uimenu(app.menuTools);
             app.menuPrecRecall.MenuSelectedFcn = createCallbackFcn(app, @menuPrecRecall_Callback, true);
             app.menuPrecRecall.Text = 'Precision/Recall';
             app.menuPrecRecall.Tag = 'PrecRecall';
-
-            % Create menuAddDateTime
-            app.menuAddDateTime = uimenu(app.menuTools);
-            app.menuAddDateTime.MenuSelectedFcn = createCallbackFcn(app, @menuAddDateTime_Callback, true);
-            app.menuAddDateTime.Text = 'Add Date/Time';
-            app.menuAddDateTime.Tag = 'AddDateTime';
 
             % Create menuHelp
             app.menuHelp = uimenu(app.mainfigure);
@@ -1651,8 +1591,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textDetReview.FontSize = 13.3333333333333;
             app.textDetReview.FontWeight = 'bold';
             app.textDetReview.FontColor = [1 1 1];
-            app.textDetReview.Position = [495 116 196 18];
-            app.textDetReview.Text = 'Detection Review ------------------';
+            app.textDetReview.Position = [495 112 196 22];
+            app.textDetReview.Text = 'Annotation & Detection ---------';
 
             % Create buttonRecordAudio
             app.buttonRecordAudio = uibutton(app.mainfigure, 'state');

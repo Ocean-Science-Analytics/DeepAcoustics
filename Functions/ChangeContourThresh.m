@@ -1,6 +1,6 @@
 function ChangeContourThresh(hObject, eventdata, handles)
     % Change the contour threshold
-    prompt = {'Entropy Threshold: (range = 0-1, default = 0.215)', 'Amplitude Percentile Threshold: (range = 0-1, default = 0.825)'};
+    prompt = {'Tonality Threshold: (range = 0-1, default = 0.215)', 'Amplitude Percentile Threshold: (range = 0-1, default = 0.825)'};
     dlg_title = 'New Contour Threshold:';
     num_lines=[1 50]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
     defaultans = {num2str(handles.data.settings.EntropyThreshold),num2str(handles.data.settings.AmplitudeThreshold)};
@@ -19,7 +19,7 @@ function ChangeContourThresh(hObject, eventdata, handles)
             AmplitudeThreshold = handles.data.defaultSettings.AmplitudeThreshold;
         end
         if EntropyThreshold < .001 || EntropyThreshold > .999
-            disp('Warning! Entropy Threshold Must be (0 > 1), Reverting to Default (.215)');
+            disp('Warning! Tonality Threshold Must be (0 > 1), Reverting to Default (.215)');
             EntropyThreshold = handles.data.defaultSettings.EntropyThreshold;
         end
     
