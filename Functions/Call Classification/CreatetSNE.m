@@ -6,15 +6,15 @@ padding = 1000; % Pad the temp image by this amount, so that calls near the bord
 blackLevel = 80; % Subtract this value from each call image to make a nicer picture.
 
 % Select embedding type
-embeddingType = questdlg('Embed with UMAP or t-SNE?', 'Embedding Method', 't-SNE' , 'UMAP', 't-SNE');
-if isempty(embeddingType); return; end
-if strcmp(embeddingType, 'UMAP')
-    if ~exist('run_umap.m', 'file')
-        msgbox('Please download UMAP and add it to MATLAB''s path and try again')
-        web('   https://www.mathworks.com/matlabcentral/fileexchange/71902-uniform-manifold-approximation-and-projection-umap');
-        return
-    end
-end
+% embeddingType = questdlg('Embed with t-SNE or UMAP?', 'Embedding Method', 't-SNE' , 'UMAP', 't-SNE');
+% if isempty(embeddingType); return; end
+% if strcmp(embeddingType, 'UMAP')
+%     if ~exist('run_umap.m', 'file')
+%         msgbox('Please download UMAP and add it to MATLAB''s path and try again')
+%         web('   https://www.mathworks.com/matlabcentral/fileexchange/71902-uniform-manifold-approximation-and-projection-umap');
+%         return
+%     end
+% end
 
 %% Choose clustering dimensions
 inputParameters= questdlg('Select the input dimensions', 'Input Dimensions', 'Variational autoencoder embeddings', 'Contour shape, frequency, and duration', 'Contour shape, frequency, and duration');
@@ -101,12 +101,12 @@ NumberOfCalls = min(size(ClusteringData,1), NumberOfCalls);
 rng default;
 
 % Run embedding
-switch embeddingType
-    case 't-SNE'
-        embed = tsne(data,'Verbose',1,'Perplexity',perplexity);
-    case 'UMAP'
-        embed = run_umap(data);
-end
+% switch embeddingType
+%     case 't-SNE'
+embed = tsne(data,'Verbose',1,'Perplexity',perplexity);
+%     case 'UMAP'
+%         embed = run_umap(data);
+% end
 % Rescale values between 0 and 1
 embed = (embed - min(embed)) ./ (max(embed)-min(embed));
 

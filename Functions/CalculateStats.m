@@ -16,7 +16,7 @@ else
 end
 
 if EntropyThreshold < .001 | EntropyThreshold > .999 
-    disp('Warning! Entropy Threshold Must be (0 > 1), Reverting to Default (.215)');
+    disp('Warning! Tonality Threshold Must be (0 > 1), Reverting to Default (.215)');
     EntropyThreshold=.215;
 end
 
