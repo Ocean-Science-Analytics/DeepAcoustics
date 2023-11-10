@@ -2,10 +2,10 @@ function ChangeFocusWidth(app, event)
 if strcmp(app.dropdownFocus.Value,'Custom')
     % Make dialog
     prompt = {'Enter desired width of focus window (in seconds):'};
-    dlgtitle = 'Adjust Focus Width';
+    dlg_title = 'Adjust Focus Width';
     num_lines = [1 length(dlg_title)+30];
     definput = {'5'};
-    nNewValue = inputdlg(prompt,dlgtitle,num_lines,definput);
+    nNewValue = inputdlg(prompt,dlg_title,num_lines,definput);
     % Add custom value to Items and set Value
     app.dropdownFocus.Items = [app.dropdownFocus.Items, [nNewValue{1},'s']];
     app.dropdownFocus.Items = unique(app.dropdownFocus.Items);

@@ -2,10 +2,10 @@ function  ChangePageWidth(app, event)
 if strcmp(app.dropdownPage.Value,'Custom')
     % Make dialog
     prompt = {'Enter desired width of page window (in seconds):'};
-    dlgtitle = 'Adjust Page Width';
+    dlg_title = 'Adjust Page Width';
     num_lines = [1 length(dlg_title)+30];
     definput = {'30'};
-    nNewValue = inputdlg(prompt,dlgtitle,num_lines,definput);
+    nNewValue = inputdlg(prompt,dlg_title,num_lines,definput);
     % Add custom value to Items and set Value
     app.dropdownPage.Items = [app.dropdownPage.Items, [nNewValue{1},'s']];
     app.dropdownPage.Items = unique(app.dropdownPage.Items);
