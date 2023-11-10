@@ -54,9 +54,11 @@ function UnsupClust(app,event)
                                     if ~bSuperBatch
                                         [ClusteringData, ~, ~, ~, spectrogramOptions] = CreateClusteringData(handles, 'forClustering', true, 'save_data', true);
                                         if isempty(ClusteringData); return; end
+                                        dlg_title = 'Choose cluster parameters:';
+                                        num_lines=[1 length(dlg_title)+30];
                                         clusterParameters= inputdlg({'Number of Contour Pts','Delta8 Weight','Slope Weight','Concavity Weight','Frequency Weight', ...
                                             'Relative Frequency Weight','Duration Weight','Infl Pt Weight','Parsons Weight','Parsons Resolution'}, ...%,'Parsons2 weight'},
-                                            'Choose cluster parameters:',[1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 30; 1 15],{'20','0','0','0','0','1','0','0','0','4'});%,'0'});
+                                            dlg_title,num_lines,{'20','0','0','0','0','1','0','0','0','4'});%,'0'});
                                         if isempty(clusterParameters); return; end
                                         num_pts = str2double(clusterParameters{1});
                                         delta8_weight = str2double(clusterParameters{2});
@@ -435,7 +437,7 @@ function UnsupClust(app,event)
                             %% Get settings
                             prompt = {'Matching Threshold:','Duplicate Category Merge Threshold:','Outlier Threshold','Learning Rate:','Interations:','Shape Importance','Frequency Importance','Duration Importance'};
                             dlg_title = 'ARTwarp';
-                            num_lines = [1 50];
+                            num_lines=[1 length(dlg_title)+30];
                             defaultans = {'5','2.5','8','0.001','5','4','1','1'};
                             settings = inputdlg(prompt,dlg_title,num_lines,defaultans);
                             if isempty(settings)
@@ -859,7 +861,9 @@ function C = get_kmeans_centroids(data,varargin)
         switch optimize
             %case 'Elbow Optimized'
             case 1
-                opt_options = inputdlg({'Max Clusters','Replicates'},'Cluster Optimization',[1 50; 1 50],{'100','3'});
+                dlg_title = 'Cluster Optimization';
+                num_lines = [1 length(dlg_title)+30];
+                opt_options = inputdlg({'Max Clusters','Replicates'},dlg_title,num_lines,{'100','3'});
                 if isempty(opt_options); return; end
     
                 %Cap the max clusters to the number of samples.
@@ -870,7 +874,9 @@ function C = get_kmeans_centroids(data,varargin)
     
             %case 'Elbow w/ Min Clust Size'
             case 2
-                opt_options = inputdlg({'Max Clusters','Replicates','Min Clust Size'},'Cluster Optimization',[1 50; 1 50; 1 50],{'100','10','1'});
+                dlg_title = 'Cluster Optimization';
+                num_lines = [1 length(dlg_title)+30];
+                opt_options = inputdlg({'Max Clusters','Replicates','Min Clust Size'},dlg_title,num_lines,{'100','10','1'});
                 if isempty(opt_options); return; end
                 k = str2double(opt_options{1});
                 nReps = str2double(opt_options{2});
@@ -897,7 +903,9 @@ function C = get_kmeans_centroids(data,varargin)
             %case 'User Defined'
             case 3
                 if nargin == 1
-                    opt_options = inputdlg({'# of Clusters','Replicates'},'Choose Model Options',[1; 1],{'15','10'});
+                    dlg_title = 'Choose Model Options';
+                    num_lines = [1 length(dlg_title)+30];
+                    opt_options = inputdlg({'# of Clusters','Replicates'},dlg_title,num_lines,{'15','10'});
                     if isempty(opt_options); return; end
                     k = str2double(opt_options{1});
                     nReps = str2double(opt_options{2});
@@ -909,7 +917,9 @@ function C = get_kmeans_centroids(data,varargin)
 
             %case 'User Defined w/ Min Clust Size'
             case 4
-                opt_options = inputdlg({'Starting # of Clusters','Replicates','Min Clust Size'},'Choose Model Options',[1; 1; 1],{'15','10','1'});
+                dlg_title = 'Choose Model Options';
+                num_lines = [1 length(dlg_title)+30];
+                opt_options = inputdlg({'Starting # of Clusters','Replicates','Min Clust Size'},dlg_title,num_lines,{'15','10','1'});
                 if isempty(opt_options); return; end
                 k = str2double(opt_options{1});
                 nReps = str2double(opt_options{2});
@@ -933,7 +943,9 @@ function C = get_kmeans_centroids(data,varargin)
             case 5
                 %% User options
                 if nargin == 1
-                    opt_options = inputdlg({'Min # of Clusters','Max # of Clusters','Replicates'},'Batch Options',[1; 1; 1],{'2','30','10'});
+                    dlg_title = 'Batch Options';
+                    num_lines = [1 length(dlg_title)+30];
+                    opt_options = inputdlg({'Min # of Clusters','Max # of Clusters','Replicates'},'Batch Options',dlg_title,num_lines,{'2','30','10'});
                     minclust = str2double(opt_options{1});
                     maxclust = str2double(opt_options{2});
                     nReps = str2double(opt_options{3});

@@ -47,7 +47,7 @@ if eventdata.Source.Value==1
     hObject.BackgroundColor=[0.84,0.08,0.18];
     prompt = {'Recording Length (Seconds; 0 = Continuous)','Sample Rate (Max=250,000)','Filename'};
     dlg_title = 'Rercording Settings (Uses Default Microphone)';
-    num_lines=[1 100]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
+    num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
     detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
     def = {'0','44100',strcat(detectiontime,' -Live')};
     recSettings=inputdlg(prompt,dlg_title,num_lines,def,options);

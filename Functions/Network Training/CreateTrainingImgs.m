@@ -4,7 +4,7 @@ function CreateTrainingImgs(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Select the files to make images from
-[trainingdata, trainingpath] = uigetfile([char(handles.data.settings.detectionfolder) '/*.mat'],'Select Detection File for Training ','MultiSelect', 'on');
+[trainingdata, trainingpath] = uigetfile([char(handles.data.settings.detectionfolder) '/*.mat'],'Select Detection File(s) for Training ','MultiSelect', 'on');
 if isnumeric(trainingdata); return; end
 trainingdata = cellstr(trainingdata);
 
@@ -12,8 +12,8 @@ trainingdata = cellstr(trainingdata);
 prompt = {'Window Length (s)','Overlap (%)','NFFT (s)','Image Length (s)',...
     'Number of augmented duplicates'};
 dlg_title = 'Spectrogram Settings';
-num_lines=[1 40]; options.Resize='off'; options.windStyle='modal'; options.Interpreter='tex';
-spectSettings = str2double(inputdlg(prompt,dlg_title,num_lines,{num2str(handles.data.settings.spect.windowsize,3),'50',num2str(handles.data.settings.spect.nfft,3),'.5','0'},options));
+num_lines=[1 length(dlg_title)+30]; options.Resize='off'; options.windStyle='modal'; options.Interpreter='tex';
+spectSettings = str2double(inputdlg(prompt,dlg_title,num_lines,{num2str(handles.data.settings.spect.windowsize,3),'50',num2str(handles.data.settings.spect.nfft,3),'1','0'},options));
 if isempty(spectSettings); return; end
 
 wind = spectSettings(1);

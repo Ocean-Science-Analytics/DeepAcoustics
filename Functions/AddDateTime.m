@@ -18,9 +18,11 @@ for i = 1:height(Calls)
                 detname},'Manual Input Date/Time','Yes','No','Yes');
             switch answer
                 case 'Yes'
+                    dlg_title = 'Custom Input';
+                    num_lines=[1 length(dlg_title)+30];
                     dlgin = inputdlg({'Year (2-digit):','Month (2-digit):','Day:',...
                         'Hour:','Minute:','Second:'},...
-                          'Custom Input', [1 30; 1 30; 1 30; 1 30; 1 30; 1 30]); 
+                        dlg_title, num_lines); 
                     if ~isempty(dlgin)
                         thisdt = {{[dlgin{1} dlgin{2} dlgin{3}] [dlgin{4} dlgin{5} dlgin{6}]}};
                         thissec = str2double(thisdt{1}{2}(5:6));

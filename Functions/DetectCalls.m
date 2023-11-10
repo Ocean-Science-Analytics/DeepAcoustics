@@ -51,7 +51,7 @@ end
 % Set detection settings
 prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (kHZ)','High Frequency Cutoff (kHZ)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
 dlg_title = ['Settings for ' handles.networkfiles(networkselection).name];
-num_lines=[1 100]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
+num_lines=[1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
 def = handles.data.settings.detectionSettings;
 Settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
 
