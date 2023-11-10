@@ -36,10 +36,10 @@ close(d)
 close(fig)
 
 prompt = 'Threshold for overlap (0-1) that counts as a true positive:';
-dlgtitle = 'True Positive Threshold';
+dlg_title = 'True Positive Threshold';
 num_lines = [1 length(dlg_title)+30]; 
 definput = {'0.5'};
-percTPThresh = inputdlg(prompt,dlgtitle,num_lines,definput);
+percTPThresh = inputdlg(prompt,dlg_title,num_lines,definput);
 percTPThresh = str2double(percTPThresh);
 if percTPThresh < 0 || percTPThresh > 1
     error('Threshold for overlap must be between 0 and 1')

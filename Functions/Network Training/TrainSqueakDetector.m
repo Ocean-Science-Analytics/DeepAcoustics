@@ -54,10 +54,10 @@ end
 % User input so can reduce size if memory error
 warning('If GPU crashes (out of memory error), you may need to reduce the image size.')
 prompt = {'Enter image size (square):'};
-dlgtitle = 'Image Size';
+dlg_title = 'Image Size';
 num_lines = [1 length(dlg_title)+30];
 definput = {num2str(dim1)};
-dim1 = str2double(inputdlg(prompt,dlgtitle,num_lines,definput));
+dim1 = str2double(inputdlg(prompt,dlg_title,num_lines,definput));
 dim2 = dim1;
 
 switch basemodels
