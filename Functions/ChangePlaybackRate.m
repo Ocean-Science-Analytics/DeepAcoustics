@@ -1,7 +1,7 @@
 function ChangePlaybackRate(hObject, eventdata, handles)
     prompt = {'Playback Rate: (default = 0.0.5)'};
     dlg_title = 'Change Playback Rate';
-    num_lines=1; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
+    num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
     defaultans = {num2str(handles.data.settings.playback_rate)};
     rate = inputdlg(prompt,dlg_title,num_lines,defaultans);
     if isempty(rate); return; end

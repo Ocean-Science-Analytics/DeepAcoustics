@@ -4,8 +4,9 @@ function SyntaxAnalysis(hObject, eventdata, handles)
 if isnumeric(filename); return; end
 filename = cellstr(filename);
 
-
-settings = inputdlg({'Maximum bout seperation (s)','Exclude Classes with frequency below (0-1)'},'Syntax',[1 50],{'2','.01'});
+dlg_title = 'Syntax';
+num_lines=[1 length(dlg_title)+30];
+settings = inputdlg({'Maximum bout seperation (s)','Exclude Classes with frequency below (0-1)'},dlg_title,num_lines,{'2','.01'});
 boutlength = str2num(settings{1});
 minfreq = str2num(settings{2});
 

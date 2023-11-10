@@ -27,8 +27,10 @@ if isempty(colorType); return; end
 switch inputParameters
     case 'Contour shape, frequency, and duration'
         % Get the clustering parameters, prepare data as if performing k-means
+        dlg_title = 'Choose cluster parameters:';
+        num_lines=[1 length(dlg_title)+30];
         clusterParameters = inputdlg({'Images height (pixels)','Image width (pixels)','Perplexity (if using t-SNE, ignore for UMAP)','Max number of calls to plot (set to 0 to plot everything)', 'Shape weight','Frequency weight','Duration weight'},...
-            'Choose cluster parameters:',1,...
+            dlg_title,num_lines,...
             {'6000','6000','30','2000','1','1','1'});
         if isempty(clusterParameters); return; end
         
@@ -56,8 +58,10 @@ switch inputParameters
             ];
         
     case 'Variational autoencoder embeddings'
+        dlg_title = 'Choose cluster parameters:';
+        num_lines=[1 length(dlg_title)+30];
         clusterParameters = inputdlg({'Images height (pixels)','Image width (pixels)','Perplexity (if using t-SNE, ignore for UMAP)','Max number of calls to plot (set to 0 to plot everything)'},...
-            'Choose cluster parameters:',1,...
+            dlg_title,num_lines,...
             {'6000','6000','30','2000'});
         if isempty(clusterParameters); return; end
         

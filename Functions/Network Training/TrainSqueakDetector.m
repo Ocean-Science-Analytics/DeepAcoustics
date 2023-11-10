@@ -55,9 +55,9 @@ end
 warning('If GPU crashes (out of memory error), you may need to reduce the image size.')
 prompt = {'Enter image size (square):'};
 dlgtitle = 'Image Size';
-dims = [1 35];
+num_lines = [1 length(dlg_title)+30];
 definput = {num2str(dim1)};
-dim1 = str2double(inputdlg(prompt,dlgtitle,dims,definput));
+dim1 = str2double(inputdlg(prompt,dlgtitle,num_lines,definput));
 dim2 = dim1;
 
 switch basemodels
@@ -128,9 +128,10 @@ if nargin == 1
             ylabel("Mean IoU")
             xlabel("Number of Anchors")
             title("Number of Anchors vs. Mean IoU")
-    
+            dlg_title = 'Anchor Boxes';
+            num_lines = [1 length(dlg_title)+30];
             nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
-                         'Anchor Boxes', [1 50]));
+                         dlg_title,num_lines));
             % Must be even number for Tiny YOLO v4 and divisible by 3 for
             % Darknet
             switch basemodels
@@ -190,22 +191,28 @@ if nargin == 1
                 % Default for sdgm solver is 0.01, 0.001 for others
                 % If too low, increases training time
                 % If too high, can lead to suboptimal result or diverge
+            dlg_title = 'Initial Learn Rate';
+            num_lines = [1 length(dlg_title)+30];
             nInitLearnRate = str2double(inputdlg('Initial Learn Rate (sdgm default = 0.01; others = 0.001)?:',...
-                         'Initial Learn Rate', [1 50]));
+                dlg_title,num_lines));
                            
             %% Mini-Batch Size
                 % The size of the subset of the training set that is used to
                 % evaluate the gradient of the loss function and update the
                 % weights.
+            dlg_title = 'Mini-Batch Size';
+            num_lines = [1 length(dlg_title)+30];
             nMiniBatchSz = str2double(inputdlg('Mini-Batch Size (default = 16)?:',...
-                         'Mini-Batch Size', [1 50]));
+                dlg_title,num_lines));
                            
             %% Max # of Epochs
                 % Maximum # of epochs used for training
                 % Epoch = full pass of the training algorithm over the entire
                 % training set
+            dlg_title = 'Max # of Epochs';
+            num_lines = [1 length(dlg_title)+30];
             nNumEpochs = str2double(inputdlg('Max # of Epochs (default = 30)?:',...
-                         'Max # of Epochs', [1 50]));
+                dlg_title,num_lines));
                      
             %% Validation Data
                 % Used to determine if network is overfitting
