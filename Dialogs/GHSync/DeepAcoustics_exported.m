@@ -26,10 +26,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuNetTrain                matlab.ui.container.Menu
         menuCreateTrainImg          matlab.ui.container.Menu
         menuTrainDetNet             matlab.ui.container.Menu
-        menuAutoPruning             matlab.ui.container.Menu
-        menuBatchReject             matlab.ui.container.Menu
-        menuRemoveRejects           matlab.ui.container.Menu
-        menuSetStaticBoxHeight      matlab.ui.container.Menu
         menuCallClass               matlab.ui.container.Menu
         menuAddCustomLabels         matlab.ui.container.Menu
         menuUnsupClust              matlab.ui.container.Menu
@@ -40,6 +36,10 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuMergeDetFiles           matlab.ui.container.Menu
         menuAddDateTime             matlab.ui.container.Menu
         menuDecimation              matlab.ui.container.Menu
+        menuAutoPruning             matlab.ui.container.Menu
+        menuBatchReject             matlab.ui.container.Menu
+        menuRemoveRejects           matlab.ui.container.Menu
+        menuSetStaticBoxHeight      matlab.ui.container.Menu
         menuPrecRecall              matlab.ui.container.Menu
         menuHelp                    matlab.ui.container.Menu
         menuAbout                   matlab.ui.container.Menu
@@ -234,11 +234,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 %             disp '  '
 %             disp '  '
 
-            disp '                                                                                                                                 .---.'
-            disp '                                                                                                      _..__        __.._       /  .  \  '
-            disp '                                                                                                      \    ''''''\/''''''    /       |\_/|   |'
-            disp '                                                                                                     _ ''-._       ._.-''  _      |   |   |'
-            disp '    ._______________________________________________________________________________________________.;,\_.;,\_.;,/_.;,\_.;,\_____|___|__,|'
+            disp '                                                                                      .---.'
+            disp '                                                           _..__        __.._       /  .  \  '
+            disp '                                                           \    ''''''\/''''''    /       |\_/|   |'
+            disp '                                                          _ ''-._       ._.-''  _      |   |   |'
+            disp '    .____________________________________________________.;,\_.;,\_.;,/_.;,\_.;,\_____|___|__,|'
             disp '   /  .-.                                                                                                                              |'
             disp '  |  /   \                                                                                                                             |'
             disp '  | |\_.  |                                                                                                                            |'
@@ -474,6 +474,13 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                     DrawBox(hObject, eventdata, handles);
                 case 127 % Delete key
                     handles.data.calls(handles.data.currentcall,:) = [];
+                    % Reduce index of last call in current audio file to account for deletion
+                    handles.data.thisaudend = handles.data.thisaudend-1;
+                    % If we just deleted the last call in this audio file,
+                    % set st and end indices should be set to empty in
+                    % SortCalls
+                    % Reset currentcall to the preceding call or the first
+                    % call in this audio file
                     SortCalls(hObject, [], handles, 'time', 0, handles.data.currentcall - 1);
                 case 30 % char(30) is up arrow key
                     MoveFocus(+ handles.data.settings.focus_window_size, hObject, eventdata, handles)
@@ -1912,7 +1919,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textFileName.Tag = 'displayfile';
             app.textFileName.FontWeight = 'bold';
             app.textFileName.FontColor = [1 1 1];
-            app.textFileName.Position = [298 769 1036 22];
+            app.textFileName.Position = [298 752 1036 39];
             app.textFileName.Text = '';
 
             % Show the figure after all components are created
