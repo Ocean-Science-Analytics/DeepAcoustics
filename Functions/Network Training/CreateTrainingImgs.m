@@ -40,102 +40,102 @@ TTable = table({},{},'VariableNames',{'imageFilename','Call'});
 for k = 1:length(trainingdata)
     % Load the detection and audio files
     audioReader = squeakData();
-    [Calls, audioReader.audiodata] = loadCallfile([trainingpath trainingdata{k}],handles,false);
-    
-    % Make a folder for the training images
-%     fname = uigetdir(fullfile(handles.data.squeakfolder,'Training','Images'),'Select Folder to Output Training Images');
-%     fname = fullfile(handles.data.squeakfolder,'Training','Images',filename);
-%     mkdir(fname);
+    [Calls] = loadCallfile([trainingpath trainingdata{k}],handles,false);
+    allAudio = unique({Calls.Audiodata.Filename},'stable');
     
     % Remove Rejects
     Calls = Calls(Calls.Accept == 1, :);
-    
-    % Find max call frequency for cutoff
-    % freqCutoff = max(sum(Calls.Box(:,[2,4]), 2));
-    freqCutoff = audioReader.audiodata.SampleRate / 2;
-    
-    %% Calculate Groups of Calls
-    % Calculate the distance between the end of each box and the
-    % beginning of the next
-    Distance = pdist2(Calls.Box(:, 1), Calls.Box(:, 1) + Calls.Box(:, 3));
-    % Remove calls further apart than the bin size
-    Distance(Distance > imLength) = 0;
-    % Get the indices of the calls by bout number by using the connected
-    % components of the graph
-    
-    % Create chuncks of audio file that contain non-overlapping call bouts
-    bn=1;
-    while bn<height(Distance)
-        % For each row (beginning of call), find the last column (end of call)
-        % following it within imLength (delineate this call bout)
-        lst=find(Distance(bn,bn:end)>0,1,'last')+bn-1;
-        % For every other call (beginning of call) in the call bout (within that imLength), delete
-        % all the distances to calls beyond the call bout
-        for ii=bn+1:lst
-            Distance(ii,lst+1:end)=zeros(length(Distance(ii,lst+1:end)),1);
-        end
-        if isempty(lst)
-            bn = bn+1;
-        else
-            bn = lst+1;
-        end
-    end
-    
-    % Identify & number call bouts
-    G = graph(Distance,'upper');
-    bins = conncomp(G);
-    
-    for bin = 1:length(unique(bins))
-        BoutCalls = Calls(bins == bin, :);
-        
-        %Center audio on middle of call bout and extract clip imLength in
-        %length
-        StartTime = max(min(BoutCalls.Box(:,1)), 0);
-        FinishTime = max(BoutCalls.Box(:,1) + BoutCalls.Box(:,3));
-        CenterTime = (StartTime+(FinishTime-StartTime)/2);
-        StartTime = CenterTime - (imLength/2);
-        FinishTime = CenterTime + (imLength/2);
 
-        %% Read Audio
-        audio = audioReader.AudioSamples(StartTime, FinishTime);
+    for j = 1:length(allAudio)
+        subCalls = Calls(strcmp({Calls.Audiodata.Filename},allAudio{j}),:);
+        audioReader.audiodata = subCalls.Audiodata(1);
+        % Find max call frequency for cutoff
+        % freqCutoff = max(sum(Calls.Box(:,[2,4]), 2));
+        freqCutoff = subCalls.Audiodata(1).SampleRate / 2;
         
-        % Subtract the start of the bout from the box times
-        BoutCalls.Box(:,1) = BoutCalls.Box(:,1) - StartTime;
+        %% Calculate Groups of Calls
+        % Calculate the distance between the end of each box and the
+        % beginning of the next
+        Distance = pdist2(subCalls.Box(:, 1), subCalls.Box(:, 1) + subCalls.Box(:, 3));
+        % Remove calls further apart than the bin size
+        Distance(Distance > imLength) = 0;
+        % Get the indices of the calls by bout number by using the connected
+        % components of the graph
         
-        % If imLength < duration of a call, beginning and/or end will clip!
-        % Clip beg of call
-        if any(BoutCalls.Box(:,1) < 0)
-            warning("Your Image Length is probably too low - beg of call not captured")
-            % Adjust duration accordingly
-            BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) = BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) + BoutCalls.Box(BoutCalls.Box(:,1) < 0,1);
-            BoutCalls.Box(BoutCalls.Box(:,1) < 0,1) = 0;
+        % Create chuncks of audio file that contain non-overlapping call bouts
+        bn=1;
+        while bn<height(Distance)
+            % For each row (beginning of call), find the last column (end of call)
+            % following it within imLength (delineate this call bout)
+            lst=find(Distance(bn,bn:end)>0,1,'last')+bn-1;
+            % For every other call (beginning of call) in the call bout (within that imLength), delete
+            % all the distances to calls beyond the call bout
+            for ii=bn+1:lst
+                Distance(ii,lst+1:end)=zeros(length(Distance(ii,lst+1:end)),1);
+            end
+            if isempty(lst)
+                bn = bn+1;
+            else
+                bn = lst+1;
+            end
         end
         
-        % Clip end of call
-        if any(BoutCalls.Box(:,3) > imLength)
-            warning("Your Image Length is probably too low - end of call not captured")
-            BoutCalls.Box(BoutCalls.Box(:,3) > imLength, 3) = imLength;
-        end
+        % Identify & number call bouts
+        G = graph(Distance,'upper');
+        bins = conncomp(G);
         
-        try
-        for replicatenumber = 1:repeats
-            IMname = sprintf('%g_%g_%g.png', k, bin, replicatenumber);
-            [~,box] = CreateTrainingData(...
-                audio,...
-                audioReader.audiodata.SampleRate,...
-                BoutCalls,...
-                wind,noverlap,nfft,...
-                freqCutoff,...
-                fullfile(fname,IMname),...
-                AmplitudeRange,...
-                replicatenumber,...
-                StretchRange);
-            TTable = [TTable;{fullfile(fname,IMname), box}];
+        for bin = 1:length(unique(bins))
+            BoutCalls = subCalls(bins == bin, :);
+            
+            %Center audio on middle of call bout and extract clip imLength in
+            %length
+            StartTime = max(min(BoutCalls.Box(:,1)), 0);
+            FinishTime = max(BoutCalls.Box(:,1) + BoutCalls.Box(:,3));
+            CenterTime = (StartTime+(FinishTime-StartTime)/2);
+            StartTime = CenterTime - (imLength/2);
+            FinishTime = CenterTime + (imLength/2);
+    
+            %% Read Audio
+            audio = audioReader.AudioSamples(StartTime, FinishTime);
+            
+            % Subtract the start of the bout from the box times
+            BoutCalls.Box(:,1) = BoutCalls.Box(:,1) - StartTime;
+            
+            % If imLength < duration of a call, beginning and/or end will clip!
+            % Clip beg of call
+            if any(BoutCalls.Box(:,1) < 0)
+                warning("Your Image Length is probably too low - beg of call not captured")
+                % Adjust duration accordingly
+                BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) = BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) + BoutCalls.Box(BoutCalls.Box(:,1) < 0,1);
+                BoutCalls.Box(BoutCalls.Box(:,1) < 0,1) = 0;
+            end
+            
+            % Clip end of call
+            if any(BoutCalls.Box(:,3) > imLength)
+                warning("Your Image Length is probably too low - end of call not captured")
+                BoutCalls.Box(BoutCalls.Box(:,3) > imLength, 3) = imLength;
+            end
+            
+            try
+            for replicatenumber = 1:repeats
+                IMname = sprintf('%g_%g_%g.png', k, bin, replicatenumber);
+                [~,box] = CreateTrainingData(...
+                    audio,...
+                    audioReader.audiodata.SampleRate,...
+                    BoutCalls,...
+                    wind,noverlap,nfft,...
+                    freqCutoff,...
+                    fullfile(fname,IMname),...
+                    AmplitudeRange,...
+                    replicatenumber,...
+                    StretchRange);
+                TTable = [TTable;{fullfile(fname,IMname), box}];
+            end
+            catch
+                disp("Something wrong with calculating bounding box indices - talk to Gabi!");
+            end
+            waitbar(bin/length(unique(bins)), h, sprintf('Processing File %g of %g', k, length(trainingdata)));         
         end
-        catch
-            disp("Something wrong with calculating bounding box indices - talk to Gabi!");
-        end
-        waitbar(bin/length(unique(bins)), h, sprintf('Processing File %g of %g', k, length(trainingdata)));         
     end
 end
 close(h)

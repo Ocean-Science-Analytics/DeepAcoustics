@@ -60,7 +60,6 @@ score_cuttoff=Settings(4);
 AllBoxes=[];
 AllScores=[];
 AllClass=[];
-AllPowers=[];
 
 % Break the audio file into chunks
 chunks = linspace(1,(DetectLength - overlap) * audio_info.SampleRate,round(DetectLength / chunksize));
@@ -160,8 +159,10 @@ end
 if isempty(AllScores); close(h); return; end
 
 h = waitbar(1,h,'Merging Boxes...');
-Calls = merge_boxes(AllBoxes, AllScores, AllClass, audio_info, 1, score_cuttoff, 0);
-
+DetSpect.wind = networkfile.wind;
+DetSpect.noverlap = networkfile.noverlap;
+DetSpect.nfft = networkfile.nfft;
+Calls = merge_boxes(AllBoxes, AllScores, AllClass, audio_info, DetSpect, 1, score_cuttoff, 0);
 close(h);
 end
 

@@ -28,15 +28,14 @@ t_merged = [];
 hc = waitbar(0,'Initializing');
 for j = 1:length(fname) % Do this for each file
     currentfile = fullfile(fpath,fname{j});
-    audioReader = squeakData([]);
-    [Calls, audioReader.audiodata] = loadCallfile(currentfile,handles,false);
+    [Calls] = loadCallfile(currentfile,handles,false);
     
     % Name the output file. If the file already exists, delete it so that
     % writetable overwrites the data instead of appending it to the table.    
     [~,FileName,~] = fileparts(fname{j});
 
 
-    t = loop_function(Calls,hc,includereject,['Exporting calls from file ' num2str(j) ' of ' num2str(length(fname))],handles,currentfile, audioReader);
+    t = loop_function(Calls,hc,includereject,['Exporting calls from file ' num2str(j) ' of ' num2str(length(fname))],handles,currentfile);
 
 
     outputName = fullfile(PathName,[FileName file_postfix]);

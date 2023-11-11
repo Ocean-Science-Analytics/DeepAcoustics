@@ -17,7 +17,6 @@ sv_table = readtable([svpath svname],'Delimiter', ',');
     '*.m4a;*.mp4' 'MPEG-4 AAC'
     }, ['Select Audio File for ' svname],handles.data.settings.audiofolder);
 
-
 Calls  = cell2table(cell(0,5), 'VariableNames', {'Box', 'Score', 'Accept', 'Type', 'Tag'});
 hc = waitbar(0,'Importing Calls from Sonic Visualizer');
 n_rows = size(sv_table,1);
@@ -39,15 +38,15 @@ for i=1:n_rows
     
 end
 [~, box_file_name] = fileparts(svname);
-[~, audio_file_name] = fileparts(audioname);
 
 audiodata = audioinfo(fullfile(audiopath, audioname));
+Calls.Audiodata = repmat(audiodata,height(Calls),1);
 
 % FileName = [audio_file_name, datestr(datetime('now'),'mmm-dd-yyyy hh_MM AM'), ' ',box_file_name, '.mat'];
 % FilePath = [handles.data.settings.detectionfolder, FileName];
 [FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [box_file_name '_Detections.mat']),'Save Call File');
 FilePath = [handles.data.settings.detectionfolder, FileName];
 spect = handles.data.settings.spect;
-save(FilePath,'Calls','audiodata','spect','-v7.3');
+save(FilePath,'Calls','spect','-v7.3');
 close(hc);
 update_folders(hObject, eventdata, handles);

@@ -1,11 +1,14 @@
 % --- Executes on button press in LOAD CALLS.
-function LoadCalls(hObject, eventdata, handles, ~)
+function LoadCalls(hObject, eventdata, handles, indSt, ~)
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);
-if nargin == 3 % if "Load Calls" button pressed, load the selected file, else reload the current file
+if nargin == 3
+    indSt = 1;
+end
+if nargin < 5 % if "Load Calls" button pressed, load the selected file, else reload the current file
     %Check if pre-existing detection file has changed to save file before loading a new one.
     if ~isempty(handles.data.calls) && ~isempty(handles.current_file_id)
-        [~, ~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+        [~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
         if ~isequal(modcheck.calls, handles.data.calls) || ~isequal(modcheck.spect, handles.data.settings.spect)
             opts.Interpreter = 'tex';
             opts.Default='Yes';
@@ -45,9 +48,27 @@ end
 h = waitbar(0,'Loading Calls Please wait...');
 % Whenever load new file, reset bAnnotate to false
 handles.data.bAnnotate = false;
-handles.data.calls = [];
-handles.data.audiodata = [];
-[handles.data.calls, handles.data.audiodata, handles.data.settings.spect, detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+[handles.data.calls, handles.data.settings.spect, detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+
+if nargin < 5
+    indSt = 1;
+    % Get names of audio files contributing to this detection file
+    allAudio = unique({handles.data.calls.Audiodata.Filename},'stable');
+    if length(allAudio) > 1
+        audioselection = listdlg('PromptString','Select which Audio to Load :','ListSize',[500 300],'SelectionMode','single','ListString',allAudio);
+        indSt = find(strcmp({handles.data.calls.Audiodata.Filename},allAudio{audioselection}),1,'first');
+    end
+end
+% Get audio info for the correct audio file
+% indSt == 0 => We want the previous audio file
+if indSt == 0
+    handles.data.audiodata = handles.data.calls.Audiodata(handles.data.thisaudst-1);
+    handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'first');
+else
+    handles.data.audiodata = handles.data.calls.Audiodata(indSt);
+    handles.data.thisaudst = indSt;
+end
+handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
 if ~isempty(detmetadata)
     handles.data.settings.detectionSettings = sprintfc('%g',detmetadata.Settings)';
 end

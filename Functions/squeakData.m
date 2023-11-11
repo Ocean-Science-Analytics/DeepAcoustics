@@ -5,6 +5,8 @@ classdef squeakData < handle
         bAnnotate = false
         currentcall = 1
         current_call_valid = true
+        thisaudst = 1
+        thisaudend = 1
         windowposition = 1;
         lastWindowPosition = -1;
         cmap = 'inferno'

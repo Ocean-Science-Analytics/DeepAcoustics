@@ -62,7 +62,8 @@ for file = fname
         
     end
     Calls = struct2table(Calls);
-    save(fullfile(outpath, [data.file(end-4:end) '_Detections.mat']), 'Calls', 'audiodata', '-v7.3');
+    Calls.Audiodata = repmat(audiodata,height(Calls),1);
+    save(fullfile(outpath, [data.file(end-4:end) '_Detections.mat']), 'Calls', '-v7.3');
 end
 close(hc);
 update_folders(hObject, eventdata, handles);

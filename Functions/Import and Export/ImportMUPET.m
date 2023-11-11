@@ -27,10 +27,11 @@ for i=1:length(MUPET.SyllableNumber)
     Calls(i).Score = 1;
     Calls(i).Accept=1;
     Calls(i).Type=categorical({'Call'});
+    Calls(i).Audiodata = audiodata;
 end
 Calls = struct2table(Calls);
 [~, name] = fileparts(mupetname);
 [FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [name '_Detections.mat']),'Save Call File');
-save([PathName, FileName],'Calls', 'audiodata', '-v7.3');
+save([PathName, FileName],'Calls', '-v7.3');
 close(hc);
 update_folders(hObject, eventdata, handles);

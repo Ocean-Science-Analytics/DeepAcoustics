@@ -1,6 +1,8 @@
 function handles = update_focus_display(handles)
 
-if ~isempty(handles.current_detection_file)
+if ~isempty(handles.current_detection_file) && ~isempty(handles.current_audio_file)
+    set(handles.displayfile,'String',{char(handles.current_detection_file);char(handles.current_audio_file)})
+elseif ~isempty(handles.current_detection_file)
     set(handles.displayfile,'String',char(handles.current_detection_file))
 elseif ~isempty(handles.current_audio_file)
     set(handles.displayfile,'String',char(handles.current_audio_file))
@@ -20,8 +22,13 @@ set(handles.focusWindow,...
     'Xlim', [handles.current_focus_position(1), handles.current_focus_position(1) + handles.current_focus_position(3)],...
     'Ylim',[handles.data.settings.LowFreq, handles.data.settings.HighFreq]);
 
-if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && height(handles.data.calls) > 0 && isa(handles.data.calls.StTime(1),'datetime')
-    sttime = handles.data.calls.StTime(1) - handles.data.calls.Box(1,1)/86400;
+% If StTime exists as a variable, and there are calls to display, and the
+% contents of StTime are datetime format, set start time of the file to the StTime of
+% the first call in the audio file - the # of seconds into file the call is
+if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && ...
+        ~isempty(handles.data.thisaudst) && ~isempty(handles.data.thisaudend) && ...
+        isa(handles.data.calls.StTime(handles.data.thisaudst),'datetime')
+    sttime = handles.data.calls.StTime(handles.data.thisaudst) - handles.data.calls.Box(handles.data.thisaudst,1)/86400;
 else
     sttime = 0;
 end
@@ -30,7 +37,9 @@ end
 set_tick_timestamps(handles.focusWindow, true, sttime);
 
 % Don't update the call info the there aren't any calls in the page view
-if isempty(handles.data.calls) || ~any(handles.data.calls.Box(handles.data.currentcall,1) > ti_f(1) &...
+% Subset of calls restricted to current audio file
+subCalls = handles.data.calls(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
+if isempty(subCalls) || ~any(handles.data.calls.Box(handles.data.currentcall,1) > ti_f(1) &...
         sum(handles.data.calls.Box(handles.data.currentcall,[1,3]),2) < ti_f(end))
     return
 end
@@ -53,7 +62,7 @@ end
 % Set the sliders to the saved values
 set(handles.TonalitySlider, 'Value', handles.data.calls.EntThresh(handles.data.currentcall));
 
-[I,windowsize,noverlap,nfft,rate,box,~,~,~] = CreateFocusSpectrogram(handles.data.calls(handles.data.currentcall,:),handles,false, [], handles.data);
+[I,windowsize,noverlap,nfft,rate,box,~,~,~] = CreateFocusSpectrogram(handles.data.calls(handles.data.currentcall,:),handles,false, []);
 
 stats = CalculateStats(I,windowsize,noverlap,nfft,rate,box,handles.data.calls.EntThresh(handles.data.currentcall),handles.data.calls.AmpThresh(handles.data.currentcall));
 

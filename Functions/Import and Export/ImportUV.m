@@ -65,12 +65,17 @@ Calls = struct2table(Calls);
 [FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, strrep(ultravoxName,'.txt','_Detections.mat')), 'Save Call File');
 filename = fullfile(PathName,FileName);
 
-Calls = merge_boxes(Calls.Box, Calls.Score, Calls.Type, audiodata, 1, 0, 0);
+Calls = merge_boxes(Calls.Box, Calls.Score, Calls.Type, audiodata, [], 1, 0, 0);
+Calls.Audiodata = repmat(audiodata,height(Calls),1);
 
 h = waitbar(.9,'Saving Output Structures');
 detectiontime = datestr(datetime('now'),'YYYY-MM-DD HH_MM PM');
+detection_metadata = struct(...
+    'Settings', 'N/A; UV Import',...
+    'detectiontime', detectiontime,...
+    'networkselections', 'N/A; UV Import');
 spect = handles.data.settings.spect;
-save(filename,'Calls','audiodata','spect','detectiontime','-v7.3');
+save(filename,'Calls','detection_metadata','spect','-v7.3');
 
 close(h);
 

@@ -1,13 +1,13 @@
 function ExportExcel(hObject, eventdata, handles)
 
-    function t = loop_calls(Calls, hc,includereject,waitbar_text,handles,call_file, audioReader)
+    function t = loop_calls(Calls, hc,includereject,waitbar_text,handles,call_file)
         exceltable = [{'File'} {'ID'} {'Label'} {'Accepted'} {'Score'} {'Begin Time (s)'} {'End Time (s)'} {'Call Length (s)'} {'Principal Frequency (kHz)'} {'Low Freq (kHz)'} {'High Freq (kHz)'} {'Delta Freq (kHz)'} {'Frequency Standard Deviation (kHz)'} {'Slope (kHz/s)'} {'Sinuosity'} {'Mean Power (dB/Hz)'} {'Tonality'} {'Peak Freq (kHz)'}];        
         for i = 1:height(Calls) % Do this for each call
             waitbar(i/height(Calls),hc,waitbar_text);
 
             if includereject || Calls.Accept(i)
                 
-                if Calls.Box(i,1) + Calls.Box(i,3) > audioReader.audiodata.Duration
+                if Calls.Box(i,1) + Calls.Box(i,3) > Calls.Audiodata(i).Duration
                    warning('Call box start beyond audio duration. Skipping call %i in file %s',i,call_file); 
                    continue;
                 end
@@ -17,7 +17,7 @@ function ExportExcel(hObject, eventdata, handles)
                 end
 
                 % Get spectrogram data
-                [I,windowsize,noverlap,nfft,rate,box] = CreateFocusSpectrogram(Calls(i, :),handles,true, [], audioReader);
+                [I,windowsize,noverlap,nfft,rate,box] = CreateFocusSpectrogram(Calls(i, :),handles,true, []);
                 
                 % If each call was saved with its own Entropy and Amplitude
                 % Threshold, run CalculateStats with those values,

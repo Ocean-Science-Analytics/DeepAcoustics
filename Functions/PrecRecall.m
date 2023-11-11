@@ -2,8 +2,8 @@ function PrecRecall(handles)
 % Select Det File for testing network
 [detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder);
 PathToDet = fullfile(detpath,detfile);
-[CallsAnn, detaudiodata, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
-AudioFile = detaudiodata.Filename;
+[CallsAnn, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
+allAudio = unique({CallsAnn.Audiodata.Filename},'stable');
 
 [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Network to Evaluate');
 lastwarn('');
@@ -31,7 +31,10 @@ fig = uifigure;
 d = uiprogressdlg(fig,'Title','Detecting Calls',...
     'Indeterminate','on');
 drawnow
-Calls = SqueakDetect(AudioFile,netload,Settings,1,1);
+for i = 1:length(allAudio)
+    AudioFile = allAudio{i};
+    Calls = SqueakDetect(AudioFile,netload,Settings,1,1);
+end
 close(d)
 close(fig)
 
@@ -90,9 +93,9 @@ detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
 
 % Append date to filename
 if Settings(5)
-    fname = [audioname ' ' detectiontime '_Detections.mat'];
+    fname = [audioname '_' num2str(length(numAudio)) 'AudFiles ' detectiontime '_Detections.mat'];
 else
-    fname = [audioname '_Detections.mat'];
+    fname = [audioname '_' num2str(length(numAudio)) 'AudFiles_Detections.mat'];
 end
 [fname,fpath] = uiputfile(fullfile(handles.data.settings.networkfolder, fname),'Save the Detected Calls');
 
@@ -101,8 +104,7 @@ if ~isempty(Calls)
         'Settings', Settings,...
         'detectiontime', detectiontime,...
         'networkselections', NetName);
-    audiodata = audioinfo(AudioFile);
-    save(fullfile(fpath,fname),'Calls', 'detection_metadata', 'audiodata' ,'-v7.3', '-mat');
+    save(fullfile(fpath,fname),'Calls', 'detection_metadata','-v7.3', '-mat');
 end
 
 end

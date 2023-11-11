@@ -8,7 +8,7 @@ cla(handles.spectrogramWindow);
 cla(handles.waveformWindow);
 
 %
-handles.data.currentcall = 1;
+handles.data.currentcall = handles.data.thisaudst;
 handles.data.current_call_valid = true;
 
 handles.data.windowposition = 0;

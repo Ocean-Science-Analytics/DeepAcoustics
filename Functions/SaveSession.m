@@ -8,15 +8,13 @@ if isfield(handles,'current_detection_file')
     handles.SaveFile = handles.detectionfiles(handles.current_file_id).name;
     handles.SaveFile = handles.current_detection_file;
 else
-    handles.SaveFile = [strtok(handles.audiofiles(handles.current_file_id).name,'.') '_Detections.mat'];
+    uniqAudio = unique(handles.data.calls.Audiodata,'stable');
+    handles.SaveFile = [uniqAudio(1).Filename '_' num2str(length(uniqAudio)) '_Detections.mat'];
 end
 
-% temp = handles.data.audiodata.samples;
-% handles.data.audiodata.samples = [];
 guidata(hObject, handles);
 
 Calls = handles.data.calls;
-audiodata = handles.data.audiodata;
 if bAuto
     FileName = handles.SaveFile;
     PathName = handles.data.settings.detectionfolder;
@@ -29,8 +27,7 @@ end
 h = waitbar(0.5, 'saving');
 
 spect = handles.data.settings.spect;
-save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7.3');
-% handles.data.audiodata.samples = temp;
+save(fullfile(PathName, FileName), 'Calls','spect', '-v7.3');
 update_folders(hObject, eventdata, handles);
 guidata(hObject, handles);
 close(h);

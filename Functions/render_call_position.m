@@ -2,9 +2,11 @@ function  handles = render_call_position(handles, all_calls)
 %% This function makes and updates the little window with the green lines
 % Timestamp for each call
 
+% Subset calls to those restricted to current audio file
+subCalls = handles.data.calls(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
 % Initialize the display
 if all_calls
-    CallTime = handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3)/2;
+    CallTime = subCalls.Box(:,1) + subCalls.Box(:,3)/2;
     handles.update_position_axes = 0;
     %     line([0 max(CallTime)],[0 0],'LineWidth',1,'Color','w','Parent', handles.detectionAxes);
     %     line([0 max(CallTime)],[1 1],'LineWidth',1,'Color','w','Parent', handles.detectionAxes);
@@ -43,8 +45,8 @@ if all_calls
 %     end
     
     % Plot kernal densityp
-    if any(handles.data.calls.Accept)
-        [f,xi] = ksdensity(CallTime(handles.data.calls.Accept == true), linspace(0,handles.data.audiodata.Duration,300),...
+    if any(subCalls.Accept)
+        [f,xi] = ksdensity(CallTime(subCalls.Accept == true), linspace(0,handles.data.audiodata.Duration,300),...
             'Bandwidth', handles.data.audiodata.Duration / 300,...
             'Kernel', 'normal');
         f(1) = 0;
@@ -61,7 +63,9 @@ end
 
 
 calltime = handles.data.focusCenter;
-if ~isempty(handles.data.calls)
+if ~isempty(subCalls)
+    % Should not have to correct indexing here because currentcall indexes
+    % into full handles.data.calls table
     calltime = handles.data.calls.Box(handles.data.currentcall, 1);
     if handles.data.calls.Accept(handles.data.currentcall)
         handles.CurrentCallLinePosition.Color = [0,1,0];

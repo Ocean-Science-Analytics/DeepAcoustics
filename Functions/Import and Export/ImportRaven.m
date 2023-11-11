@@ -169,6 +169,8 @@ if ~bAutoTry
     end
 end
 
+Calls = [];
+nAudCt = 0;
 % For every incoming selection table...
 for i = 1:length(ravenname)
     % Import as table (method depends on incoming file type)
@@ -179,6 +181,7 @@ for i = 1:length(ravenname)
     end
     % For every audio file contained within this Raven selection table
     for j = 1:length(audioname{i})
+        nAudCt = nAudCt+1;
         % subTable = only the dets that belong to this audio file
         if length(audioname{i}) > 1
             subTable = ravenTable(strcmp(audioname{i}{j},ravenTable.BeginFile),:);
@@ -221,14 +224,17 @@ for i = 1:length(ravenname)
         else
             Type = categorical(repmat({'Call'}, height(subTable), 1));
         end
+        Audiodata = repmat(audiodata,height(subTable),1);
 
         %% Put all the variables into a table
-        Calls = table(Box,Score,Accept,Type,'VariableNames',{'Box','Score','Accept','Type'});
-        % Auto-name Detections.mat using audioname
-        [~ ,FileName] = fileparts(audioname{i}{j});
-        % Save Detections.mat
-        save(fullfile(outpath,[FileName '_Detections.mat']),'Calls', 'audiodata');
+        Calls_tmp = table(Box,Score,Accept,Type,Audiodata,'VariableNames',{'Box','Score','Accept','Type','Audiodata'});
+        Calls = [Calls; Calls_tmp];
         close(hc);
     end
 end
+% Auto-name Detections.mat using audioname
+[~ ,FileName] = fileparts(audioname{1}{1});
+FileName = [FileName '_' num2str(nAudCt) 'AudFiles'];
+% Save Detections.mat
+save(fullfile(outpath,[FileName '_Detections.mat']),'Calls');
 update_folders(hObject, eventdata, handles);

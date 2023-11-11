@@ -12,6 +12,8 @@ Calls.Ovlp = zeros(height(Calls),1);
 Calls.IndMatch = zeros(height(Calls),1);
 % For every real call
 for i = 1:height(CallsAnn)
+    % Get the name of the corresponding audio file
+    thisaud = CallsAnn.Audiodata(i).Filename;
     % Extract the true
     thisbox = CallsAnn.Box(i,:);
     % Start and end re beg of wav file
@@ -19,10 +21,10 @@ for i = 1:height(CallsAnn)
     thisboxend = thisbox(1)+thisbox(3);
     % Indices where det call starts during true call (det call start is
     % after true call start but before end)
-    indA = Calls.Box(:,1) >= thisboxst & Calls.Box(:,1) < thisboxend;
+    indA = Calls.Box(:,1) >= thisboxst & Calls.Box(:,1) < thisboxend & strcmp({Calls.Audiodata.Filename},thisaud);
     % Indices where det call starts before true call (det call start is
     % before true call start and end is after true call start)
-    indB = Calls.Box(:,1) < thisboxst & (Calls.Box(:,1)+Calls.Box(:,3)) >= thisboxst;
+    indB = Calls.Box(:,1) < thisboxst & (Calls.Box(:,1)+Calls.Box(:,3)) >= thisboxst & strcmp({Calls.Audiodata.Filename},thisaud);
     ind = indA | indB;
     % Subset of dets that overlap with this true call
     Calls_sub = Calls.Box(ind,:);
@@ -85,6 +87,8 @@ if bDupsFound
         % If still unassigned
         if ~ismember(i,[Calls.IndMatch])
             warning('Capability untested - talk to Gabi if you see this message')
+            % Get the name of the corresponding audio file
+            thisaud = CallsAnn.Audiodata(i).Filename;
             % Extract the true
             thisbox = CallsAnn.Box(i,:);
             % Start and end re beg of wav file
@@ -92,10 +96,10 @@ if bDupsFound
             thisboxend = thisbox(1)+thisbox(3);
             % Indices where det call starts during true call (det call start is
             % after true call start but before end)
-            indA = Calls.Box(:,1) >= thisboxst & Calls.Box(:,1) < thisboxend;
+            indA = Calls.Box(:,1) >= thisboxst & Calls.Box(:,1) < thisboxend & strcmp({Calls.Audiodata.Filename},thisaud);
             % Indices where det call starts before true call (det call start is
             % before true call start and end is after true call start)
-            indB = Calls.Box(:,1) < thisboxst & (Calls.Box(:,1)+Calls.Box(:,3)) >= thisboxst;
+            indB = Calls.Box(:,1) < thisboxst & (Calls.Box(:,1)+Calls.Box(:,3)) >= thisboxst & strcmp({Calls.Audiodata.Filename},thisaud);
             ind = indA | indB;
             % Remove Calls that still have a better match
             ind = ind & Calls.IndMatch == 0;

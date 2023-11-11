@@ -22,7 +22,7 @@ new_low_freq = str2double(response{1});
 h = waitbar(0,'Initializing');
 % For each file
 for i = 1:length(fname)
-    [Calls, audiodata] = loadCallfile(fullfile(fpath, fname{i}),handles,false);
+    [Calls] = loadCallfile(fullfile(fpath, fname{i}),handles,false);
 
     waitbar(i/length(fname),h,['Processing File ' num2str(i) ' of '  num2str(length(fname))]);
 
@@ -40,7 +40,7 @@ for i = 1:length(fname)
         end
 
         % Make sure the new high frequency fits within the spectrogram
-        Calls.Box(j, 4) = min(Calls.Box(j, 4), audiodata.SampleRate ./ 2000 - Calls.Box(j, 2));
+        Calls.Box(j, 4) = min(Calls.Box(j, 4), Calls.Audiodata.SampleRate ./ 2000 - Calls.Box(j, 2));
         Calls.Box(j, 4) = max(Calls.Box(j, 4), 1);
 
     end
@@ -56,5 +56,5 @@ guidata(hObject, handles);
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);  % Get newest version of handles
 if isfield(handles,'current_detection_file')
-    LoadCalls(hObject, eventdata, handles, true)
+    LoadCalls(hObject, eventdata, handles, 1, true)
 end
