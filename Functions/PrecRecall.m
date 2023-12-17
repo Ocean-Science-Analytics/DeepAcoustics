@@ -4,6 +4,8 @@ function PrecRecall(handles)
 PathToDet = fullfile(detpath,detfile);
 [CallsAnn, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
 allAudio = unique({CallsAnn.Audiodata.Filename},'stable');
+% Set up adjusted box variable
+CallsAnn.BoxAdj = CallsAnn.Box;
 
 [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Network to Evaluate');
 lastwarn('');
@@ -31,9 +33,34 @@ fig = uifigure;
 d = uiprogressdlg(fig,'Title','Detecting Calls',...
     'Indeterminate','on');
 drawnow
+
+nCumulDur = 0;
+Calls = [];
 for i = 1:length(allAudio)
+    % Accumulate audio durations for BoxAdj
+    if i > 1
+        % Get indices of rows corresponding to the previous audio file
+        nPrevFirst = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'first');
+        nPrevLast = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'last');
+        % Pull duration of previous audio file
+        nCumulDur = CallsAnn.Audiodata(nPrev).Duration;
+    end
+
+    % Run detector
     AudioFile = allAudio{i};
-    Calls = SqueakDetect(AudioFile,netload,Settings,1,1);
+    Calls_ThisAudio = SqueakDetect(AudioFile,netload,Settings,1,1);
+
+    % Add new Box col with adjusted boxes for P/R calculation
+    Calls_ThisAudio.BoxAdj = Calls_ThisAudio.Box;
+    % Adjust annotated calls
+    CallsAnn.BoxAdj(nPrevFirst:nPrevLast,1) = CallsAnn.Box(nPrevFirst:nPrevLast,1)+nCumulDur;
+    % Adjust fresh calls
+    Calls_ThisAudio.BoxAdj(:,1) = Calls_ThisAudio.Box(:,1)+nCumulDur;
+
+    % Add detections to all Calls tables
+    if ~isempty(Calls_ThisAudio)
+        Calls = [Calls; Calls_ThisAudio];
+    end
 end
 close(d)
 close(fig)
@@ -47,9 +74,9 @@ if percTPThresh < 0 || percTPThresh > 1
     error('Threshold for overlap must be between 0 and 1')
 end
 
-results = table({table2array(Calls(:,1))},{table2array(Calls(:,2))},{categorical(ones(height(Calls),1),1,'Call')});
+results = table({table2array(Calls(:,'BoxAdj'))},{table2array(Calls(:,2))},{categorical(ones(height(Calls),1),1,'Call')});
 results = renamevars(results,1:3,{'Box','Scores','Label'});
-grdtruth = table({table2array(CallsAnn(:,1))});
+grdtruth = table({table2array(CallsAnn(:,'BoxAdj'))});
 grdtruth = renamevars(grdtruth,1,'Call');
 
 [avgprec, recallvec, precvec] = evaluateDetectionPrecision(results, grdtruth, percTPThresh);
