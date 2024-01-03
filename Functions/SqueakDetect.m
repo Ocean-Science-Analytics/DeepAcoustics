@@ -130,7 +130,9 @@ for i = 1:length(chunks)-1
         bboxes(:,1) = ti(nbboxes(:,1)) + (windL ./ audio_info.SampleRate);
         bboxes(:,2) = fr(upper_freq - (nbboxes(:,2) + nbboxes(:,4))) ./ 1000;
         bboxes(:,3) = ti(nbboxes(:,3));
-        bboxes(:,4) = fr(nbboxes(:,4)) ./ 1000;
+        %bboxes(:,4) = fr(nbboxes(:,4)) ./ 1000;
+        binwidth = (fr(2)-fr(1)) ./ 1000;
+        bboxes(:,4) = single(nbboxes(:,4)).*binwidth;
         
         % Concatinate the results
         AllBoxes=[AllBoxes

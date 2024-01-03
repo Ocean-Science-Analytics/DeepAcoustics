@@ -146,7 +146,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 update_fig(hObject, eventdata, handles, true);
                 % Update the color limits because changing from amplitude to
                 % power would mess with them
-                handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
+                %handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
+                handles.data.clim = prctile(handles.data.page_spect.s_display, [10,90], 'all')';
                 ChangeSpecCLim(hObject,[],handles);
     
                 handles.focusWindow.Colorbar.Label.String = handles.data.settings.spect.type;

@@ -16,6 +16,11 @@ windowsize = round(handles.data.audiodata.SampleRate * handles.data.settings.spe
 noverlap = round(handles.data.audiodata.SampleRate * handles.data.settings.spect.noverlap);
 nfft = round(handles.data.audiodata.SampleRate * handles.data.settings.spect.nfft);
 
+if noverlap >= windowsize
+    warning('Overlap must be less than window size - automatically reducing to window size-1')
+    noverlap = windowsize-1;
+end
+
 %% Get audio within the page range, padded by focus window size
 window_start = max(handles.data.windowposition - handles.data.settings.focus_window_size/2, 0);
 window_stop = handles.data.windowposition + handles.data.settings.pageSize + handles.data.settings.focus_window_size/2;
