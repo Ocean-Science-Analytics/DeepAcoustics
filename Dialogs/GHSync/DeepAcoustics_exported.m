@@ -26,10 +26,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuNetTrain                matlab.ui.container.Menu
         menuCreateTrainImg          matlab.ui.container.Menu
         menuTrainDetNet             matlab.ui.container.Menu
-        menuAutoPruning             matlab.ui.container.Menu
-        menuBatchReject             matlab.ui.container.Menu
-        menuRemoveRejects           matlab.ui.container.Menu
-        menuSetStaticBoxHeight      matlab.ui.container.Menu
         menuCallClass               matlab.ui.container.Menu
         menuAddCustomLabels         matlab.ui.container.Menu
         menuUnsupClust              matlab.ui.container.Menu
@@ -40,6 +36,10 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuMergeDetFiles           matlab.ui.container.Menu
         menuAddDateTime             matlab.ui.container.Menu
         menuDecimation              matlab.ui.container.Menu
+        menuAutoPruning             matlab.ui.container.Menu
+        menuBatchReject             matlab.ui.container.Menu
+        menuRemoveRejects           matlab.ui.container.Menu
+        menuSetStaticBoxHeight      matlab.ui.container.Menu
         menuPrecRecall              matlab.ui.container.Menu
         menuHelp                    matlab.ui.container.Menu
         menuAbout                   matlab.ui.container.Menu
@@ -146,7 +146,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 update_fig(hObject, eventdata, handles, true);
                 % Update the color limits because changing from amplitude to
                 % power would mess with them
-                handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
+                %handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
+                handles.data.clim = prctile(handles.data.page_spect.s_display, [10,90], 'all')';
                 ChangeSpecCLim(hObject,[],handles);
     
                 handles.focusWindow.Colorbar.Label.String = handles.data.settings.spect.type;
