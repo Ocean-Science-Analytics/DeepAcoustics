@@ -90,8 +90,20 @@ for i = 1:length(chunks)-1
         end
         
         [~,fr,ti,p] = spectrogram(audio(:,1),wind,noverlap,nfft,audio_info.SampleRate,'yaxis'); % Just use the first audio channel
-        upper_freq = find(fr<=HighCutoff*1000,1,'last');
-        lower_freq = find(fr>=LowCutoff*1000,1,'first');
+        % Air on the side of generosity with the bin cut-offs given
+        % spectrogram settings
+        upper_freq = find(fr>HighCutoff*1000,1,'first');
+        lower_freq = find(fr<LowCutoff*1000,1,'last');
+        % Account for buffer overflow in either direction
+        if isempty(upper_freq)
+            upper_freq = length(fr);
+        end
+        if isempty(lower_freq)
+            lower_freq = 1;
+        end
+        if i==1
+            disp(['Freq cut-offs (given spec settings) set to ' num2str(fr(lower_freq)) ' Hz and ' num2str(fr(upper_freq)) ' Hz']);
+        end
         pow = p(lower_freq:upper_freq,:);
         pow(pow==0)=.01;
         pow = log10(pow);
