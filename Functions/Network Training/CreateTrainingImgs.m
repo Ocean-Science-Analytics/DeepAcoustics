@@ -153,31 +153,61 @@ end
 % Create training images and boxes
 function [im, box] = CreateTrainingData(audio,rate,Calls,wind,noverlap,nfft,freqCutoff,filename,AmplitudeRange,replicatenumber,StretchRange)
 
-% Augment by adjusting the gain
-% The first training image should not be augmented
-if replicatenumber > 1
-    AmplitudeFactor = range(AmplitudeRange).*rand() + AmplitudeRange(1);
-    StretchFactor = range(StretchRange).*rand() + StretchRange(1);
-else
-    AmplitudeFactor = 1;
-    StretchFactor = 1;
-end
-if width(audio)>height(audio)
-    audio=audio';
+p = [];
+nCountTries = 0;
+while any(size(p) < 3) && nCountTries < 5
+    nCountTries = nCountTries+1;
+    % Augment by adjusting the gain
+    % The first training image should not be augmented
+    if replicatenumber > 1
+        AmplitudeFactor = range(AmplitudeRange).*rand() + AmplitudeRange(1);
+        StretchFactor = range(StretchRange).*rand() + StretchRange(1);
+    else
+        AmplitudeFactor = 1;
+        StretchFactor = 1;
+    end
+    if width(audio)>height(audio)
+        audio=audio';
+    end
+    
+    thiswind = round(rate * wind*StretchFactor);
+    thisnoverlap = round(rate * noverlap*StretchFactor);
+    thisnfft = round(rate * nfft*StretchFactor);
+    
+    if thisnoverlap >= thiswind
+        warning('Overlap must be less than window size - automatically reducing to window size-1 (this may be due to data augmentation)')
+        thisnoverlap = thiswind-1;
+    end
+    % Make the spectrogram
+    [~, fr, ti, p] = spectrogram(audio(:,1),...
+        thiswind,...
+        thisnoverlap,...
+        thisnfft,...
+        rate,...
+        'yaxis');
+
+    if any(size(p) < 3)
+        if replicatenumber == 1
+            error('FFT settings suboptimal and causing losses in training data - recommend changing')
+        else
+            warning('Data augmentation exacerbating suboptimal FFT settings - recommend changing')
+        end
+    end
 end
 
-% Make the spectrogram
-[~, fr, ti, p] = spectrogram(audio(:,1),...
-    round(rate * wind*StretchFactor),...
-    round(rate * noverlap*StretchFactor),...
-    round(rate * nfft*StretchFactor),...
-    rate,...
-    'yaxis');
+% If trying a different random augmentation adjustment didn't work
+if any(size(p) < 3)
+    error('FFT settings suboptimal and causing losses in training data - recommend changing')
+end
 
 % -- remove frequencies below well outside of the box
-lowCut=(min(Calls.Box(:,2))-(min(Calls.Box(:,2))*.75))*1000;
-min_freq  = find(fr>lowCut);
-p = p(min_freq,:);
+% GA: Removing this because I think it removes informative noise from
+% images and even if it did make sense, it doesn't make sense to do it on the low freq end and not the
+% high freq end
+% lowCut=(min(Calls.Box(:,2))-(min(Calls.Box(:,2))*.75))*1000;
+% min_freq  = find(fr>lowCut);
+% p = p(min_freq,:);
+
 
 % % Add brown noise to adjust the amplitude
 % if replicatenumber > 1
@@ -216,17 +246,17 @@ box = ceil([x1, length(fr)-y1-y2, x2, y2]);
 box = box(Calls.Accept == 1, :);
 % No zeros (must be at least 1)
 box(box <= 0) = 1;
-% start time index must be at least 1 less than length of ti
-box(box(:,1) > length(ti)-1,1) = length(ti)-1;
+% start time index must be at least 1 less than (length of ti - 1)
+box(box(:,1) > length(ti)-2,1) = length(ti)-2;
 % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
-box((box(:,3)+box(:,1)) > length(ti),3) = length(ti)-box((box(:,3)+box(:,1)) > length(ti),1);
+box((box(:,3)+box(:,1)) >= length(ti),3) = length(ti)-1-box((box(:,3)+box(:,1)) >= length(ti),1);
 % start freq index must be at least 1 less than (length of fr - 1)
 % actual axis of im = length(fr)-1 (frequencies must correspond
-% to between pixels not the pixels themselves
-box(box(:,2) > length(fr)-1,2) = length(fr)-2;
+% to between pixels not the pixels themselves)
+box(box(:,2) > length(fr)-2,2) = length(fr)-2;
 % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
 % <= because actual axis of im = length(fr)-1 (frequencies must correspond
-% to between pixels not the pixels themselves
+% to between pixels not the pixels themselves)
 box((box(:,4)+box(:,2)) >= length(fr),4) = length(fr)-1-box((box(:,4)+box(:,2)) >= length(fr),2);
 
 % resize images for 300x300 YOLO Network (Could be bigger but works nice)
