@@ -130,12 +130,12 @@ for i = 1:length(chunks)-1
         % Check bbox limits
         % No zeros (must be at least 1)
         nbboxes(nbboxes<=0) = 1;
-        % start time index must be at least 1 less than length of ti
-        nbboxes(nbboxes(:,1) > length(ti)-1,1) = length(ti)-1;
+        % start time index must be at least 1 less than length of ti-1
+        nbboxes(nbboxes(:,1) > length(ti)-2,1) = length(ti)-2;
         % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
-        nbboxes((nbboxes(:,3)+nbboxes(:,1)) > length(ti),3) = length(ti)-nbboxes((nbboxes(:,3)+nbboxes(:,1)) > length(ti),1);
-        % start freq index must be at least 1 less than length of fr
-        nbboxes(nbboxes(:,2) > length(fr)-1,2) = length(fr)-2;
+        nbboxes((nbboxes(:,3)+nbboxes(:,1)) >= length(ti),3) = length(ti)-1-nbboxes((nbboxes(:,3)+nbboxes(:,1)) >= length(ti),1);
+        % start freq index must be at least 1 less than length of fr-1
+        nbboxes(nbboxes(:,2) > length(fr)-2,2) = length(fr)-2;
         % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
         nbboxes((nbboxes(:,4)+nbboxes(:,2)) >= length(fr),4) = length(fr)-1-nbboxes((nbboxes(:,4)+nbboxes(:,2)) >= length(fr),2);
 
