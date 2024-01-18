@@ -39,7 +39,7 @@ if isfield(data, 'Calls')
     if ~any(strcmp('Ovlp', Calls.Properties.VariableNames))
         Calls.Ovlp(:) = 0;
     end
-    if ~any(strcmp('StTime', Calls.Properties.VariableNames)) || all([Calls.StTime]==0)
+    if ~any(strcmp('StTime', Calls.Properties.VariableNames)) || ~isa(Calls.StTime(1),'datetime')
         if ~isempty(audiodata) && bTryDT
             [~,fnonly,~] = fileparts(filename);
             Calls = AddDateTime(Calls,audiodata,fnonly);
