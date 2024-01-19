@@ -6,45 +6,66 @@ for i = 1:height(Calls)
     [~,audioname,~] = fileparts(audioname);
     
     % Try to figure out Date/Time of start of Detections.mat using audio file
-    % First look for YYMMDD.*HHMMSS
-    [thisdt,~] = regexp(audioname,'([0-9]{6}).*([0-9]{6})','tokens','match');
-    % If failure, then try YYMMDD.*HHMM
-    if isempty(thisdt)
+    % First, count pairs of numbers (need at least 10 for four-digit time, 12
+    % for six-digit time)
+    thisdt = [];
+    [nPairs,~] = regexp(audioname,'([0-9]{2})','tokens','match');
+    nPairs = size(nPairs,2);
+    if nPairs >= 6
+        % First look for YYMMDD.*HHMMSS
+        [thisdt,~] = regexp(audioname,'([0-9]{6})','tokens','match');
+        % If failure, then try YYMMDD.*HHMM
+        if size(thisdt,2) < 2
+            [thisdt,~] = regexp(audioname,'([0-9]{6}).*([0-9]{4})','tokens','match');
+            if ~isempty(thisdt)
+                % Unnest
+                thisdt = thisdt{1};
+                thissec = 0;
+            end
+        % If success, assume the last two arrays contain the date/time (ST)
+        else
+            thisdt = thisdt(end-1:end);
+            thissec = str2double(thisdt{end}{1}(5:6));
+        end
+    % Try looking for YYMMDD.*HHMM
+    elseif nPairs >= 5
         [thisdt,~] = regexp(audioname,'([0-9]{6}).*([0-9]{4})','tokens','match');
         if ~isempty(thisdt)
+            % Unnest
+            thisdt = thisdt{1};
             thissec = 0;
-        else
-            answer = questdlg({'Auto detect failed. Would you like to manually input the start date/time of the following file?:'; ...
-                detname},'Manual Input Date/Time','Yes','No','Yes');
-            switch answer
-                case 'Yes'
-                    dlg_title = 'Custom Input';
-                    num_lines=[1 length(dlg_title)+30];
-                    dlgin = inputdlg({'Year (2-digit):','Month (2-digit):','Day:',...
-                        'Hour:','Minute:','Second:'},...
-                        dlg_title, num_lines); 
-                    if ~isempty(dlgin)
-                        thisdt = {{[dlgin{1} dlgin{2} dlgin{3}] [dlgin{4} dlgin{5} dlgin{6}]}};
-                        thissec = str2double(thisdt{1}{2}(5:6));
-                    end
-            end
         end
-    else
-        thissec = str2double(thisdt{1}{2}(5:6));
     end
-    
+    % If all failure, ask for user input
+    if isempty(thisdt)
+        answer = questdlg({'Auto detect failed. Would you like to manually input the start date/time of the following file?:'; ...
+            detname},'Manual Input Date/Time','Yes','No','Yes');
+        switch answer
+            case 'Yes'
+                dlg_title = 'Custom Input';
+                num_lines=[1 length(dlg_title)+30];
+                dlgin = inputdlg({'Year (2-digit):','Month (2-digit):','Day:',...
+                    'Hour:','Minute:','Second:'},...
+                    dlg_title, num_lines); 
+                if ~isempty(dlgin)
+                    thisdt = {{[dlgin{1} dlgin{2} dlgin{3}] [dlgin{4} dlgin{5} dlgin{6}]}};
+                    thissec = str2double(thisdt{1}{2}(5:6));
+                end
+        end
+    end
+
     % Stash d/t variables and do a sanity check
     if ~isempty(thisdt)
         % Fill in variables from filename (seconds taken care of already)
         thisyr = str2double(thisdt{1}{1}(1:2));
         thismo = str2double(thisdt{1}{1}(3:4));
         thisday = str2double(thisdt{1}{1}(5:6));
-        thishr = str2double(thisdt{1}{2}(1:2));
-        thismin = str2double(thisdt{1}{2}(3:4));
-    
+        thishr = str2double(thisdt{2}{1}(1:2));
+        thismin = str2double(thisdt{2}{1}(3:4));
+
         % Sanity check of date/time
         % Check year
-        bNope = thisyr > 99;
+        bNope = thisyr > (year(datetime('today'))-2000);
         % Check month
         bNope = bNope | (thismo < 1 || thismo > 12);
         % Check day
