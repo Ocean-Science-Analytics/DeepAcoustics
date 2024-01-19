@@ -6,11 +6,13 @@ numfiles = length(handles.detectionfiles);
 if numfiles > 0
     % Check for a previous file
     if handles.current_file_id > 1
+        % Check for changes to save to current file
+        CheckModified(hObject, eventdata, handles);
         % If confirmed possible, decrement file
         handles.current_file_id = handles.current_file_id - 1;
         handles.current_detection_file = handles.detectionfiles(handles.current_file_id).name;
         % If make fourth argument 1, will bypass the behavior of pressing
         % the LoadCalls button but won't save changes
-        LoadCalls(hObject, eventdata, handles);%, 1);
+        LoadCalls(hObject, eventdata, handles, true);
     end
 end

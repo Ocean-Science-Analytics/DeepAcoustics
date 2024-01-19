@@ -2,25 +2,11 @@
 function LoadCalls(hObject, eventdata, handles, ~)
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);
-if nargin == 3 % if "Load Calls" button pressed, load the selected file, else reload the current file
-    %Check if pre-existing detection file has changed to save file before loading a new one.
-    if ~isempty(handles.data.calls) && ~isempty(handles.current_file_id)
-        [~, ~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
-        if ~isequal(modcheck.calls, handles.data.calls) || ~isequal(modcheck.spect, handles.data.settings.spect)
-            opts.Interpreter = 'tex';
-            opts.Default='Yes';
-            if ~isequal(modcheck.calls, handles.data.calls) 
-                saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Detection file has been modified. Would you like to save changes?','Save Detection File?','Yes','No',opts);
-            elseif ~isequal(modcheck.spect, handles.data.settings.spect)
-                saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Spectrogram settings have been modified. Would you like to save changes in the det file (spect variable)?','Save Detection File?','Yes','No',opts);
-            end
-            switch saveChanges
-                case 'Yes'
-                    SaveSession(hObject, eventdata, handles);
-                case 'No'
-            end
-        end
-    end
+% if "Load Calls" button pressed, check for changes, then select a file to load,
+% else reload the current (or load Next/Prev) file
+if nargin == 3 
+    % Check if pre-existing detection file has changed to save file before loading a new one.
+    CheckModified(hObject,eventdata,handles);
     
     % Select new detections file
     [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file',handles.data.settings.detectionfolder);

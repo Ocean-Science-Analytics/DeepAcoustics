@@ -6,11 +6,13 @@ numfiles = length(handles.detectionfiles);
 if numfiles > 0
     % Check for a next file
     if handles.current_file_id < numfiles
+        % Check for changes to save to current file
+        CheckModified(hObject, eventdata, handles);
         % If confirmed possible, increment to next file
         handles.current_file_id = handles.current_file_id + 1;
         handles.current_detection_file = handles.detectionfiles(handles.current_file_id).name;
-        % If make fourth argument 1, will bypass the behavior of pressing
-        % the LoadCalls button but won't save changes
-        LoadCalls(hObject, eventdata, handles);%, 1);
+        % If make fourth argument 1, will bypass manual selection of det
+        % file
+        LoadCalls(hObject, eventdata, handles, true);
     end
 end
