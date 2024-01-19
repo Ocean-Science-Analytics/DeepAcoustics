@@ -2,10 +2,10 @@
 function LoadCalls(hObject, eventdata, handles, indSt, ~)
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);
-if nargin == 3
-    indSt = 1;
-end
-if nargin < 5 % if "Load Calls" button pressed, load the selected file, else reload the current file
+
+% if "Load Calls" button pressed, check for modifications to current file,
+% then load a user selected file, else reload the current file
+if nargin < 5 
     CheckModified(hObject,eventdata,handles);
     
     % Select new detections file
@@ -33,7 +33,7 @@ h = waitbar(0,'Loading Calls Please wait...');
 handles.data.bAnnotate = false;
 [handles.data.calls, handles.data.settings.spect, detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
 
-% Make sure audio still exists in linked locations
+% Make sure audio exists in linked locations
 uniqAud = unique({handles.data.calls.Audiodata.Filename},'stable');
 newpn = '';
 for i = 1:length(uniqAud)
@@ -65,15 +65,22 @@ for i = 1:length(uniqAud)
     end
 end
 
+% If not automatically reloading due to another function (e.g. Next/Prev
+% Call) user needs to pick which audio file to load
 if nargin < 5
-    indSt = 1;
+    % Default to first/only audio file
+    if nargin == 3
+        indSt = 1;
+    end
     % Get names of audio files contributing to this detection file
     allAudio = unique({handles.data.calls.Audiodata.Filename},'stable');
+    % If more than one audio file, have user pick which one to start
     if length(allAudio) > 1
         audioselection = listdlg('PromptString','Select which Audio to Load :','ListSize',[500 300],'SelectionMode','single','ListString',allAudio);
         indSt = find(strcmp({handles.data.calls.Audiodata.Filename},allAudio{audioselection}),1,'first');
     end
 end
+
 % Get audio info for the correct audio file
 % indSt == 0 => We want the previous audio file
 if indSt == 0

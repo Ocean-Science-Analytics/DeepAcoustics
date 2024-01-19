@@ -161,6 +161,7 @@ close(h);
 %update the display
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);  % Get newest version of handles
+% Reload current file (and current audio)
 if isfield(handles,'current_detection_file')
-    LoadCalls(hObject, eventdata, handles, 1, true)
+    LoadCalls(hObject, eventdata, handles, handles.data.thisaudst, true)
 end
