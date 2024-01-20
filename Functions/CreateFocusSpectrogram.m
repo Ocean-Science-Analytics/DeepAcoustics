@@ -23,8 +23,8 @@ if nargin < 4 || isempty(options)
         handles.data.settings.spect.windowsize = handles.data.settings.spect.windowsizesmp/rate;
         handles.data.settings.spect.noverlap = handles.data.settings.spect.noverlap/rate;
     elseif handles.data.settings.spect.nfftsmp == 0
-        handles.data.settings.spect.nfft = handles.data.settings.spect.nfft*rate;
-        handles.data.settings.spect.windowsize = handles.data.settings.spect.windowsize*rate;
+        handles.data.settings.spect.nfftsmp = handles.data.settings.spect.nfft*rate;
+        handles.data.settings.spect.windowsizesmp = handles.data.settings.spect.windowsize*rate;
     end
     handles.data.saveSettings();
     options.nfft = handles.data.settings.spect.nfft;
