@@ -185,6 +185,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             % Add paths
             addpath(genpath('Dialogs'))
             addpath(genpath('Functions'))
+            addpath(genpath('Networks'))
             
             app.mainfigure.Visible = 'off';
             % Ensure that the app appears on screen when run
