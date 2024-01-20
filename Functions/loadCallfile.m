@@ -70,6 +70,14 @@ if isfield(data, 'Calls')
             spect = [];
         end
     else
+        if data.spect.nfft == 0
+            data.spect.nfft = data.spect.nfftsmp/audiodata.SampleRate;
+            data.spect.windowsize = data.spect.windowsizesmp/audiodata.SampleRate;
+            data.spect.noverlap = data.spect.noverlap/audiodata.SampleRate;
+        elseif data.spect.nfftsmp == 0
+            data.spect.nfftsmp = data.spect.nfft*audiodata.SampleRate;
+            data.spect.windowsizesmp = data.spect.windowsize*audiodata.SampleRate;
+        end
         spect = data.spect;
     end
     if nargout == 6
