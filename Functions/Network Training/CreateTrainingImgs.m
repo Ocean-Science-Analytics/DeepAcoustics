@@ -19,8 +19,8 @@ metadata.maxfreq = 0;
 metadata.minSR = Inf;
 metadata.maxSR = 0;
 for k = 1:length(trainingdata)
-    % Load the detection and audio files
-    [Calls] = loadCallfile([trainingpath trainingdata{k}],handles,false);
+    % Load the detection and audio filesaudioReader = squeakData();
+    [Calls, audioReader.audiodata] = loadCallfile([trainingpath trainingdata{k}],handles,false);
     
     % Duration
     if min([Calls.Box(:,3)]) < metadata.mindur
@@ -39,11 +39,11 @@ for k = 1:length(trainingdata)
     end
 
     % SR
-    if min([Calls.Audiodata.SampleRate]) < metadata.minSR
-        metadata.minSR = min([Calls.Audiodata.SampleRate]);
+    if min(audioReader.audiodata.SampleRate) < metadata.minSR
+        metadata.minSR = min(audioReader.audiodata.SampleRate);
     end
-    if max([Calls.Audiodata.SampleRate]) > metadata.maxSR
-        metadata.maxSR = max([Calls.Audiodata.SampleRate]);
+    if max(audioReader.audiodata.SampleRate) > metadata.maxSR
+        metadata.maxSR = max(audioReader.audiodata.SampleRate);
     end
 end
 
