@@ -8,8 +8,8 @@ if handles.data.settings.spect.nfft == 0
     handles.data.settings.spect.windowsize = handles.data.settings.spect.windowsizesmp/handles.data.audiodata.SampleRate;
     handles.data.settings.spect.noverlap = handles.data.settings.spect.noverlap/handles.data.audiodata.SampleRate;
 elseif handles.data.settings.spect.nfftsmp == 0
-    handles.data.settings.spect.nfft = handles.data.settings.spect.nfft*handles.data.audiodata.SampleRate;
-    handles.data.settings.spect.windowsize = handles.data.settings.spect.windowsize*handles.data.audiodata.SampleRate;
+    handles.data.settings.spect.nfftsmp = handles.data.settings.spect.nfft*handles.data.audiodata.SampleRate;
+    handles.data.settings.spect.windowsizesmp = handles.data.settings.spect.windowsize*handles.data.audiodata.SampleRate;
 end
 handles.data.saveSettings();
 windowsize = round(handles.data.audiodata.SampleRate * handles.data.settings.spect.windowsize);
