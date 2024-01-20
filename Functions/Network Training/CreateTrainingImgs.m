@@ -1,4 +1,5 @@
-function CreateTrainingImgs(hObject, eventdata, handles)
+function CreateTrainingImgs(app, event)
+[~, ~, handles] = convertToGUIDECallbackArguments(app, event);
 % hObject    handle to create_training_images (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -9,18 +10,45 @@ if isnumeric(trainingdata); return; end
 trainingdata = cellstr(trainingdata);
 
 % Get training settings
-prompt = {'Window Length (s)','Overlap (%)','NFFT (s)','Image Length (s)',...
-    'Number of augmented duplicates'};
-dlg_title = 'Spectrogram Settings';
-num_lines=[1 length(dlg_title)+30]; options.Resize='off'; options.windStyle='modal'; options.Interpreter='tex';
-spectSettings = str2double(inputdlg(prompt,dlg_title,num_lines,{num2str(handles.data.settings.spect.windowsize,3),'50',num2str(handles.data.settings.spect.nfft,3),'1','0'},options));
-if isempty(spectSettings); return; end
 
-wind = spectSettings(1);
-noverlap = spectSettings(2) * spectSettings(1) / 100;
-nfft = spectSettings(3);
-imLength = spectSettings(4);
-repeats = spectSettings(5)+1;
+% Get min/max duration of detections to inform optimum image length
+metadata.mindur = Inf;
+metadata.maxdur = 0;
+metadata.minfreq = Inf;
+metadata.maxfreq = 0;
+metadata.minSR = Inf;
+metadata.maxSR = 0;
+for k = 1:length(trainingdata)
+    % Load the detection and audio files
+    [Calls] = loadCallfile([trainingpath trainingdata{k}],handles,false);
+    
+    % Duration
+    if min([Calls.Box(:,3)]) < metadata.mindur
+        metadata.mindur = min([Calls.Box(:,3)]);
+    end
+    if max([Calls.Box(:,3)]) > metadata.maxdur
+        metadata.maxdur = max([Calls.Box(:,3)]);
+    end
+
+    % Frequency
+    if min([Calls.Box(:,2)]+[Calls.Box(:,4)]) < metadata.minfreq
+        metadata.minfreq = min([Calls.Box(:,2)]+[Calls.Box(:,4)]);
+    end
+    if max([Calls.Box(:,2)]+[Calls.Box(:,4)]) > metadata.maxfreq
+        metadata.maxfreq = max([Calls.Box(:,2)]+[Calls.Box(:,4)]);
+    end
+
+    % SR
+    if min([Calls.Audiodata.SampleRate]) < metadata.minSR
+        metadata.minSR = min([Calls.Audiodata.SampleRate]);
+    end
+    if max([Calls.Audiodata.SampleRate]) > metadata.maxSR
+        metadata.maxSR = max([Calls.Audiodata.SampleRate]);
+    end
+end
+
+app.RunTrainImgDlg(handles.data.settings.spect, metadata);
+
 AmplitudeRange = [.5, 1.5];
 StretchRange = [0.75, 1.25];
 h = waitbar(0,'Initializing');
@@ -49,6 +77,23 @@ for k = 1:length(trainingdata)
     for j = 1:length(allAudio)
         subCalls = Calls(strcmp({Calls.Audiodata.Filename},allAudio{j}),:);
         audioReader.audiodata = subCalls.Audiodata(1);
+        
+        % Correct and retrieve spect settings (need SR to complete)
+        if app.TrainImgSettings.nfft == 0
+            app.TrainImgSettings.nfft = app.TrainImgSettings.nfftsmp/audioReader.audiodata.SampleRate;
+            app.TrainImgSettings.windowsize = app.TrainImgSettings.windowsizesmp/audioReader.audiodata.SampleRate;
+            app.TrainImgSettings.noverlap = app.TrainImgSettings.noverlap/audioReader.audiodata.SampleRate;
+        elseif app.TrainImgSettings.nfftsmp == 0
+            app.TrainImgSettings.nfftsmp = app.TrainImgSettings.nfft*audioReader.audiodata.SampleRate;
+            app.TrainImgSettings.windowsizesmp = app.TrainImgSettings.windowsize*audioReader.audiodata.SampleRate;
+        end
+
+        wind = app.TrainImgSettings.windowsize;
+        noverlap = app.TrainImgSettings.noverlap;
+        nfft = app.TrainImgSettings.nfft;
+        imLength = app.TrainImgSettings.imLength;
+        repeats = app.TrainImgSettings.repeats+1;
+
         % Find max call frequency for cutoff
         % freqCutoff = max(sum(Calls.Box(:,[2,4]), 2));
         freqCutoff = subCalls.Audiodata(1).SampleRate / 2;
@@ -178,6 +223,7 @@ while any(size(p) < 3) && nCountTries < 5
         warning('Overlap must be less than window size - automatically reducing to window size-1 (this may be due to data augmentation)')
         thisnoverlap = thiswind-1;
     end
+
     % Make the spectrogram
     [~, fr, ti, p] = spectrogram(audio(:,1),...
         thiswind,...

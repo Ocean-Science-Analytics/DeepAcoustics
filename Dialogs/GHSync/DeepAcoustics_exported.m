@@ -113,7 +113,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         appAbout % About DeepAcoustics Dialog
         appDisplay % Display Settings Dialog
         appUnsupClustSave % Save Dialog for Unsupervised Clustering Runs
-        appClustering % Description
+        appClustering % Clustering Dialog
+        appTrainImg % Training Image Settings Dialog
     end
     
     properties (Access = public)
@@ -134,6 +135,9 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         finished
         clusterName
         clustAssign
+
+        % Training Image Dialog variables
+        TrainImgSettings
     end
     
     methods (Access = public)
@@ -146,8 +150,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 update_fig(hObject, eventdata, handles, true);
                 % Update the color limits because changing from amplitude to
                 % power would mess with them
-                %handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
-                handles.data.clim = prctile(handles.data.page_spect.s_display, [10,90], 'all')';
+                handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
                 ChangeSpecCLim(hObject,[],handles);
     
                 handles.focusWindow.Colorbar.Label.String = handles.data.settings.spect.type;
@@ -164,6 +167,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function RunClusteringDlg(app,clustAssign,ClusteringData)
             app.appClustering = ClusteringDlg(app,clustAssign,ClusteringData);
             waitfor(app.appClustering);
+        end
+
+        function RunTrainImgDlg(app,spect,metadata)
+            app.appTrainImg = TrainImgDlg(app,spect,metadata);
+            waitfor(app.appTrainImg);
         end
     end
     
@@ -600,8 +608,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Menu selected function: menuCreateTrainImg
         function menuCreateTrainImg_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            CreateTrainingImgs(hObject, eventdata, handles);
+            %[hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            CreateTrainingImgs(app, event);
         end
 
         % Menu selected function: menuTrainDetNet
@@ -891,6 +899,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             delete(app.appDisplay)
             delete(app.appUnsupClustSave)
             delete(app.appClustering)
+            delete(app.appTrainImg)
             delete(app)
         end
 
