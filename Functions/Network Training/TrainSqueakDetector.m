@@ -7,7 +7,7 @@ imdsTrain = imageDatastore(TrainingTables{:,1});
 bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
 dsTrain = combine(imdsTrain,bldsTrain);
 
-list = {'Tiny YOLO v4 COCO','CSP-DarkNet-53','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
+list = {'Tiny YOLO','CSP-DarkNet-53','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
 if nargin == 1 || isempty(detname)
     if nargin == 1
         strPrompt = 'Choose a base network';

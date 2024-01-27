@@ -16,16 +16,22 @@ end
 if ~isempty(detmetadata)
     Settings = detmetadata.Settings;
 else
-    prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (kHZ)','High Frequency Cutoff (kHZ)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
+    prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (Hz)','High Frequency Cutoff (Hz)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
     dlg_title = 'Settings for This Network';
     num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
     def = handles.data.settings.detectionSettings;
+    % Convert freq to Hz for display
+    def(2) = sprintfc('%g',str2double(def{2})*1000);
+    def(3) = sprintfc('%g',str2double(def{3})*1000);
     Settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
 end
 
 if isempty(Settings) % Stop if user presses cancel
     return
 end
+
+% Convert frequency inputs to kHz
+Settings(2:3) = Settings(2:3)/1000;
 
 fig = uifigure;
 d = uiprogressdlg(fig,'Title','Detecting Calls',...
