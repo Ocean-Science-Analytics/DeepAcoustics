@@ -54,8 +54,8 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
             app.labelMinDurs.Text = [app.labelMinDurs.Text ' ' num2str(metadata.mindur,'%.1f')];
             app.labelMaxDurs.Text = [app.labelMaxDurs.Text ' ' num2str(metadata.maxdur,'%.1f')];
-            app.labelMinFreq.Text = [app.labelMinFreq.Text ' ' num2str(metadata.minfreq,'%.3f')];
-            app.labelMaxFreq.Text = [app.labelMaxFreq.Text ' ' num2str(metadata.maxfreq,'%.3f')];
+            app.labelMinFreq.Text = [app.labelMinFreq.Text ' ' num2str(metadata.minfreq*1000,'%d')];
+            app.labelMaxFreq.Text = [app.labelMaxFreq.Text ' ' num2str(metadata.maxfreq*1000,'%d')];
             app.labelMinSR.Text = [app.labelMinSR.Text ' ' num2str(metadata.minSR,'%.0f')];
             app.labelMaxSR.Text = [app.labelMaxSR.Text ' ' num2str(metadata.maxSR,'%.0f')];
         end
@@ -231,12 +231,12 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             % Create labelMaxFreq
             app.labelMaxFreq = uilabel(app.dlgDisplay);
             app.labelMaxFreq.Position = [133 315 123 22];
-            app.labelMaxFreq.Text = 'Max Freq (kHz):';
+            app.labelMaxFreq.Text = 'Max Freq (Hz):';
 
             % Create labelMinFreq
             app.labelMinFreq = uilabel(app.dlgDisplay);
             app.labelMinFreq.Position = [133 347 123 22];
-            app.labelMinFreq.Text = 'Min Freq (kHz):';
+            app.labelMinFreq.Text = 'Min Freq (Hz):';
 
             % Create labelMaxDurs
             app.labelMaxDurs = uilabel(app.dlgDisplay);

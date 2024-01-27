@@ -37,11 +37,17 @@ prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cu
 dlg_title = ['Settings for ' handles.networkfiles(networkselection).name];
 num_lines=[1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
 def = handles.data.settings.detectionSettings;
+% Convert freq to Hz for display
+def(2) = sprintfc('%g',str2double(def{2})*1000);
+def(3) = sprintfc('%g',str2double(def{3})*1000);
 Settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
 
 if isempty(Settings) % Stop if user presses cancel
     return
 end
+
+% Convert freq inputs to kHz
+Settings(2:3) = Settings(2:3)/1000;
 
 handles.data.settings.detectionSettings = sprintfc('%g',Settings(:,1))';
 
