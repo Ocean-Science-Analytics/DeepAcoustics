@@ -945,7 +945,7 @@ function C = get_kmeans_centroids(data,varargin)
                 if nargin == 1
                     dlg_title = 'Batch Options';
                     num_lines = [1 length(dlg_title)+30];
-                    opt_options = inputdlg({'Min # of Clusters','Max # of Clusters','Replicates'},'Batch Options',dlg_title,num_lines,{'2','30','10'});
+                    opt_options = inputdlg({'Min # of Clusters','Max # of Clusters','Replicates'},dlg_title,num_lines,{'2','30','10'});
                     minclust = str2double(opt_options{1});
                     maxclust = str2double(opt_options{2});
                     nReps = str2double(opt_options{3});
