@@ -241,13 +241,13 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                     maxd2 = min(maxd2,int16(plotx(i))+dotlength);
                     colorIM(int16(ploty(i)):maxd1,int16(plotx(i)):maxd2,:) = colorIM(int16(ploty(i)):maxd1,int16(plotx(i)):maxd2,:)+0.75;
                 end
-                for i = 1:length(plotyIP)
-                    maxd1 = size(colorIM,1);
-                    maxd2 = size(colorIM,2);
-                    maxd1 = min(maxd1,int16(plotyIP(i))+dotheight);
-                    maxd2 = min(maxd2,int16(plotxIP(i))+dotlength);
-                    colorIM(int16(plotyIP(i)):maxd1,int16(plotxIP(i)):maxd2,1:2) = 0;
-                end
+%                 for i = 1:length(plotyIP)
+%                     maxd1 = size(colorIM,1);
+%                     maxd2 = size(colorIM,2);
+%                     maxd1 = min(maxd1,int16(plotyIP(i))+dotheight);
+%                     maxd2 = min(maxd2,int16(plotxIP(i))+dotlength);
+%                     colorIM(int16(plotyIP(i)):maxd1,int16(plotxIP(i)):maxd2,1:2) = 0;
+%                 end
                 for i = 1:length(plotyext)
                     maxd1 = size(colorIM,1);
                     maxd2 = size(colorIM,2);
