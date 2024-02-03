@@ -18,6 +18,8 @@ metadata.minfreq = Inf;
 metadata.maxfreq = 0;
 metadata.minSR = Inf;
 metadata.maxSR = 0;
+
+h = waitbar(0,'Loading Call File(s)');
 for k = 1:length(trainingdata)
     % Load the detection and audio files
     [Calls] = loadCallfile([trainingpath trainingdata{k}],handles,false);
@@ -45,7 +47,9 @@ for k = 1:length(trainingdata)
     if max([Calls.Audiodata.SampleRate]) > metadata.maxSR
         metadata.maxSR = max([Calls.Audiodata.SampleRate]);
     end
+    waitbar(k/length(trainingdata), h, sprintf('Loading File %g of %g', k, length(trainingdata))); 
 end
+close(h)
 
 app.RunTrainImgDlg(handles.data.settings.spect, metadata);
 
@@ -61,11 +65,27 @@ strImgDir = fullfile(handles.data.squeakfolder,'Training');
 % User-specified
 strImgDir = uigetdir(strImgDir,'Select Folder to Output Training Images');
 
+imLength = app.TrainImgSettings.imLength;
+repeats = app.TrainImgSettings.repeats+1;
+
+% If augmented duplicates, create a directory to separate out augmented
+% images
+if repeats > 1
+    status = mkdir(fullfile(strImgDir,'ImgAug'));
+    if ~status
+        warning('Problem making default Augmented Images directory')
+    end
+end
+
 TTable = table({},{},{},'VariableNames',{'bAug','imageFilename','Call'});
 for k = 1:length(trainingdata)
     % Load the detection and audio files
     audioReader = squeakData();
-    [Calls] = loadCallfile([trainingpath trainingdata{k}],handles,false);
+    % Only need to re-load from the beginning if multiple Call files,
+    % otherwise already loaded!
+    if length(trainingdata) > 1
+        [Calls] = loadCallfile([trainingpath trainingdata{k}],handles,false);
+    end
     allAudio = unique({Calls.Audiodata.Filename},'stable');
     
     % Remove Rejects
@@ -88,17 +108,6 @@ for k = 1:length(trainingdata)
         wind = app.TrainImgSettings.windowsize;
         noverlap = app.TrainImgSettings.noverlap;
         nfft = app.TrainImgSettings.nfft;
-        imLength = app.TrainImgSettings.imLength;
-        repeats = app.TrainImgSettings.repeats+1;
-
-        % If augmented duplicates, create a directory to separate out augmented
-        % images
-        if repeats > 1
-            status = mkdir(fullfile(strImgDir,'ImgAug'));
-            if ~status
-                warning('Problem making default Augmented Images directory')
-            end
-        end
 
         % Find max call frequency for cutoff
         % freqCutoff = max(sum(Calls.Box(:,[2,4]), 2));
@@ -169,7 +178,7 @@ for k = 1:length(trainingdata)
             
             try
                 for replicatenumber = 1:repeats
-                    IMname = sprintf('%g_%g_%g.png', k, bin, replicatenumber);
+                    IMname = sprintf('%g_%g_%g_%g.png', k, j, bin, replicatenumber);
                     ffn = fullfile(strImgDir,IMname);
                     % Insert augmented images folder into filename to separate augs
                     % from ogs
@@ -186,7 +195,7 @@ for k = 1:length(trainingdata)
                         ffn,...
                         replicatenumber);  
                     TTable = [TTable;{bAug, ffn, box}];
-                    end
+                end
             catch
                 disp("Something wrong with calculating bounding box indices - talk to Gabi!");
             end
