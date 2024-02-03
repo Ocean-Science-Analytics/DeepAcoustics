@@ -2,7 +2,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        dlgDisplay            matlab.ui.Figure
+        dlgTrainImg           matlab.ui.Figure
         AnnotationMetadataforSelectedTrainingDataLabel  matlab.ui.control.Label
         labelTitle            matlab.ui.control.Label
         labelMinDurs          matlab.ui.control.Label
@@ -54,13 +54,13 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
             app.labelMinDurs.Text = [app.labelMinDurs.Text ' ' num2str(metadata.mindur,'%.1f')];
             app.labelMaxDurs.Text = [app.labelMaxDurs.Text ' ' num2str(metadata.maxdur,'%.1f')];
-            app.labelMinFreq.Text = [app.labelMinFreq.Text ' ' num2str(metadata.minfreq*1000,'%d')];
-            app.labelMaxFreq.Text = [app.labelMaxFreq.Text ' ' num2str(metadata.maxfreq*1000,'%d')];
+            app.labelMinFreq.Text = [app.labelMinFreq.Text ' ' num2str(round(metadata.minfreq*1000),'%d')];
+            app.labelMaxFreq.Text = [app.labelMaxFreq.Text ' ' num2str(round(metadata.maxfreq*1000),'%d')];
             app.labelMinSR.Text = [app.labelMinSR.Text ' ' num2str(metadata.minSR,'%.0f')];
             app.labelMaxSR.Text = [app.labelMaxSR.Text ' ' num2str(metadata.maxSR,'%.0f')];
         end
 
-        % Callback function: buttonCancel, dlgDisplay
+        % Callback function: buttonCancel, dlgTrainImg
         function appCloseRequestFcn_Callback(app, event)
             % Delete Train Img Settings app
             delete(app)
@@ -121,18 +121,18 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
         % Create UIFigure and components
         function createComponents(app)
 
-            % Create dlgDisplay and hide until all components are created
-            app.dlgDisplay = uifigure('Visible', 'off');
-            app.dlgDisplay.Position = [360 500 395 450];
-            app.dlgDisplay.Name = 'Display Settings';
-            app.dlgDisplay.CloseRequestFcn = createCallbackFcn(app, @appCloseRequestFcn_Callback, true);
+            % Create dlgTrainImg and hide until all components are created
+            app.dlgTrainImg = uifigure('Visible', 'off');
+            app.dlgTrainImg.Position = [360 500 521 450];
+            app.dlgTrainImg.Name = 'Display Settings';
+            app.dlgTrainImg.CloseRequestFcn = createCallbackFcn(app, @appCloseRequestFcn_Callback, true);
 
             % Create buttongroupSpecUnits
-            app.buttongroupSpecUnits = uibuttongroup(app.dlgDisplay);
+            app.buttongroupSpecUnits = uibuttongroup(app.dlgTrainImg);
             app.buttongroupSpecUnits.SelectionChangedFcn = createCallbackFcn(app, @buttongroupSpecUnits_Callback, true);
             app.buttongroupSpecUnits.TitlePosition = 'centertop';
             app.buttongroupSpecUnits.Title = 'Units of Spectrogram Parameters';
-            app.buttongroupSpecUnits.Position = [60 234 278 71];
+            app.buttongroupSpecUnits.Position = [122 234 278 71];
 
             % Create buttonSamples
             app.buttonSamples = uiradiobutton(app.buttongroupSpecUnits);
@@ -146,124 +146,124 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.buttonSeconds.Position = [105 4 69 22];
 
             % Create labelFreqLowLim
-            app.labelFreqLowLim = uilabel(app.dlgDisplay);
+            app.labelFreqLowLim = uilabel(app.dlgTrainImg);
             app.labelFreqLowLim.HorizontalAlignment = 'right';
-            app.labelFreqLowLim.Position = [66 101 169 22];
+            app.labelFreqLowLim.Position = [145 101 169 22];
             app.labelFreqLowLim.Text = 'Image Length (s):';
 
             % Create labelFreqUppLim
-            app.labelFreqUppLim = uilabel(app.dlgDisplay);
+            app.labelFreqUppLim = uilabel(app.dlgTrainImg);
             app.labelFreqUppLim.HorizontalAlignment = 'right';
-            app.labelFreqUppLim.Position = [50 68 185 22];
+            app.labelFreqUppLim.Position = [129 68 185 22];
             app.labelFreqUppLim.Text = 'Number of augmented duplicates:';
 
             % Create editNumAugDup
-            app.editNumAugDup = uieditfield(app.dlgDisplay, 'numeric');
+            app.editNumAugDup = uieditfield(app.dlgTrainImg, 'numeric');
             app.editNumAugDup.HorizontalAlignment = 'center';
-            app.editNumAugDup.Position = [244 68 70 22];
+            app.editNumAugDup.Position = [323 68 70 22];
 
             % Create editImgLength
-            app.editImgLength = uieditfield(app.dlgDisplay, 'numeric');
+            app.editImgLength = uieditfield(app.dlgTrainImg, 'numeric');
             app.editImgLength.HorizontalAlignment = 'center';
-            app.editImgLength.Position = [244 100 70 22];
+            app.editImgLength.Position = [323 100 70 22];
 
             % Create labelWinSize
-            app.labelWinSize = uilabel(app.dlgDisplay);
+            app.labelWinSize = uilabel(app.dlgTrainImg);
             app.labelWinSize.Tag = 'labelWinSize';
             app.labelWinSize.HorizontalAlignment = 'right';
-            app.labelWinSize.Position = [78 202 158 22];
+            app.labelWinSize.Position = [157 202 158 22];
             app.labelWinSize.Text = 'Window Size (# of samples):';
 
             % Create editWinSize
-            app.editWinSize = uieditfield(app.dlgDisplay, 'numeric');
+            app.editWinSize = uieditfield(app.dlgTrainImg, 'numeric');
             app.editWinSize.Limits = [0 Inf];
             app.editWinSize.ValueDisplayFormat = '%.0f';
             app.editWinSize.HorizontalAlignment = 'center';
-            app.editWinSize.Position = [245 202 69 22];
+            app.editWinSize.Position = [324 202 69 22];
 
             % Create labelOverlap
-            app.labelOverlap = uilabel(app.dlgDisplay);
+            app.labelOverlap = uilabel(app.dlgTrainImg);
             app.labelOverlap.HorizontalAlignment = 'right';
-            app.labelOverlap.Position = [162 170 73 22];
+            app.labelOverlap.Position = [241 170 73 22];
             app.labelOverlap.Text = 'Overlap (%):';
 
             % Create editOverlap
-            app.editOverlap = uieditfield(app.dlgDisplay, 'numeric');
+            app.editOverlap = uieditfield(app.dlgTrainImg, 'numeric');
             app.editOverlap.Limits = [0 100];
             app.editOverlap.HorizontalAlignment = 'center';
-            app.editOverlap.Position = [245 168 69 22];
+            app.editOverlap.Position = [324 168 69 22];
 
             % Create labelNFFT
-            app.labelNFFT = uilabel(app.dlgDisplay);
+            app.labelNFFT = uilabel(app.dlgTrainImg);
             app.labelNFFT.HorizontalAlignment = 'right';
-            app.labelNFFT.Position = [115 136 119 22];
+            app.labelNFFT.Position = [194 136 119 22];
             app.labelNFFT.Text = 'NFFT (# of samples):';
 
             % Create editNFFT
-            app.editNFFT = uieditfield(app.dlgDisplay, 'numeric');
+            app.editNFFT = uieditfield(app.dlgTrainImg, 'numeric');
             app.editNFFT.Limits = [0 Inf];
             app.editNFFT.ValueDisplayFormat = '%.0f';
             app.editNFFT.HorizontalAlignment = 'center';
-            app.editNFFT.Position = [245 133 69 22];
+            app.editNFFT.Position = [324 133 69 22];
 
             % Create buttonOK
-            app.buttonOK = uibutton(app.dlgDisplay, 'push');
+            app.buttonOK = uibutton(app.dlgTrainImg, 'push');
             app.buttonOK.ButtonPushedFcn = createCallbackFcn(app, @buttonOK_Callback, true);
-            app.buttonOK.Position = [80 24 100 34];
+            app.buttonOK.Position = [146 24 100 34];
             app.buttonOK.Text = 'OK';
 
             % Create buttonCancel
-            app.buttonCancel = uibutton(app.dlgDisplay, 'push');
+            app.buttonCancel = uibutton(app.dlgTrainImg, 'push');
             app.buttonCancel.ButtonPushedFcn = createCallbackFcn(app, @appCloseRequestFcn_Callback, true);
-            app.buttonCancel.Position = [211 24 100 34];
+            app.buttonCancel.Position = [277 24 100 34];
             app.buttonCancel.Text = 'Cancel';
 
             % Create labelMaxSR
-            app.labelMaxSR = uilabel(app.dlgDisplay);
-            app.labelMaxSR.Position = [264 315 124 22];
+            app.labelMaxSR = uilabel(app.dlgTrainImg);
+            app.labelMaxSR.Position = [343 315 138 22];
             app.labelMaxSR.Text = 'Max SR (Hz):';
 
             % Create labelMinSR
-            app.labelMinSR = uilabel(app.dlgDisplay);
-            app.labelMinSR.Position = [264 347 124 22];
+            app.labelMinSR = uilabel(app.dlgTrainImg);
+            app.labelMinSR.Position = [343 347 138 22];
             app.labelMinSR.Text = 'Min SR (Hz):';
 
             % Create labelMaxFreq
-            app.labelMaxFreq = uilabel(app.dlgDisplay);
-            app.labelMaxFreq.Position = [133 315 123 22];
+            app.labelMaxFreq = uilabel(app.dlgTrainImg);
+            app.labelMaxFreq.Position = [193 315 138 22];
             app.labelMaxFreq.Text = 'Max Freq (Hz):';
 
             % Create labelMinFreq
-            app.labelMinFreq = uilabel(app.dlgDisplay);
-            app.labelMinFreq.Position = [133 347 123 22];
+            app.labelMinFreq = uilabel(app.dlgTrainImg);
+            app.labelMinFreq.Position = [193 347 138 22];
             app.labelMinFreq.Text = 'Min Freq (Hz):';
 
             % Create labelMaxDurs
-            app.labelMaxDurs = uilabel(app.dlgDisplay);
-            app.labelMaxDurs.Position = [15 315 107 22];
+            app.labelMaxDurs = uilabel(app.dlgTrainImg);
+            app.labelMaxDurs.Position = [54 315 126 22];
             app.labelMaxDurs.Text = 'Max Dur (s):';
 
             % Create labelMinDurs
-            app.labelMinDurs = uilabel(app.dlgDisplay);
-            app.labelMinDurs.Position = [15 347 107 22];
+            app.labelMinDurs = uilabel(app.dlgTrainImg);
+            app.labelMinDurs.Position = [54 347 127 22];
             app.labelMinDurs.Text = 'Min Dur (s):';
 
             % Create labelTitle
-            app.labelTitle = uilabel(app.dlgDisplay);
+            app.labelTitle = uilabel(app.dlgTrainImg);
             app.labelTitle.HorizontalAlignment = 'center';
             app.labelTitle.FontSize = 14;
             app.labelTitle.FontWeight = 'bold';
-            app.labelTitle.Position = [99 413 194 22];
+            app.labelTitle.Position = [164 413 194 22];
             app.labelTitle.Text = 'Settings for Training Images';
 
             % Create AnnotationMetadataforSelectedTrainingDataLabel
-            app.AnnotationMetadataforSelectedTrainingDataLabel = uilabel(app.dlgDisplay);
+            app.AnnotationMetadataforSelectedTrainingDataLabel = uilabel(app.dlgTrainImg);
             app.AnnotationMetadataforSelectedTrainingDataLabel.HorizontalAlignment = 'center';
-            app.AnnotationMetadataforSelectedTrainingDataLabel.Position = [64 380 264 22];
+            app.AnnotationMetadataforSelectedTrainingDataLabel.Position = [129 380 264 22];
             app.AnnotationMetadataforSelectedTrainingDataLabel.Text = 'Annotation Metadata for Selected Training Data:';
 
             % Show the figure after all components are created
-            app.dlgDisplay.Visible = 'on';
+            app.dlgTrainImg.Visible = 'on';
         end
     end
 
@@ -277,7 +277,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             createComponents(app)
 
             % Register the app with App Designer
-            registerApp(app, app.dlgDisplay)
+            registerApp(app, app.dlgTrainImg)
 
             % Execute the startup function
             runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
@@ -291,7 +291,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
         function delete(app)
 
             % Delete UIFigure when app is deleted
-            delete(app.dlgDisplay)
+            delete(app.dlgTrainImg)
         end
     end
 end
