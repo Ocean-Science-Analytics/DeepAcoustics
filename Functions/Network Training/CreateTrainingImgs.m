@@ -49,8 +49,6 @@ end
 
 app.RunTrainImgDlg(handles.data.settings.spect, metadata);
 
-AmplitudeRange = [.5, 1.5];
-StretchRange = [0.75, 1.25];
 h = waitbar(0,'Initializing');
 
 [~, filename] = fileparts(trainingdata{1});
@@ -58,13 +56,12 @@ if length(trainingdata) > 1
     filename = [filename '&More'];
 end
 % Make a folder for the training images
-defImgDir = fullfile(handles.data.squeakfolder,'Training','Images');
-status = mkdir(defImgDir);
-if ~status
-    warning('Problem making default Images directory')
-end
-fname = uigetdir(defImgDir,'Select Folder to Output Training Images');
-TTable = table({},{},'VariableNames',{'imageFilename','Call'});
+% Default open location
+strImgDir = fullfile(handles.data.squeakfolder,'Training');
+% User-specified
+strImgDir = uigetdir(strImgDir,'Select Folder to Output Training Images');
+
+TTable = table({},{},{},'VariableNames',{'bAug','imageFilename','Call'});
 for k = 1:length(trainingdata)
     % Load the detection and audio files
     audioReader = squeakData();
@@ -92,10 +89,19 @@ for k = 1:length(trainingdata)
     nfft = app.TrainImgSettings.nfft;
     imLength = app.TrainImgSettings.imLength;
     repeats = app.TrainImgSettings.repeats+1;
+
+    % If augmented duplicates, create a directory to separate out augmented
+    % images
+    if repeats > 1
+        status = mkdir(fullfile(strImgDir,'ImgAug'));
+        if ~status
+            warning('Problem making default Augmented Images directory')
+        end
+    end
     
     % Find max call frequency for cutoff
     % freqCutoff = max(sum(Calls.Box(:,[2,4]), 2));
-    freqCutoff = audioReader.audiodata.SampleRate / 2;
+    %freqCutoff = audioReader.audiodata.SampleRate / 2;
     
     %% Calculate Groups of Calls
     % Calculate the distance between the end of each box and the
@@ -163,17 +169,22 @@ for k = 1:length(trainingdata)
         try
         for replicatenumber = 1:repeats
             IMname = sprintf('%g_%g_%g.png', k, bin, replicatenumber);
+            ffn = fullfile(strImgDir,IMname);
+            % Insert augmented images folder into filename to separate augs
+            % from ogs
+            bAug = false;
+            if replicatenumber > 1
+                ffn = fullfile(strImgDir,'ImgAug',IMname);
+                bAug = true;
+            end
             [~,box] = CreateTrainingData(...
                 audio,...
                 audioReader.audiodata.SampleRate,...
                 BoutCalls,...
                 wind,noverlap,nfft,...
-                freqCutoff,...
-                fullfile(fname,IMname),...
-                AmplitudeRange,...
-                replicatenumber,...
-                StretchRange);
-            TTable = [TTable;{fullfile(fname,IMname), box}];
+                ffn,...
+                replicatenumber);  
+            TTable = [TTable;{bAug, ffn, box}];
         end
         catch
             disp("Something wrong with calculating bounding box indices - talk to Gabi!");
@@ -194,8 +205,13 @@ end
 
 
 % Create training images and boxes
-function [im, box] = CreateTrainingData(audio,rate,Calls,wind,noverlap,nfft,freqCutoff,filename,AmplitudeRange,replicatenumber,StretchRange)
-
+function [im, box] = CreateTrainingData(audio,rate,Calls,wind,noverlap,nfft,filename,replicatenumber)
+AmplitudeRange = [.5, 1.5];
+%StretchRange = [0.75, 1.25];
+% Order of current unaugmented FFT
+nFFTexp = log(round(rate * nfft))/log(2);
+% Limit FFT sizes to min of 16 and max of 131072 - can change if necessary
+StretchRange = [max(nFFTexp - 2,4), min(nFFTexp+2,17)];
 p = [];
 nCountTries = 0;
 while any(size(p) < 3) && nCountTries < 5
@@ -207,15 +223,20 @@ while any(size(p) < 3) && nCountTries < 5
         StretchFactor = range(StretchRange).*rand() + StretchRange(1);
     else
         AmplitudeFactor = 1;
-        StretchFactor = 1;
+        StretchFactor = nFFTexp;
     end
     if width(audio)>height(audio)
         audio=audio';
     end
     
-    thiswind = round(rate * wind*StretchFactor);
-    thisnoverlap = round(rate * noverlap*StretchFactor);
-    thisnfft = round(rate * nfft*StretchFactor);
+    %thiswind = round(rate * wind*StretchFactor);
+    %thisnfft = round(rate * nfft*StretchFactor);
+    thisnoverlap = noverlap/nfft;
+    thisnfft = round(2^StretchFactor);
+    % Assume window == NFFT
+    thiswind = thisnfft;
+    % Keep same overlap?
+    thisnoverlap = round(thisnoverlap*thisnfft);
     
     if thisnoverlap >= thiswind
         warning('Overlap must be less than window size - automatically reducing to window size-1 (this may be due to data augmentation)')
