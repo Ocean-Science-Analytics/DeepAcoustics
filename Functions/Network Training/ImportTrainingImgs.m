@@ -14,7 +14,7 @@ if bTraining
     waitfor(msgbox('Select Image Tables for TRAINING the network (creating a network from scratch or building on an existing network)'))
     [trainingdata, trainingpath] = uigetfile('Training/*.mat','Select File(s) for Training','MultiSelect', 'on');
 else
-    waitfor(msgbox('Select Ground-Truthed Image Tables for EVALUATING the network (do NOT choose the images use to train the network)'))
+    waitfor(msgbox('Select Ground-Truthed Image Tables for EVALUATING the network (do NOT choose the images used to train the network)'))
     [trainingdata, trainingpath] = uigetfile('Training/*.mat','Select File(s) for Evaluation','MultiSelect', 'on');
 end
 %Return if cancel
@@ -31,6 +31,15 @@ for i = 1:length(trainingdata)
     warning('off','all')
     load([trainingpath trainingdata{i}],'TTable','wind','noverlap','nfft','imLength','pathtodet');
     warning(orig_state)
+    % If bAug field doesn't exist, add and default to 0 and print a warning
+    if ~any(strcmp('bAug', TTable.Properties.VariableNames))
+        % Default augmented flag column
+        TTable.bAug(:) = false;
+        % Reorder columns for TrainSqueakDetector later
+        otherColInds = ~find(strcmp('bAug', TTable.Properties.VariableNames));
+        TTable = [TTable(:,'bAug') TTable(:,otherColInds)];
+        warning('Older Images mat - any augmented images are not flagged and will be included in validation data which is not recommended')
+    end
     TrainingTables = [TrainingTables; TTable];
     AllSettings = [AllSettings; wind noverlap nfft imLength];
 %     if exist('pathtodet','var')

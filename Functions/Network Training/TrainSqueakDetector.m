@@ -3,8 +3,10 @@ function [detector, lgraph, options, info, detname] = TrainSqueakDetector(Traini
 % Extract boxes delineations and store as boxLabelDatastore
 % Convert training and validation data to
 % datastores for dumb YOLO fn
-imdsTrain = imageDatastore(TrainingTables{:,1});
-bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
+imdsTrain = imageDatastore(TrainingTables{:,'imageFilename'});
+% Depends on certain column order in TrainingTables!!
+indClass = find(strcmp('imageFilename', TrainingTables.Properties.VariableNames))+1;
+bldsTrain = boxLabelDatastore(TrainingTables(:,indClass:end));
 dsTrain = combine(imdsTrain,bldsTrain);
 
 list = {'Tiny YOLO','CSP-DarkNet-53','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
@@ -245,7 +247,7 @@ if nargin == 1
                       'ResetInputNormalization',false, ... %YOLOv4
                       'Plots','training-progress');
     end    
-    classes = TrainingTables.Properties.VariableNames(2:end);
+    classes = TrainingTables.Properties.VariableNames(indClass:end);
     
     % Replace 0s with 1 (sometimes happens with reduced image sizes)
     anchorBoxes(anchorBoxes == 0) = 1;
@@ -365,16 +367,29 @@ end
 end
 
 function [dsTrainReSize, dsValReSize] = splitValData(TrainingTables,inputSize)
+% Depends on certain column order in TrainingTables!!
+indClass = find(strcmp('imageFilename', TrainingTables.Properties.VariableNames))+1;
+
 % Have user supply %
-valprop = inputdlg('What proportion of your training data would you like to allocate for validation (default = 0.1)?:','Validation Data Proportion');
+valprop = inputdlg('What proportion of your (non-augmented) training data would you like to allocate for validation (default = 0.1)?:','Validation Data Proportion');
 valprop = str2double(valprop{1});
 if valprop <= 0 || valprop >= 1
     msgbox('Improper validation % - proceeding without validation data')
+    % Convert training and validation data to
+    % datastores for dumb YOLO fn
+    imdsTrain = imageDatastore(TrainingTables{:,'imageFilename'});
+    bldsTrain = boxLabelDatastore(TrainingTables(:,indClass:end));
+    dsTrain = combine(imdsTrain,bldsTrain);
+    dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
     dsValReSize = [];
 else
+    % Subset non-augmented images
+    %nonAugTTables = TrainingTables(~TrainingTables.bAug,:);
     % Get the indices & count of each label in TrainingTables
-    indLabs = table2cell(TrainingTables(:,2:end));
+    indLabs = table2cell(TrainingTables(:,indClass:end));
     indLabs = ~cellfun(@isempty,indLabs);
+    % Do not include augmented images in selection
+    indLabs(cell2mat(TrainingTables.bAug),:) = 0;
     numEachLabs = sum(indLabs,1);
     % Find the # of data to select based on 10% of the
     % whichever label has the smallest representation in the
@@ -397,7 +412,7 @@ else
     % Calculate proportion of each label represented in
     % validation data
     propSel = sum(indSel & indLabs)./numEachLabs;
-    dispInfo = [TrainingTables.Properties.VariableNames(2:end);num2cell(propSel*100)];
+    dispInfo = [TrainingTables.Properties.VariableNames(indClass:end);num2cell(propSel*100)];
     dispInfo = sprintf('%s: %0.1f%% ',dispInfo{:});
     answer = questdlg({'Here are the proportions corresponding to each label selected for validation:';...
         dispInfo; 'Do you wish to proceed?'}, ...
@@ -405,6 +420,8 @@ else
         'Yes','No','Yes');
     switch answer
         case 'No'
+            dsTrainReSize = [];
+            dsValReSize = [];
             return
         case 'Yes'
             valTT = TrainingTables(indSel,:);
@@ -412,13 +429,13 @@ else
             
             % Convert training and validation data to
             % datastores for dumb YOLO fn
-            imdsTrain = imageDatastore(TrainingTables{:,1});
-            bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
+            imdsTrain = imageDatastore(TrainingTables{:,'imageFilename'});
+            bldsTrain = boxLabelDatastore(TrainingTables(:,indClass:end));
             dsTrain = combine(imdsTrain,bldsTrain);
             dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
             
-            imdsVal = imageDatastore(valTT{:,1});
-            bldsVal = boxLabelDatastore(valTT(:,2:end));
+            imdsVal = imageDatastore(valTT{:,'imageFilename'});
+            bldsVal = boxLabelDatastore(valTT(:,indClass:end));
             dsVal = combine(imdsVal,bldsVal);   
             dsValReSize = transform(dsVal,@(data)preprocessData(data,inputSize));                     
     end
