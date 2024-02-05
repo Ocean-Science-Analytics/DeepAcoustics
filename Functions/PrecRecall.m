@@ -43,6 +43,12 @@ drawnow
 nCumulDur = 0;
 Calls = [];
 for i = 1:length(allAudio)
+    % Run detector
+    AudioFile = allAudio{i};
+    Calls_ThisAudio = SqueakDetect(AudioFile,netload,Settings,1,1);
+    % Add new Box col with adjusted boxes for P/R calculation
+    Calls_ThisAudio.BoxAdj = Calls_ThisAudio.Box;
+
     % Accumulate audio durations for BoxAdj
     if i > 1
         % Get indices of rows corresponding to the previous audio file
@@ -50,18 +56,11 @@ for i = 1:length(allAudio)
         nPrevLast = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'last');
         % Pull duration of previous audio file
         nCumulDur = CallsAnn.Audiodata(nPrev).Duration;
+        % Adjust annotated calls
+        CallsAnn.BoxAdj(nPrevFirst:nPrevLast,1) = CallsAnn.Box(nPrevFirst:nPrevLast,1)+nCumulDur;
+        % Adjust fresh calls
+        Calls_ThisAudio.BoxAdj(:,1) = Calls_ThisAudio.Box(:,1)+nCumulDur;
     end
-
-    % Run detector
-    AudioFile = allAudio{i};
-    Calls_ThisAudio = SqueakDetect(AudioFile,netload,Settings,1,1);
-
-    % Add new Box col with adjusted boxes for P/R calculation
-    Calls_ThisAudio.BoxAdj = Calls_ThisAudio.Box;
-    % Adjust annotated calls
-    CallsAnn.BoxAdj(nPrevFirst:nPrevLast,1) = CallsAnn.Box(nPrevFirst:nPrevLast,1)+nCumulDur;
-    % Adjust fresh calls
-    Calls_ThisAudio.BoxAdj(:,1) = Calls_ThisAudio.Box(:,1)+nCumulDur;
 
     % Add detections to all Calls tables
     if ~isempty(Calls_ThisAudio)
