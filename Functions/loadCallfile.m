@@ -28,7 +28,7 @@ if isfield(data, 'Calls')
         error('Could not identify audio info since multi-file update - complain to GA')
     end
     if ~any(strcmp('DetSpect', Calls.Properties.VariableNames))
-        Calls.DetSpect(:) = 0;
+        Calls.DetSpect(:) = struct();
     end
     if ~any(strcmp('CallID', Calls.Properties.VariableNames)) || length(unique(Calls.CallID)) ~= height(Calls)
         warning('CallID non-existent or not unique - replacing with 1:height(Calls)')
