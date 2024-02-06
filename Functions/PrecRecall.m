@@ -126,9 +126,9 @@ detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
 
 % Append date to filename
 if Settings(5)
-    fname = [audioname '_' num2str(length(numAudio)) 'AudFiles ' detectiontime '_Detections.mat'];
+    fname = [audioname '_' num2str(length(allAudio)) 'AudFiles ' detectiontime '_Detections.mat'];
 else
-    fname = [audioname '_' num2str(length(numAudio)) 'AudFiles_Detections.mat'];
+    fname = [audioname '_' num2str(length(allAudio)) 'AudFiles_Detections.mat'];
 end
 [fname,fpath] = uiputfile(fullfile(handles.data.settings.networkfolder, fname),'Save the Detected Calls');
 
