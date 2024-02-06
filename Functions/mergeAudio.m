@@ -6,7 +6,7 @@ if window(1) <= 1
     window(1) = 1;
 end
 if isstring(data) |ischar(data)
-    audio = audioread(data, window);
+    audio = audioread(data, double(window));
 else
    audio = data; 
 end

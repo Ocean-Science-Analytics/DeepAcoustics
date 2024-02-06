@@ -108,7 +108,7 @@ classdef squeakData < handle
                 obj.AudioStartSample = max(obj.AudioStartSample,1);
                 obj.AudioStopSample  = round(obj.audiodata.SampleRate .* (finalTime));
                 obj.AudioStopSample  = min(obj.AudioStopSample, obj.audiodata.TotalSamples);
-                obj.StoredSamples = audioread(obj.audiodata.Filename, [obj.AudioStartSample, obj.AudioStopSample]);
+                obj.StoredSamples = audioread(obj.audiodata.Filename, double([obj.AudioStartSample, obj.AudioStopSample]));
             end
             
             startSample = startSample - obj.AudioStartSample + 1;

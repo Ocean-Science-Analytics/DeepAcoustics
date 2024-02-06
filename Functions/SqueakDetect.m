@@ -72,7 +72,7 @@ for i = 1:length(chunks)-1
         windR = chunks(i+1) + overlap*audio_info.SampleRate;
         
         % Read the audio
-        audio = audioread(audio_info.Filename,floor([windL, windR]));
+        audio = audioread(audio_info.Filename,double(floor([windL, windR])));
         
         %% Mix multichannel audio:
         % By default, take the mean of multichannel audio.
