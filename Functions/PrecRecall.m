@@ -53,10 +53,29 @@ end
 
 results = table({table2array(Calls(:,1))},{table2array(Calls(:,2))},{categorical(ones(height(Calls),1),1,'Call')});
 results = renamevars(results,1:3,{'Box','Scores','Label'});
-grdtruth = table({table2array(CallsAnn(:,1))});
-grdtruth = renamevars(grdtruth,1,'Call');
+grdtruth = table({table2array(CallsAnn(:,'Box'))},{categorical(ones(height(CallsAnn),1),1,'Call')});
+grdtruth = renamevars(grdtruth,1:2,{'Box','Label'});
 
-[avgprec, recallvec, precvec] = evaluateDetectionPrecision(results, grdtruth, percTPThresh);
+strVer = version;
+strVer = regexp(strVer,'R20[0-9]{2}[a-b]','match');
+strVer = strVer{1};
+strVer = regexp(strVer,'20[0-9]{2}','match');
+strVer = str2double(strVer{1});
+if strVer >= 2023
+    odMetrics = evaluateObjectDetection(results, grdtruth, percTPThresh);
+    avgprec = odMetrics.ClassMetrics.AP{'Call'};
+    recallvec = odMetrics.ClassMetrics.Recall{'Call'};
+    precvec = odMetrics.ClassMetrics.Precision{'Call'};
+    odMetrics = evaluateObjectDetection(results, grdtruth, 0.1:0.1:0.9);
+    mAP = odMetrics.ClassMetrics.mAP('Call');
+else
+    grdtruth = table({table2array(CallsAnn(:,'Box'))});
+    grdtruth = renamevars(grdtruth,1,'Call');
+    [avgprec, recallvec, precvec] = evaluateDetectionPrecision(results, grdtruth, percTPThresh);
+    odMetrics = [];
+    mAP = NaN;
+    warning('Object detection metrics only available with Matlab 2023 or greater')
+end
 % Retrieve only the precision and recall values if accept all scores
 prec = precvec(end);
 recall = recallvec(end);
@@ -87,10 +106,13 @@ msgbox({'Values for Score Threshold == 0:'; ...
     sprintf('# of False Negatives: %u', int16(numFN));...
     sprintf('Precision: %.4f',prec);...
     sprintf('Recall: %.4f', recall);...
-    sprintf('F-Score: %.4f', fscore)},'P/R Result');
+    sprintf('F-Score: %.4f', fscore);...
+    sprintf('Average Prec (%.2f Ovlp Threshold): %.4f',percTPThresh, avgprec);...
+    sprintf('mAP (0.1:0.1:0.9 Ovlp Threshold): %.4f', mAP)},'P/R Result');
 
 [file,path] = uiputfile([handles.data.settings.networkfolder '\PrecRecallResults.mat'],'Save P/R Results');
-save(fullfile(path,file),'NetPath','NetName','PathToDet','results','precvec','recallvec','prec','recall','numTrueDets','numTP','numDets','numFP','numFN','fscore')
+save(fullfile(path,file),'NetPath','NetName','PathToDet','results','precvec','recallvec','prec','recall',...
+    'numTrueDets','numTP','numDets','numFP','numFN','fscore','avgprec','mAP','odMetrics')
 
 [~,audioname] = fileparts(AudioFile);
 detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
