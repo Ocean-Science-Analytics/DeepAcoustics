@@ -245,11 +245,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 %             disp '  '
 %             disp '  '
 
-            disp '                                                                                                                                 .---.'
-            disp '                                                                                                      _..__        __.._       /  .  \  '
-            disp '                                                                                                      \    ''''''\/''''''    /       |\_/|   |'
-            disp '                                                                                                     _ ''-._       ._.-''  _      |   |   |'
-            disp '    ._______________________________________________________________________________________________.;,\_.;,\_.;,/_.;,\_.;,\_____|___|__,|'
+            disp '                                                                                      .---.'
+            disp '                                                           _..__        __.._       /  .  \  '
+            disp '                                                           \    ''''''\/''''''    /       |\_/|   |'
+            disp '                                                          _ ''-._       ._.-''  _      |   |   |'
+            disp '    .____________________________________________________.;,\_.;,\_.;,/_.;,\_.;,\_____|___|__,|'
             disp '   /  .-.                                                                                                                              |'
             disp '  |  /   \                                                                                                                             |'
             disp '  | |\_.  |                                                                                                                            |'
@@ -868,12 +868,20 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Value changed function: dropdownFocus
         function dropdownFocus_Callback(app, event)
-            ChangeFocusWidth(app, event);
+            if strcmp(event.EventName,'Clicked')
+                return
+            elseif strcmp(event.EventName,'ValueChanged')
+                ChangeFocusWidth(app, event);
+            end
         end
 
         % Value changed function: dropdownPage
         function dropdownPage_Callback(app, event)
-            ChangePageWidth(app, event);
+            if strcmp(event.EventName,'Clicked')
+                return
+            elseif strcmp(event.EventName,'ValueChanged')
+                ChangePageWidth(app, event);
+            end
         end
 
         % Value changed function: dropdownColorMap
@@ -1239,27 +1247,27 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.axesPage = uiaxes(app.mainfigure);
             app.axesPage.XColor = [1 1 1];
             app.axesPage.YColor = [1 1 1];
-            app.axesPage.FontSize = 10.6666666666667;
             app.axesPage.GridColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.axesPage.MinorGridColor = [0.1 0.1 0.1];
-            app.axesPage.NextPlot = 'replace';
             app.axesPage.Box = 'on';
+            app.axesPage.FontSize = 10.6666666666667;
+            app.axesPage.NextPlot = 'replace';
             app.axesPage.Tag = 'detectionAxes';
             app.axesPage.Position = [259 135 1120 43];
 
             % Create winPage
             app.winPage = uiaxes(app.mainfigure);
+            app.winPage.Box = 'on';
             app.winPage.FontSize = 12;
             app.winPage.NextPlot = 'replace';
-            app.winPage.Box = 'on';
             app.winPage.Tag = 'spectrogramWindow';
             app.winPage.Position = [255 188 1125 181];
 
             % Create winFocus
             app.winFocus = uiaxes(app.mainfigure);
+            app.winFocus.Box = 'on';
             app.winFocus.FontSize = 13.3333333333333;
             app.winFocus.NextPlot = 'replace';
-            app.winFocus.Box = 'on';
             app.winFocus.Tag = 'focusWindow';
             app.winFocus.Position = [253 366 1129 442];
 
@@ -1269,9 +1277,9 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.winWaveform.XColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.winWaveform.YColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.winWaveform.Color = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.winWaveform.Box = 'on';
             app.winWaveform.FontSize = 11.3333333333333;
             app.winWaveform.NextPlot = 'replace';
-            app.winWaveform.Box = 'on';
             app.winWaveform.Tag = 'waveformWindow';
             app.winWaveform.Position = [3 205 228 143];
 
@@ -1711,8 +1719,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.sliderTonality.Orientation = 'vertical';
             app.sliderTonality.ValueChangedFcn = createCallbackFcn(app, @sliderTonality_Callback, true);
             app.sliderTonality.MinorTicks = [];
-            app.sliderTonality.Tag = 'TonalitySlider';
             app.sliderTonality.FontSize = 10.6666666666667;
+            app.sliderTonality.Tag = 'TonalitySlider';
             app.sliderTonality.Position = [223 223 3 118];
 
             % Create textWaveform
