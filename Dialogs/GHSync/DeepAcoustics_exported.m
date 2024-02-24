@@ -150,7 +150,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 update_fig(hObject, eventdata, handles, true);
                 % Update the color limits because changing from amplitude to
                 % power would mess with them
-                handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
+                %handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
+                handles.data.clim = prctile(handles.data.page_spect.s_display, [10,90], 'all')';
                 ChangeSpecCLim(hObject,[],handles);
     
                 handles.focusWindow.Colorbar.Label.String = handles.data.settings.spect.type;
@@ -484,13 +485,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                     DrawBox(hObject, eventdata, handles);
                 case 127 % Delete key
                     handles.data.calls(handles.data.currentcall,:) = [];
-                    % Reduce index of last call in current audio file to account for deletion
-                    handles.data.thisaudend = handles.data.thisaudend-1;
-                    % If we just deleted the last call in this audio file,
-                    % set st and end indices should be set to empty in
-                    % SortCalls
-                    % Reset currentcall to the preceding call or the first
-                    % call in this audio file
                     SortCalls(hObject, [], handles, 'time', 0, handles.data.currentcall - 1);
                 case 30 % char(30) is up arrow key
                     MoveFocus(+ handles.data.settings.focus_window_size, hObject, eventdata, handles)
@@ -874,12 +868,20 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Value changed function: dropdownFocus
         function dropdownFocus_Callback(app, event)
-            ChangeFocusWidth(app, event);
+            if strcmp(event.EventName,'Clicked')
+                return
+            elseif strcmp(event.EventName,'ValueChanged')
+                ChangeFocusWidth(app, event);
+            end
         end
 
         % Value changed function: dropdownPage
         function dropdownPage_Callback(app, event)
-            ChangePageWidth(app, event);
+            if strcmp(event.EventName,'Clicked')
+                return
+            elseif strcmp(event.EventName,'ValueChanged')
+                ChangePageWidth(app, event);
+            end
         end
 
         % Value changed function: dropdownColorMap
@@ -1245,27 +1247,27 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.axesPage = uiaxes(app.mainfigure);
             app.axesPage.XColor = [1 1 1];
             app.axesPage.YColor = [1 1 1];
-            app.axesPage.FontSize = 10.6666666666667;
             app.axesPage.GridColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.axesPage.MinorGridColor = [0.1 0.1 0.1];
-            app.axesPage.NextPlot = 'replace';
             app.axesPage.Box = 'on';
+            app.axesPage.FontSize = 10.6666666666667;
+            app.axesPage.NextPlot = 'replace';
             app.axesPage.Tag = 'detectionAxes';
             app.axesPage.Position = [259 135 1120 43];
 
             % Create winPage
             app.winPage = uiaxes(app.mainfigure);
+            app.winPage.Box = 'on';
             app.winPage.FontSize = 12;
             app.winPage.NextPlot = 'replace';
-            app.winPage.Box = 'on';
             app.winPage.Tag = 'spectrogramWindow';
             app.winPage.Position = [255 188 1125 181];
 
             % Create winFocus
             app.winFocus = uiaxes(app.mainfigure);
+            app.winFocus.Box = 'on';
             app.winFocus.FontSize = 13.3333333333333;
             app.winFocus.NextPlot = 'replace';
-            app.winFocus.Box = 'on';
             app.winFocus.Tag = 'focusWindow';
             app.winFocus.Position = [253 366 1129 442];
 
@@ -1275,9 +1277,9 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.winWaveform.XColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.winWaveform.YColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.winWaveform.Color = [0.101960784313725 0.101960784313725 0.101960784313725];
+            app.winWaveform.Box = 'on';
             app.winWaveform.FontSize = 11.3333333333333;
             app.winWaveform.NextPlot = 'replace';
-            app.winWaveform.Box = 'on';
             app.winWaveform.Tag = 'waveformWindow';
             app.winWaveform.Position = [3 205 228 143];
 
@@ -1717,8 +1719,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.sliderTonality.Orientation = 'vertical';
             app.sliderTonality.ValueChangedFcn = createCallbackFcn(app, @sliderTonality_Callback, true);
             app.sliderTonality.MinorTicks = [];
-            app.sliderTonality.Tag = 'TonalitySlider';
             app.sliderTonality.FontSize = 10.6666666666667;
+            app.sliderTonality.Tag = 'TonalitySlider';
             app.sliderTonality.Position = [223 223 3 118];
 
             % Create textWaveform
@@ -1930,7 +1932,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textFileName.Tag = 'displayfile';
             app.textFileName.FontWeight = 'bold';
             app.textFileName.FontColor = [1 1 1];
-            app.textFileName.Position = [298 752 1036 39];
+            app.textFileName.Position = [298 769 1036 22];
             app.textFileName.Text = '';
 
             % Show the figure after all components are created
