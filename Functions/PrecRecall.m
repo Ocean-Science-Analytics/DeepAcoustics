@@ -40,30 +40,30 @@ d = uiprogressdlg(fig,'Title','Detecting Calls',...
     'Indeterminate','on');
 drawnow
 
-nCumulDur = 0;
 Calls = [];
 for i = 1:length(allAudio)
     % Run detector
     AudioFile = allAudio{i};
     Calls_ThisAudio = SqueakDetect(AudioFile,netload,Settings,1,1);
-    % Add new Box col with adjusted boxes for P/R calculation
-    Calls_ThisAudio.BoxAdj = Calls_ThisAudio.Box;
-
-    % Accumulate audio durations for BoxAdj
-    if i > 1
-        % Get indices of rows corresponding to the previous audio file
-        nPrevFirst = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'first');
-        nPrevLast = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'last');
-        % Pull duration of previous audio file
-        nCumulDur = CallsAnn.Audiodata(nPrev).Duration;
-        % Adjust annotated calls
-        CallsAnn.BoxAdj(nPrevFirst:nPrevLast,1) = CallsAnn.Box(nPrevFirst:nPrevLast,1)+nCumulDur;
-        % Adjust fresh calls
-        Calls_ThisAudio.BoxAdj(:,1) = Calls_ThisAudio.Box(:,1)+nCumulDur;
-    end
 
     % Add detections to all Calls tables
     if ~isempty(Calls_ThisAudio)
+        % Add new Box col with adjusted boxes for P/R calculation
+        Calls_ThisAudio.BoxAdj = Calls_ThisAudio.Box;
+    
+        % Accumulate audio durations for BoxAdj
+        if i > 1
+            % Get indices of rows corresponding to the previous audio file
+            nPrevFirst = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'first');
+            nPrevLast = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'last');
+            % Pull duration of previous audio file
+            nCumulDur = CallsAnn.Audiodata(nPrevFirst).Duration;
+            % Adjust annotated calls
+            CallsAnn.BoxAdj(nPrevFirst:nPrevLast,1) = CallsAnn.Box(nPrevFirst:nPrevLast,1)+nCumulDur;
+            % Adjust fresh calls
+            Calls_ThisAudio.BoxAdj(:,1) = Calls_ThisAudio.Box(:,1)+nCumulDur;
+        end
+
         Calls = [Calls; Calls_ThisAudio];
     end
 end
@@ -78,6 +78,11 @@ percTPThresh = inputdlg(prompt,dlg_title,num_lines,definput);
 percTPThresh = str2double(percTPThresh);
 if percTPThresh < 0 || percTPThresh > 1
     error('Threshold for overlap must be between 0 and 1')
+end
+
+if isempty(Calls)
+    msgbox('No Calls detected in audio file(s)')
+    return
 end
 
 results = table({table2array(Calls(:,'BoxAdj'))},{table2array(Calls(:,2))},{categorical(ones(height(Calls),1),1,'Call')});
