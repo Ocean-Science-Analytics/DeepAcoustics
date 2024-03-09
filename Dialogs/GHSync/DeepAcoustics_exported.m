@@ -138,6 +138,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Training Image Dialog variables
         TrainImgSettings
+        TrainImgbCancel
     end
     
     methods (Access = public)

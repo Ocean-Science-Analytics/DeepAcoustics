@@ -43,6 +43,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
         function startupFcn(app, parentapp, spect, metadata)
             app.MainApp = parentapp;
             app.HandlesSpect = spect;
+            app.MainApp.TrainImgbCancel = false;
 
             % Initialize default values
             app.editImgLength.Value = 1;
@@ -60,7 +61,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.labelMaxSR.Text = [app.labelMaxSR.Text ' ' num2str(metadata.maxSR,'%.0f')];
         end
 
-        % Callback function: buttonCancel, dlgTrainImg
+        % Close request function: dlgTrainImg
         function appCloseRequestFcn_Callback(app, event)
             % Delete Train Img Settings app
             delete(app)
@@ -111,6 +112,12 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.MainApp.TrainImgSettings.imLength = app.editImgLength.Value;
             app.MainApp.TrainImgSettings.repeats = app.editNumAugDup.Value;
 
+            appCloseRequestFcn_Callback(app,event)
+        end
+
+        % Button pushed function: buttonCancel
+        function appCancel_Callback(app, event)
+            app.MainApp.TrainImgbCancel = true;
             appCloseRequestFcn_Callback(app,event)
         end
     end
@@ -214,7 +221,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
             % Create buttonCancel
             app.buttonCancel = uibutton(app.dlgTrainImg, 'push');
-            app.buttonCancel.ButtonPushedFcn = createCallbackFcn(app, @appCloseRequestFcn_Callback, true);
+            app.buttonCancel.ButtonPushedFcn = createCallbackFcn(app, @appCancel_Callback, true);
             app.buttonCancel.Position = [277 24 100 34];
             app.buttonCancel.Text = 'Cancel';
 

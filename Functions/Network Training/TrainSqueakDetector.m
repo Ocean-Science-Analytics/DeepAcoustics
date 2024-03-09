@@ -360,7 +360,9 @@ for ii = 1:size(data,1)
     end
     I = im2single(imresize(I,targetSize(1:2)));
     scale = targetSize(1:2)./imgSize(1:2);
-    bboxes = bboxresize(bboxes,scale);
+    if ~isempty(bboxes)
+        bboxes = bboxresize(bboxes,scale);
+    end
     
     data(ii,1:2) = {I,bboxes};
 end
