@@ -18,7 +18,7 @@ function FwdALot(hObject, eventdata, handles)
     % Otherwise make the first call in the new focus window the current call
     % Make sure audio matches (for mult aud per det file)
     else
-        calls_within_window = find((handles.data.calls.Box(:,1) > handles.data.windowposition) & strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename), 1);
+        calls_within_window = find((handles.data.calls.Box(:,1) > handles.data.windowposition) & strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename), 1);
         if ~isempty(calls_within_window)
             handles.data.currentcall = calls_within_window;
             handles.data.current_call_valid = true;
