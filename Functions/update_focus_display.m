@@ -22,6 +22,9 @@ set(handles.focusWindow,...
     'Xlim', [handles.current_focus_position(1), handles.current_focus_position(1) + handles.current_focus_position(3)],...
     'Ylim',[handles.data.settings.LowFreq, handles.data.settings.HighFreq]);
 
+if isempty(handles.data.calls) 
+    return
+end
 % If StTime exists as a variable, and there are calls to display, and the
 % contents of StTime are datetime format, set start time of the file to the StTime of
 % the first call in the audio file - the # of seconds into file the call is
