@@ -899,6 +899,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Close request function: mainfigure
         function mainfigureCloseRequest(app, event)
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            CheckModified(hObject,eventdata,handles);
             delete(app.appAbout)
             delete(app.appDisplay)
             delete(app.appUnsupClustSave)

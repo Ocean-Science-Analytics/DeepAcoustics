@@ -20,7 +20,7 @@ end
 %% Merge overlapping boxes in det files from same audio
 waitbar(.5,hc,'Writing Output Structure');
 Calls = [];
-uniqAudio = unique(Calls.Audiodata,'stable');
+uniqAudio = unique({handles.data.calls.Audiodata.Filename},'stable');
 for i = 1:length(uniqAudio)
     Calls_ThisAudio = Calls_temp(Calls_temp.Audiodata == uniqAudio(i));
     Calls_ThisAudio = merge_boxes(Calls_ThisAudio.Box, Calls_ThisAudio.Score, Calls_ThisAudio.Type, uniqAudio(i), Calls_ThisAudio.DetSpect(1), 1, 0, 0);
