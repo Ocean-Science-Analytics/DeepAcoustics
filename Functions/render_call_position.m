@@ -4,7 +4,11 @@ function  handles = render_call_position(handles, all_calls)
 
 % Initialize the display
 if all_calls
-    CallTime = handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3)/2;
+    if isempty(subCalls)
+        CallTime = 0;
+    else
+        CallTime = subCalls.Box(:,1) + subCalls.Box(:,3)/2;
+    end
     handles.update_position_axes = 0;
     %     line([0 max(CallTime)],[0 0],'LineWidth',1,'Color','w','Parent', handles.detectionAxes);
     %     line([0 max(CallTime)],[1 1],'LineWidth',1,'Color','w','Parent', handles.detectionAxes);
@@ -22,9 +26,9 @@ if all_calls
     
     cla(handles.detectionAxes);
     
-    screen_size = get(0,'screensize');
-    min_call_render_difference = 2*handles.data.audiodata.Duration / (screen_size(3));
-    calls_to_plot = diff([0;CallTime]) > min_call_render_difference;
+    %screen_size = get(0,'screensize');
+    %min_call_render_difference = 2*handles.data.audiodata.Duration / (screen_size(3));
+    %calls_to_plot = diff([0;CallTime]) > min_call_render_difference;
     
     % Plot the little green lines
 %     for accepted = 0:1
@@ -43,7 +47,7 @@ if all_calls
 %     end
     
     % Plot kernal densityp
-    if any(handles.data.calls.Accept)
+    if ~isempty(handles.data.calls) && any(handles.data.calls.Accept)
         [f,xi] = ksdensity(CallTime(handles.data.calls.Accept == true), linspace(0,handles.data.audiodata.Duration,300),...
             'Bandwidth', handles.data.audiodata.Duration / 300,...
             'Kernel', 'normal');
