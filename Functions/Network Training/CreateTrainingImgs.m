@@ -175,53 +175,55 @@ for k = 1:length(trainingdata)
             %Center audio on middle of call bout and extract clip imLength in
             %length
             StartTime = max(min(BoutCalls.Box(:,1)), 0);
-
-            % Check for space to write a negative image
-            while (StartTime-FinishTime) > imLength
-                NegStTime = FinishTime;
-                FinishTime = FinishTime+imLength;
-                
-                % Random duration based on subCalls range of sizes
-                NegDur = rand*(NegMaxDur-NegMinDur)+NegMinDur;
-                NegBW = rand*(NegMaxBW-NegMinBW)+NegMinBW;
-                NegTSt = rand*(FinishTime-NegDur-NegStTime)+NegStTime;
-                freqNyq = floor(audioReader.audiodata.SampleRate/2)/1000;
-                NegFSt = rand*(freqNyq-NegBW);
-                NegBox = [NegTSt,NegFSt,NegDur,NegBW];
-                NegAccept = 1;
-                NegType = categorical({'Noise'});
-                NegCalls = table(NegBox,NegAccept,NegType,'VariableNames',{'Box','Accept','Type'});
-                
-                % Randomly decide to make image or not
-                if rand <= nFracNeg
-                    %% Read Audio
-                    audio = audioReader.AudioSamples(NegStTime, FinishTime);
-                    try
-                        for replicatenumber = 1:repeats
-                            IMname = sprintf('%g_%g_%g_%g.png', k, j, nBouts+NegInxNum, replicatenumber);
-                            ffn = fullfile(strImgDir,IMname);
-                            % Insert augmented images folder into filename to separate augs
-                            % from ogs
-                            bAug = false;
-                            if replicatenumber > 1
-                                ffn = fullfile(strImgDir,'ImgAug',IMname);
-                                bAug = true;
+            
+            if app.TrainImgSettings.bRandNoise
+                % Check for space to write a negative image
+                while (StartTime-FinishTime) > imLength
+                    NegStTime = FinishTime;
+                    FinishTime = FinishTime+imLength;
+                    
+                    % Random duration based on subCalls range of sizes
+                    NegDur = rand*(NegMaxDur-NegMinDur)+NegMinDur;
+                    NegBW = rand*(NegMaxBW-NegMinBW)+NegMinBW;
+                    NegTSt = rand*(FinishTime-NegDur-NegStTime)+NegStTime;
+                    freqNyq = floor(audioReader.audiodata.SampleRate/2)/1000;
+                    NegFSt = rand*(freqNyq-NegBW);
+                    NegBox = [NegTSt,NegFSt,NegDur,NegBW];
+                    NegAccept = 1;
+                    NegType = categorical({'Noise'});
+                    NegCalls = table(NegBox,NegAccept,NegType,'VariableNames',{'Box','Accept','Type'});
+                    
+                    % Randomly decide to make image or not
+                    if rand <= nFracNeg
+                        %% Read Audio
+                        audio = audioReader.AudioSamples(NegStTime, FinishTime);
+                        try
+                            for replicatenumber = 1:repeats
+                                IMname = sprintf('%g_%g_%g_%g.png', k, j, nBouts+NegInxNum, replicatenumber);
+                                ffn = fullfile(strImgDir,IMname);
+                                % Insert augmented images folder into filename to separate augs
+                                % from ogs
+                                bAug = false;
+                                if replicatenumber > 1
+                                    ffn = fullfile(strImgDir,'ImgAug',IMname);
+                                    bAug = true;
+                                end
+                                % Do not need any outputs - this is just to
+                                % manipulate and write the image to file
+                                [~,box] = CreateTrainingData(...
+                                    audio,...
+                                    audioReader.audiodata.SampleRate,...
+                                    NegCalls,...
+                                    uniqLabels,...
+                                    wind,noverlap,nfft,...
+                                    ffn,...
+                                    replicatenumber);  
+                                TTable = [TTable;[{bAug}, {ffn}, box]];
                             end
-                            % Do not need any outputs - this is just to
-                            % manipulate and write the image to file
-                            [~,box] = CreateTrainingData(...
-                                audio,...
-                                audioReader.audiodata.SampleRate,...
-                                NegCalls,...
-                                uniqLabels,...
-                                wind,noverlap,nfft,...
-                                ffn,...
-                                replicatenumber);  
-                            TTable = [TTable;[{bAug}, {ffn}, box]];
+                            NegInxNum = NegInxNum+1;
+                        catch
+                            disp("Something wrong with calculating bounding box indices - talk to Gabi!");
                         end
-                        NegInxNum = NegInxNum+1;
-                    catch
-                        disp("Something wrong with calculating bounding box indices - talk to Gabi!");
                     end
                 end
             end
@@ -274,7 +276,7 @@ for k = 1:length(trainingdata)
                     TTable = [TTable;[{bAug}, {ffn}, box]];
                 end
             catch
-                %disp("Something wrong with calculating bounding box indices - talk to Gabi!");
+                disp("Something wrong with calculating bounding box indices - talk to Gabi!");
             end
             waitbar(bin/length(unique(bins)), h, sprintf('Processing File %g of %g', k, length(trainingdata)));         
         end
