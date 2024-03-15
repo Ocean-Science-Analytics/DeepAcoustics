@@ -40,7 +40,12 @@ for box_number = 1:length(calls_in_page)
     
     % Make the line thick if current call
     if handles.data.calls.Accept(calls_in_page(box_number))
-        box_color = [0 1 0];
+        if handles.data.calls.EntThresh(calls_in_page(box_number)) == handles.data.settings.EntropyThreshold
+            box_color = [0 1 0];
+        else
+            % Orange if Tonality has been manually adjusted
+            box_color = [0.9290 0.6940 0.1250];
+        end
     end
     if calls_in_page(box_number) == handles.data.currentcall
         line_width = 2;
