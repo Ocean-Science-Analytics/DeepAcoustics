@@ -7,9 +7,11 @@ handles.data.focusCenter = max(handles.data.focusCenter,  handles.data.settings.
 handles.data.focusCenter = min(handles.data.focusCenter,  handles.data.audiodata.Duration - handles.data.settings.focus_window_size/2);
 
 %% Find the call closest to the click and make it the current call
-callMidpoints = handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3)/2;
-[~, closestCall] = min(abs(callMidpoints - handles.data.focusCenter));
-handles.data.currentcall = closestCall;
+if ~isempty(handles.data.calls)
+    callMidpoints = handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3)/2;
+    [~, closestCall] = min(abs(callMidpoints - handles.data.focusCenter));
+    handles.data.currentcall = closestCall;
+end
 
 % update_fig runs guidata so we don't need that here
 update_fig(hObject, eventdata, handles);

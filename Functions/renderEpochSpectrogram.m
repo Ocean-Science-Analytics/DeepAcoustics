@@ -45,7 +45,11 @@ set(handles.spectrogramWindow,...
     'Ylim',f([1,end])/1000);
 set(handles.epochSpect,'CData',s_display,'XData', t, 'YData',f/1000);
 
-if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && height(handles.data.calls) > 0 && isa(handles.data.calls.StTime(1),'datetime')
+% If StTime exists as a variable, and there are calls to display, and the
+% contents of StTime are datetime format, set start time of the file to the StTime of
+% the first call in the audio file - the # of seconds into file the call is
+if height(handles.data.calls) > 0 && ...
+    any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && isa(handles.data.calls.StTime(1),'datetime')
     sttime = handles.data.calls.StTime(1) - handles.data.calls.Box(1,1)/86400;
 else
     sttime = 0;

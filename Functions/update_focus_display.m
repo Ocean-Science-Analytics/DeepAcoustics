@@ -20,6 +20,12 @@ set(handles.focusWindow,...
     'Xlim', [handles.current_focus_position(1), handles.current_focus_position(1) + handles.current_focus_position(3)],...
     'Ylim',[handles.data.settings.LowFreq, handles.data.settings.HighFreq]);
 
+if isempty(handles.data.calls) 
+    return
+end
+% If StTime exists as a variable, and there are calls to display, and the
+% contents of StTime are datetime format, set start time of the file to the StTime of
+% the first call in the audio file - the # of seconds into file the call is
 if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && height(handles.data.calls) > 0 && isa(handles.data.calls.StTime(1),'datetime')
     sttime = handles.data.calls.StTime(1) - handles.data.calls.Box(1,1)/86400;
 else
