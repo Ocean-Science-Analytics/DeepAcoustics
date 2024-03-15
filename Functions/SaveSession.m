@@ -4,11 +4,12 @@ if nargin < 4
     bAuto = false;
 end
 
-if isfield(handles,'current_detection_file')
-    handles.SaveFile = handles.detectionfiles(handles.current_file_id).name;
-    handles.SaveFile = handles.current_detection_file;
+if isfield(handles,'current_detection_file') && ~isempty(handles.current_detection_file)
+    handles.SaveFile = fullfile(handles.data.settings.detectionfolder,handles.current_detection_file);
 else
-    handles.SaveFile = [strtok(handles.audiofiles(handles.current_file_id).name,'.') '_Detections.mat'];
+    % Get current file parts
+    [thispn, thisfn, ~] = fileparts(handles.data.audiodata.Filename);
+    handles.SaveFile = fullfile(thispn, [thisfn '_Detections.mat']);
 end
 
 % temp = handles.data.audiodata.samples;
@@ -18,10 +19,10 @@ guidata(hObject, handles);
 Calls = handles.data.calls;
 audiodata = handles.data.audiodata;
 if bAuto
-    FileName = handles.SaveFile;
-    PathName = handles.data.settings.detectionfolder;
+    [PathName, FileName, thisext] = fileparts(handles.SaveFile);
+    FileName = [FileName thisext];
 else
-    [FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, handles.SaveFile), 'Save Session (.mat)');
+    [FileName, PathName] = uiputfile(handles.SaveFile, 'Save Session (.mat)');
 end
 if FileName == 0
     return
