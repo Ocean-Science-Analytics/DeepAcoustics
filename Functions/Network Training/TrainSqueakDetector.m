@@ -391,7 +391,7 @@ else
     indLabs = table2cell(TrainingTables(:,indClass:end));
     indLabs = ~cellfun(@isempty,indLabs);
     % Do not include augmented images in selection
-    indLabs(cell2mat(TrainingTables.bAug),:) = 0;
+    indLabs(logical(TrainingTables.bAug),:) = 0;
     numEachLabs = sum(indLabs,1);
     % Find the # of data to select based on 10% of the
     % whichever label has the smallest representation in the
