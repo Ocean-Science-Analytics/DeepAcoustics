@@ -9,7 +9,7 @@ indClass = find(strcmp('imageFilename', TrainingTables.Properties.VariableNames)
 bldsTrain = boxLabelDatastore(TrainingTables(:,indClass:end));
 dsTrain = combine(imdsTrain,bldsTrain);
 
-list = {'Tiny YOLO','CSP-DarkNet-53','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
+list = {'Tiny YOLO (pre-trained)','CSP-DarkNet-53 (pre-trained)','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
 if nargin == 1 || isempty(detname)
     if nargin == 1
         strPrompt = 'Choose a base network';
