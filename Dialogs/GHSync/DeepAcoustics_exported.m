@@ -386,7 +386,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
             handles.current_file_id = 1;
             handles.current_detection_file = '';
-            handles.current_audio_file = '';
 
             update_folders(hObject, eventdata, handles);
             handles = guidata(hObject);  % Get newest version of handles
@@ -1934,7 +1933,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textFileName.Tag = 'displayfile';
             app.textFileName.FontWeight = 'bold';
             app.textFileName.FontColor = [1 1 1];
-            app.textFileName.Position = [298 769 1036 22];
+            app.textFileName.Position = [298 752 1036 39];
             app.textFileName.Text = '';
 
             % Show the figure after all components are created
