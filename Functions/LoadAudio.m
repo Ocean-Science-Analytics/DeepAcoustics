@@ -13,9 +13,8 @@ if isempty(handles.audiofiles)
     return
 end
 current_file_id = get(handles.AudioFilespopup,'Value');
-handles.current_audio_file = handles.audiofiles(current_file_id).name;
 
-handles.data.audiodata = audioinfo(fullfile(handles.data.settings.audiofolder,handles.current_audio_file));
+handles.data.audiodata = audioinfo(fullfile(handles.data.settings.audiofolder,handles.audiofiles(current_file_id).name));
 
 Calls = table(zeros(0,4),[],[],[],[],[],[],[],[],[],[], 'VariableNames', {'Box', 'Score', 'Type', 'DetSpect', 'CallID', 'ClustCat','EntThresh', 'AmpThresh', 'Accept','Ovlp','StTime'});
 % Calls.Box = [0 0 1 1];

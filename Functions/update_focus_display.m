@@ -1,11 +1,11 @@
 function handles = update_focus_display(handles)
 
+[~,audiofn,audioext] = fileparts(handles.data.audiodata.Filename);
+audiofn = [audiofn audioext];
 if ~isempty(handles.current_detection_file)
-    set(handles.displayfile,'String',char(handles.current_detection_file))
-elseif ~isempty(handles.current_audio_file)
-    set(handles.displayfile,'String',char(handles.current_audio_file))
+    set(handles.displayfile,'String',{char(handles.current_detection_file);char(audiofn)})
 else
-    set(handles.displayfile,'String',char(''))
+    set(handles.displayfile,'String',char(audiofn))
 end
 
 % Values for the spectrogram are already calculated in renderEpochSpectrogram
