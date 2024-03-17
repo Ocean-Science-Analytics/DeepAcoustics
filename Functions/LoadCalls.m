@@ -96,7 +96,7 @@ if ~isempty(detmetadata)
 end
 
 % Position of the focus window to the first call in the file
-handles.data.focusCenter = handles.data.calls.Box(indSt,1) + handles.data.calls.Box(indSt,3)/2;
+handles.data.focusCenter = handles.data.calls.Box(handles.data.thisaudst,1) + handles.data.calls.Box(handles.data.thisaudst,3)/2;
 
 % For some unknown reason, if "h" is closed after running
 % "initialize_display", then holding down an arror key will be a little

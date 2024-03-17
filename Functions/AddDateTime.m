@@ -1,5 +1,6 @@
 function Calls = AddDateTime(Calls,detname)
 
+vecStTime = [];
 for i = 1:height(Calls)
     audioname = Calls.Audiodata(i).Filename;
     % Get only the filename (not path)
@@ -12,27 +13,51 @@ for i = 1:height(Calls)
     [nPairs,~] = regexp(audioname,'([0-9]{2})','tokens','match');
     nPairs = size(nPairs,2);
     if nPairs >= 6
-        % First look for YYMMDD.*HHMMSS
-        [thisdt,~] = regexp(audioname,'([0-9]{6})','tokens','match');
-        % If failure, then try YYMMDD.*HHMM
-        if size(thisdt,2) < 2
-            [thisdt,~] = regexp(audioname,'([0-9]{6}).*([0-9]{4})','tokens','match');
-            if ~isempty(thisdt)
+        % First look for YYYYMMDD.*HHMMSS
+        [thisdt,~] = regexp(audioname,'([0-9]{8}).*([0-9]{6})','tokens','match');
+        % If failure, then try YYMMDD.*HHMMSS
+        if isempty(thisdt)
+            % Look for YYMMDD.*HHMMSS
+            [thisdt,~] = regexp(audioname,'([0-9]{6})','tokens','match');
+            % If failure, then try YYMMDD.*HHMM
+            if size(thisdt,2) < 2
+                [thisdt,~] = regexp(audioname,'([0-9]{6}).*([0-9]{4})','tokens','match');
+                if ~isempty(thisdt)
+                    % Unnest (assume last array contains date/time) (ST)
+                    thisdt = thisdt{end};
+                    thissec = 0;
+                end
+            % If success
+            else
+                % Assume the last two arrays contain the date/time (ST)
+                thisdt = thisdt(end-1:end);
                 % Unnest
-                thisdt = thisdt{1};
-                thissec = 0;
+                thisdt{1} = thisdt{1}{1};
+                thisdt{2} = thisdt{2}{1};
+                thissec = str2double(thisdt{2}(5:6));
             end
-        % If success, assume the last two arrays contain the date/time (ST)
         else
-            thisdt = thisdt(end-1:end);
-            thissec = str2double(thisdt{end}{1}(5:6));
+            % Unnest (assume last array contains date/time) (ST)
+            thisdt = thisdt{end};
+            if ~strcmp(thisdt{1}(1:2),'20')
+                if strcmp(thisdt{1}(1:2),'19')
+                    warning('Ask Gabi about integrating data from the 90s')
+                    return
+                else
+                    warning('Date/time format not recognizable - please use YYMMDD.*HHMMSS in your audio file or talk to Gabi about your particular D/T format')
+                    return
+                end
+            end
+            % Get rid of lead year
+            thisdt{1} = thisdt{1}(end-5:end);
+            thissec = str2double(thisdt{2}(5:6));
         end
     % Try looking for YYMMDD.*HHMM
     elseif nPairs >= 5
         [thisdt,~] = regexp(audioname,'([0-9]{6}).*([0-9]{4})','tokens','match');
         if ~isempty(thisdt)
-            % Unnest
-            thisdt = thisdt{1};
+            % Unnest (assume last array contains date/time) (ST)
+            thisdt = thisdt{end};
             thissec = 0;
         end
     end
@@ -48,8 +73,8 @@ for i = 1:height(Calls)
                     'Hour:','Minute:','Second:'},...
                     dlg_title, num_lines); 
                 if ~isempty(dlgin)
-                    thisdt = {{[dlgin{1} dlgin{2} dlgin{3}] [dlgin{4} dlgin{5} dlgin{6}]}};
-                    thissec = str2double(thisdt{1}{2}(5:6));
+                    thisdt = {[dlgin{1} dlgin{2} dlgin{3}] [dlgin{4} dlgin{5} dlgin{6}]};
+                    thissec = str2double(thisdt{2}(5:6));
                 end
         end
     end
@@ -57,11 +82,11 @@ for i = 1:height(Calls)
     % Stash d/t variables and do a sanity check
     if ~isempty(thisdt)
         % Fill in variables from filename (seconds taken care of already)
-        thisyr = str2double(thisdt{1}{1}(1:2));
-        thismo = str2double(thisdt{1}{1}(3:4));
-        thisday = str2double(thisdt{1}{1}(5:6));
-        thishr = str2double(thisdt{2}{1}(1:2));
-        thismin = str2double(thisdt{2}{1}(3:4));
+        thisyr = str2double(thisdt{1}(1:2));
+        thismo = str2double(thisdt{1}(3:4));
+        thisday = str2double(thisdt{1}(5:6));
+        thishr = str2double(thisdt{2}(1:2));
+        thismin = str2double(thisdt{2}(3:4));
 
         % Sanity check of date/time
         % Check year
@@ -85,5 +110,7 @@ for i = 1:height(Calls)
     end
     
     filest = datetime(thisyr+2000,thismo,thisday,thishr,thismin,thissec,'Format','yyyy-MM-dd HH:mm:ss.SSS');
-    Calls.StTime(i) = filest+Calls.Box(i,1)/86400;
+    vecStTime = [vecStTime; filest+Calls.Box(i,1)/86400];
 end
+
+Calls.StTime = vecStTime;
