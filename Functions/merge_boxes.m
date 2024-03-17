@@ -27,12 +27,12 @@ g = graph(overlapRatio);
 % Make new boxes from the minimum and maximum start and end time of each
 % overlapping box.
 componentIndices = conncomp(g);
-begin_time = accumarray(componentIndices', AllBoxes(:,1), [], @min);
-lower_freq = accumarray(componentIndices', AllBoxes(:,2), [], @min);
-end_time__ = accumarray(componentIndices', AllBoxes(:,1)+AllBoxes(:,3), [], @max);
-high_freq_ = accumarray(componentIndices', AllBoxes(:,2)+AllBoxes(:,4), [], @max);
+begin_time = double(accumarray(componentIndices', AllBoxes(:,1), [], @min));
+lower_freq = double(accumarray(componentIndices', AllBoxes(:,2), [], @min));
+end_time__ = double(accumarray(componentIndices', AllBoxes(:,1)+AllBoxes(:,3), [], @max));
+high_freq_ = double(accumarray(componentIndices', AllBoxes(:,2)+AllBoxes(:,4), [], @max));
 
-call_score = accumarray(componentIndices', AllScores, [], @mean);
+call_score = double(accumarray(componentIndices', AllScores, [], @mean));
 
 [~, z2]=unique(componentIndices);
 call_Class = AllClass(z2);

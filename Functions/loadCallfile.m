@@ -19,6 +19,10 @@ if isfield(data, 'Calls')
     if isfield(data,'detection_metadata')
         detection_metadata = data.detection_metadata;
     end
+    
+    % Deal with potentially weird data type issues
+    Calls.Box = double(Calls.Box);
+    Calls.Score = double(Calls.Score);
 
     %% Supply defaults for any misc missing variables
     if ~any(strcmp('CallID', Calls.Properties.VariableNames)) || length(unique(Calls.CallID)) ~= height(Calls)

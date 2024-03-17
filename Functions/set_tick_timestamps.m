@@ -16,7 +16,7 @@ x_tick = floor(x_lim(1)):nice:ceil(x_lim(2));
 x_tick_days = x_tick / (24*60*60);
 if isa(sttime,'datetime')
     if ~use_milliseconds
-        sttime = datetime(sttime,'Format','yyyy-MM-dd HH:mm:SS');
+        sttime = datetime(sttime,'Format','yyyy-MM-dd HH:mm:ss');
     end
     labels = cellstr(x_tick_days + sttime)';
 else
