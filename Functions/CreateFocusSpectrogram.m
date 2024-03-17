@@ -41,7 +41,7 @@ if isfield(options, 'freq_range') && ~isempty(options.freq_range)
 end
 
 if (1/options.nfft > (box(4)*1000))
-    warning('Spectrogram settings may not be ideal for this call - suggest adjusting Display Settings and increasing NFFT')
+    warning('%s\n%s\n','Spectrogram settings may not be ideal for this call - suggest adjusting Display Settings and increasing NFFT')
 end
 
 windowsize = round(rate * options.windowsize);
@@ -52,8 +52,20 @@ if make_spectrogram
     audio = call.Audiodata.AudioSamples(box(1), box(1) + box(3));
     [s, fr, ti, p] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
 else
-    s  = handles.data.page_spect.s(:,handles.data.page_spect.t > call.Box(1) & handles.data.page_spect.t < sum(call.Box([1,3])));
-    ti = handles.data.page_spect.t(  handles.data.page_spect.t > call.Box(1) & handles.data.page_spect.t < sum(call.Box([1,3])));
+    indbox = handles.data.page_spect.t > call.Box(1) & handles.data.page_spect.t < sum(call.Box([1,3]));
+    % if spect resolution issues, warning and adjust box so enough dims to
+    % function
+    if sum(indbox)==1
+        % If last index is 1, make index before it also 1
+        if indbox(end)
+            indbox(end-1) = 1;
+        else
+            indbox(find(indbox)+1) = 1;
+        end
+        warning('%s\n%s\n','Recommend decreasing FFT size in Display Settings')
+    end
+    s  = handles.data.page_spect.s(:,indbox);
+    ti = handles.data.page_spect.t(indbox);
     fr = handles.data.page_spect.f;
     p = (1/(rate*(hamming(nfft)'*hamming(nfft))))*abs(s).^2;
     p(2:end-1,:) = p(2:end-1,:).*2;

@@ -59,16 +59,23 @@ handles = guidata(hObject);  % Get newest version of handles
 
 detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
 Calls = [];
+
+% Load neural network
+h = waitbar(0,'Loading neural network...');
+networkname = handles.networkfiles(networkselection).name;
+networkpath = fullfile(handles.networkfiles(networkselection).folder,networkname);
+NeuralNetwork=load(networkpath);%get currently selected option from menu
+close(h);
+
+% Set DetSpect from network files
+DetSpect.wind = NeuralNetwork.wind;
+DetSpect.noverlap = NeuralNetwork.noverlap;
+DetSpect.nfft = NeuralNetwork.nfft;
+
 %% For Each File
 for j = 1:length(audioselections)
     CurrentAudioFile = audioselections(j);
 
-    h = waitbar(0,'Loading neural network...');
-    networkname = handles.networkfiles(networkselection).name;
-    networkpath = fullfile(handles.networkfiles(networkselection).folder,networkname);
-    NeuralNetwork=load(networkpath);%get currently selected option from menu
-    close(h);
-    
     AudioFile = fullfile(handles.audiofiles(CurrentAudioFile).folder,handles.audiofiles(CurrentAudioFile).name);
     Calls_ThisAudio = SqueakDetect(AudioFile,NeuralNetwork,Settings,j,length(audioselections));
     
@@ -83,10 +90,6 @@ for j = 1:length(audioselections)
     
     Calls_ThisAudio.EntThresh(:) = handles.data.settings.EntropyThreshold;
     Calls_ThisAudio.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
-
-    DetSpect.wind = NeuralNetwork.wind;
-    DetSpect.noverlap = NeuralNetwork.noverlap;
-    DetSpect.nfft = NeuralNetwork.nfft;
     Calls_ThisAudio.DetSpect = repmat(DetSpect,height(Calls_ThisAudio),1);
     Calls_ThisAudio.Audiodata = repmat(audioinfo(AudioFile),height(Calls_ThisAudio),1);
     
