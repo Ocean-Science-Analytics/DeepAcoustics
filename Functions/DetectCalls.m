@@ -87,6 +87,16 @@ for j = 1:length(audioselections)
     [~,audioname] = fileparts(AudioFile);
     detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
     
+    % Set file name
+    if j==1
+        if Settings(5)
+            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audioselections)) 'AudFiles ' detectiontime '_Detections.mat']);
+        else
+            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audioselections)) 'AudFiles_Detections.mat']);
+        end
+    end
+    
+    % Move to next audio if no calls
     if isempty(Calls)
         fprintf(1,'No Calls found in: %s \n',audioname)
         continue
@@ -112,16 +122,6 @@ for j = 1:length(audioselections)
 %     end
     Calls.EntThresh(:) = handles.data.settings.EntropyThreshold;
     Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
-    
-    %% Save the file
-    % Save the Call table, detection metadata, and results of audioinfo
-    
-    % Append date to filename
-    if Settings(5)
-        fname = fullfile(handles.data.settings.detectionfolder,[audioname ' ' detectiontime '_Detections.mat']);
-    else
-        fname = fullfile(handles.data.settings.detectionfolder,[audioname '_Detections.mat']);
-    end
     
     % Display the number of calls
     fprintf(1,'%d Calls found in: %s \n',height(Calls),audioname)
