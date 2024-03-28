@@ -80,7 +80,17 @@ for j = 1:length(audioselections)
     Calls_ThisAudio = SqueakDetect(AudioFile,NeuralNetwork,Settings,j,length(audioselections));
     
     [~,audioname] = fileparts(AudioFile);
+
+    % Set file name
+    if j==1
+        if Settings(5)
+            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audioselections)) 'AudFiles ' detectiontime '_Detections.mat']);
+        else
+            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audioselections)) 'AudFiles_Detections.mat']);
+        end
+    end
     
+    % Move to next audio if no calls
     if isempty(Calls_ThisAudio)
         fprintf(1,'No Calls found in: %s \n',audioname)
         continue
@@ -92,18 +102,6 @@ for j = 1:length(audioselections)
     Calls_ThisAudio.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
     Calls_ThisAudio.DetSpect = repmat(DetSpect,height(Calls_ThisAudio),1);
     Calls_ThisAudio.Audiodata = repmat(audioinfo(AudioFile),height(Calls_ThisAudio),1);
-    
-    %% Save the file
-    % Save the Call table, detection metadata, and results of audioinfo
-    
-    % Append date to filename
-    if j==1
-        if Settings(5)
-            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audioselections)) 'AudFiles ' detectiontime '_Detections.mat']);
-        else
-            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audioselections)) 'AudFiles_Detections.mat']);
-        end
-    end
     
     % Display the number of calls
     fprintf(1,'%d Calls found in: %s \n',height(Calls_ThisAudio),audioname)
