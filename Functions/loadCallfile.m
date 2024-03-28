@@ -48,7 +48,8 @@ if isfield(data, 'Calls')
             [~,fnonly,~] = fileparts(filename);
             Calls = AddDateTime(Calls,audiodata,fnonly);
         else
-            Calls.StTime(:) = NaT;
+            Calls.StTime = [];
+            Calls.StTime = NaT(height(Calls),1);
         end
         save(filename,'Calls','-append');
     end
