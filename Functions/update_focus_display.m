@@ -26,7 +26,9 @@ end
 % If StTime exists as a variable, and there are calls to display, and the
 % contents of StTime are datetime format, set start time of the file to the StTime of
 % the first call in the audio file - the # of seconds into file the call is
-if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && height(handles.data.calls) > 0 && isa(handles.data.calls.StTime(1),'datetime')
+if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && height(handles.data.calls) > 0 && ...
+        isa(handles.data.calls.StTime(1),'datetime') && ...
+        ~isnat(handles.data.calls.StTime(1))
     sttime = handles.data.calls.StTime(1) - handles.data.calls.Box(1,1)/86400;
 else
     sttime = 0;
