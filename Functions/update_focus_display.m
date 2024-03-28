@@ -28,7 +28,8 @@ end
 % the first call in the audio file - the # of seconds into file the call is
 if any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && ...
         ~isempty(handles.data.thisaudst) && ~isempty(handles.data.thisaudend) && ...
-        isa(handles.data.calls.StTime(handles.data.thisaudst),'datetime')
+        isa(handles.data.calls.StTime(handles.data.thisaudst),'datetime') && ...
+        ~isnat(handles.data.calls.StTime(handles.data.thisaudst))
     sttime = handles.data.calls.StTime(handles.data.thisaudst) - handles.data.calls.Box(handles.data.thisaudst,1)/86400;
 else
     sttime = 0;

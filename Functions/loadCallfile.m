@@ -60,7 +60,7 @@ if isfield(data, 'Calls')
             [~,fnonly,~] = fileparts(filename);
             Calls = AddDateTime(Calls,fnonly);
         else
-            Calls.StTime(:) = 0;
+            Calls.StTime(:) = NaT;
         end
         save(filename,'Calls','-append');
     end

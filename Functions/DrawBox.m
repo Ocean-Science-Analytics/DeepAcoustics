@@ -22,7 +22,9 @@ new_box.EntThresh = handles.data.settings.EntropyThreshold;
 new_box.AmpThresh = handles.data.settings.AmplitudeThreshold;
 new_box.Accept = true;
 new_box.Ovlp = 0;
-new_box.StTime = 0;
+% Check for Date/Time??
+new_box.StTime = NaT;
+new_box = AddDateTime(new_box);
 handles.data.calls = [handles.data.calls; new_box];
 
 %Now delete the roi and render the figure. The roi will be rendered along
