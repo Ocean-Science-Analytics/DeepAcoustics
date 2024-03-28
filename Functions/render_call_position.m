@@ -4,10 +4,10 @@ function  handles = render_call_position(handles, all_calls)
 
 % Initialize the display
 if all_calls
-    if isempty(subCalls)
+    if isempty(handles.data.calls)
         CallTime = 0;
     else
-        CallTime = subCalls.Box(:,1) + subCalls.Box(:,3)/2;
+        CallTime = handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3)/2;
     end
     handles.update_position_axes = 0;
     %     line([0 max(CallTime)],[0 0],'LineWidth',1,'Color','w','Parent', handles.detectionAxes);
