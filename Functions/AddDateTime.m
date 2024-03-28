@@ -65,7 +65,7 @@ for i = 1:height(Calls)
         end
         % If all failure (and not just drawing boxes), ask for user input
         if isempty(thisdt)
-            if nargin > 1
+            if nargin > 2
                 answer = questdlg({'Auto detect failed. Would you like to manually input the start date/time of the following file?:'; ...
                     detname},'Manual Input Date/Time','Yes','No','Yes');
                 switch answer
