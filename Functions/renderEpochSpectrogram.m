@@ -49,7 +49,9 @@ set(handles.epochSpect,'CData',s_display,'XData', t, 'YData',f/1000);
 % contents of StTime are datetime format, set start time of the file to the StTime of
 % the first call in the audio file - the # of seconds into file the call is
 if height(handles.data.calls) > 0 && ...
-    any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && isa(handles.data.calls.StTime(1),'datetime')
+    any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && ...
+        isa(handles.data.calls.StTime(1),'datetime') && ...
+        ~isnat(handles.data.calls.StTime(1))
     sttime = handles.data.calls.StTime(1) - handles.data.calls.Box(1,1)/86400;
 else
     sttime = 0;
