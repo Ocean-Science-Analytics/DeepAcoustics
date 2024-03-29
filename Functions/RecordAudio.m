@@ -11,7 +11,7 @@ if ~isempty(handles.data.calls)
     if ismember('Power',tmpcalls.Properties.VariableNames)
         tmpcalls = removevars(tmpcalls,'Power');
     end
-    if ~isequal(tmpcalls, handles.data.calls)
+    if ~isequaln(tmpcalls, handles.data.calls)
         opts.Interpreter = 'tex';
         opts.Default='Yes';
         saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Detection file has been modified. Would you like to save changes?','Save Detection File?','Yes','No',opts);

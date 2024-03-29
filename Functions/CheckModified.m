@@ -6,10 +6,10 @@ if ~isempty(handles.data.calls)
     opts.Default='Yes';
     if ~isempty(handles.current_file_id) && ~isempty(handles.current_detection_file)
         [~, ~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
-        if ~isequal(modcheck.calls, handles.data.calls) || ~isequal(modcheck.spect, handles.data.settings.spect)
-            if ~isequal(modcheck.calls, handles.data.calls) 
+        if ~isequaln(modcheck.calls, handles.data.calls) || ~isequaln(modcheck.spect, handles.data.settings.spect)
+            if ~isequaln(modcheck.calls, handles.data.calls) 
                 saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Detection file has been modified. Would you like to save changes?','Save Detection File?','Yes','No',opts);
-            elseif ~isequal(modcheck.spect, handles.data.settings.spect)
+            elseif ~isequaln(modcheck.spect, handles.data.settings.spect)
                 saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Spectrogram settings have been modified. Would you like to save changes in the det file (spect variable)?','Save Detection File?','Yes','No',opts);
             end
         end
