@@ -30,8 +30,16 @@ end
 h = waitbar(0.5, 'saving');
 
 spect = handles.data.settings.spect;
-save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7.3');
-% handles.data.audiodata.samples = temp;
+
+szCalls = whos('Calls');
+szaudiodata = whos('audiodata');
+szspect = whos('spect');
+szTotal = szCalls.bytes + szaudiodata.bytes+ zspect.bytes;
+if szTotal >= 2000000000
+    save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7.3');
+else
+    save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7');
+end
 update_folders(hObject, eventdata, handles);
 guidata(hObject, handles);
 close(h);
