@@ -28,7 +28,15 @@ end
 h = waitbar(0.5, 'saving');
 
 spect = handles.data.settings.spect;
-save(fullfile(PathName, FileName), 'Calls','spect', '-v7.3');
+
+szCalls = whos('Calls');
+szspect = whos('spect');
+szTotal = szCalls.bytes + szspect.bytes;
+if szTotal >= 2000000000
+    save(fullfile(PathName, FileName), 'Calls','spect', '-v7.3');
+else
+    save(fullfile(PathName, FileName), 'Calls','spect', '-v7');
+end
 update_folders(hObject, eventdata, handles);
 guidata(hObject, handles);
 close(h);
