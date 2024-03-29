@@ -11,7 +11,7 @@ if nargin < 5
     % Select new detections file
     [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file',handles.data.settings.detectionfolder);
     % If cancel, return
-    if isequal(newdetfile,0)
+    if isequaln(newdetfile,0)
        return;
     % Else get ready to load new file
     else
