@@ -278,7 +278,7 @@ for k = 1:length(trainingdata)
             catch
                 disp("Something wrong with calculating bounding box indices - talk to Gabi!");
             end
-            waitbar(bin/length(unique(bins)), h, sprintf('Processing File %g of %g', k, length(trainingdata)));         
+            waitbar(bin/length(unique(bins)), h, sprintf('Processing Det File %g of %g Aud File %g of %g', k, length(trainingdata), j, length(allAudio)));         
         end
     end
 end
