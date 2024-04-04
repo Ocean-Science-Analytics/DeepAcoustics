@@ -85,9 +85,9 @@ if isempty(Calls)
     return
 end
 
-results = table({table2array(Calls(:,'BoxAdj'))},{table2array(Calls(:,2))},{categorical(ones(height(Calls),1),1,'Call')});
+results = table({table2array(Calls(:,'BoxAdj'))},{table2array(Calls(:,2))},{categorical(Calls.Type)});
 results = renamevars(results,1:3,{'Box','Scores','Label'});
-grdtruth = table({table2array(CallsAnn(:,'BoxAdj'))},{categorical(ones(height(CallsAnn),1),1,'Call')});
+grdtruth = table({table2array(CallsAnn(:,'BoxAdj'))},{categorical(CallsAnn.Type)});
 grdtruth = renamevars(grdtruth,1:2,{'Box','Label'});
 
 strVer = version;
@@ -122,8 +122,7 @@ numFN = numTrueDets - numTP;
 fscore = 2*((prec*recall)/(prec+recall));
 
 figure
-scores = [results.Scores];
-scores = vertcat(scores{:});
+scores = [results.Scores{1}(results.Label{:} == "Call")];
 scores = sort(scores,'descend');
 scores = [scores;0];
 scatter(recallvec,precvec,[],scores,'filled','MarkerEdgeColor',[0 0 0])
