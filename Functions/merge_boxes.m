@@ -21,6 +21,14 @@ overlapRatio = bboxOverlapRatio(OverBoxes, OverBoxes);
 OverlapMergeThreshold = 0;
 overlapRatio(overlapRatio<OverlapMergeThreshold)=0;
 
+% Overlapping different classes don't count (there's probably a more
+% elegant way to do this but I went with quick)
+uniqclass = unique(AllClass);
+for i = 1:length(uniqclass)
+    overlapRatio(AllClass==uniqclass(i),AllClass~=uniqclass(i)) = 0;
+    overlapRatio(AllClass~=uniqclass(i),AllClass==uniqclass(i)) = 0;
+end
+
 % Create a graph with the connected boxes
 g = graph(overlapRatio);
 
