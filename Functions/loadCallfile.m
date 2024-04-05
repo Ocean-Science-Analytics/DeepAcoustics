@@ -31,8 +31,12 @@ if isfield(data, 'Calls')
     elseif ~any(strcmp('Audiodata', Calls.Properties.VariableNames))
         error('Could not identify audio info since multi-file update - complain to GA')
     end
-    if ~any(strcmp('DetSpect', Calls.Properties.VariableNames))
-        Calls.DetSpect(:) = struct();
+    if ~any(strcmp('DetSpect', Calls.Properties.VariableNames)) || isempty(fieldnames(Calls.DetSpect(1)))
+        DetSpect.wind = 0;
+        DetSpect.noverlap = 0;
+        DetSpect.nfft = 0;
+        Calls.DetSpect = repmat(DetSpect,height(Calls),1);
+        Calls.DetSpect(:) = DetSpect;
     end
     if ~any(strcmp('CallID', Calls.Properties.VariableNames)) || length(unique(Calls.CallID)) ~= height(Calls)
         warning('CallID non-existent or not unique - replacing with 1:height(Calls)')
