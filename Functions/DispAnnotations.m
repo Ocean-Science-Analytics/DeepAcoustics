@@ -21,10 +21,10 @@ for i = 1:height(CallsAnn)
     thisboxend = thisbox(1)+thisbox(3);
     % Indices where det call starts during true call (det call start is
     % after true call start but before end)
-    indA = Calls.Box(:,1) >= thisboxst & Calls.Box(:,1) < thisboxend & strcmp({Calls.Audiodata.Filename},thisaud);
+    indA = Calls.Box(:,1) >= thisboxst & Calls.Box(:,1) < thisboxend & strcmp({Calls.Audiodata.Filename}',thisaud);
     % Indices where det call starts before true call (det call start is
     % before true call start and end is after true call start)
-    indB = Calls.Box(:,1) < thisboxst & (Calls.Box(:,1)+Calls.Box(:,3)) >= thisboxst & strcmp({Calls.Audiodata.Filename},thisaud);
+    indB = Calls.Box(:,1) < thisboxst & (Calls.Box(:,1)+Calls.Box(:,3)) >= thisboxst & strcmp({Calls.Audiodata.Filename}',thisaud);
     ind = indA | indB;
     % Subset of dets that overlap with this true call
     Calls_sub = Calls.Box(ind,:);
