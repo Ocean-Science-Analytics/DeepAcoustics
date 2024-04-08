@@ -405,7 +405,7 @@ else
         % Amt to select from this label, accounting for
         % representation pulled from previous iterations of
         % this for loop
-        numThisSelect = num2select - sum(indSel & indLabs(:,i));
+        numThisSelect = num2select - sum(indSel & indLabs(:,ordLab(i)));
         % Get the indices of data rows containing this label
         thisColInd = find(indLabs(:,ordLab(i)));
         % Randomly select num2select indices for valdata
