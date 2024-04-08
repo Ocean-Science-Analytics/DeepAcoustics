@@ -82,7 +82,9 @@ if repeats > 1
     end
 end
 
-uniqLabels = cellstr(['Noise',uniqLabels']);
+if app.TrainImgSettings.bRandNoise
+    uniqLabels = cellstr(['Noise',uniqLabels']);
+end
 TTable = array2table(zeros(0,2+length(uniqLabels)));
 TTable.Properties.VariableNames = ['bAug','imageFilename',uniqLabels];
 for k = 1:length(trainingdata)
