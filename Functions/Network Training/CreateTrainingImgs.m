@@ -171,9 +171,9 @@ for k = 1:length(trainingdata)
             end
             
             % Clip end of call
-            if any(BoutCalls.Box(:,3) > imLength)
+            if any((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength)
                 warning("Your Image Length is probably too low - end of call not captured")
-                BoutCalls.Box(BoutCalls.Box(:,3) > imLength, 3) = imLength;
+                BoutCalls.Box((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength, 3) = imLength-BoutCalls.Box((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength, 1);
             end
             
             try
