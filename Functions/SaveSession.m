@@ -34,7 +34,7 @@ spect = handles.data.settings.spect;
 szCalls = whos('Calls');
 szaudiodata = whos('audiodata');
 szspect = whos('spect');
-szTotal = szCalls.bytes + szaudiodata.bytes+ zspect.bytes;
+szTotal = szCalls.bytes + szaudiodata.bytes+ szspect.bytes;
 if szTotal >= 2000000000
     save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7.3');
 else
