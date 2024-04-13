@@ -360,7 +360,9 @@ for ii = 1:size(data,1)
     end
     I = im2single(imresize(I,targetSize(1:2)));
     scale = targetSize(1:2)./imgSize(1:2);
-    bboxes = bboxresize(bboxes,scale);
+    if ~isempty(bboxes)
+        bboxes = bboxresize(bboxes,scale);
+    end
     
     data(ii,1:2) = {I,bboxes};
 end
@@ -403,7 +405,7 @@ else
         % Amt to select from this label, accounting for
         % representation pulled from previous iterations of
         % this for loop
-        numThisSelect = num2select - sum(indSel & indLabs(:,i));
+        numThisSelect = num2select - sum(indSel & indLabs(:,ordLab(i)));
         % Get the indices of data rows containing this label
         thisColInd = find(indLabs(:,ordLab(i)));
         % Randomly select num2select indices for valdata

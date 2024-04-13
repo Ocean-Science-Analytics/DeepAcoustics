@@ -61,7 +61,20 @@ strImgDir = fullfile(handles.data.squeakfolder,'Training');
 % User-specified
 strImgDir = uigetdir(strImgDir,'Select Folder to Output Training Images');
 
-TTable = table({},{},{},'VariableNames',{'bAug','imageFilename','Call'});
+imLength = app.TrainImgSettings.imLength;
+repeats = app.TrainImgSettings.repeats+1;
+
+% If augmented duplicates, create a directory to separate out augmented
+% images
+if repeats > 1
+    status = mkdir(fullfile(strImgDir,'ImgAug'));
+    if ~status
+        warning('Problem making default Augmented Images directory')
+    end
+end
+
+TTable = array2table(zeros(0,3));
+TTable.Properties.VariableNames = ['bAug','imageFilename',{'Call'}];
 for k = 1:length(trainingdata)
     % Load the detection and audio files
     audioReader = squeakData();
@@ -87,17 +100,6 @@ for k = 1:length(trainingdata)
     wind = app.TrainImgSettings.windowsize;
     noverlap = app.TrainImgSettings.noverlap;
     nfft = app.TrainImgSettings.nfft;
-    imLength = app.TrainImgSettings.imLength;
-    repeats = app.TrainImgSettings.repeats+1;
-
-    % If augmented duplicates, create a directory to separate out augmented
-    % images
-    if repeats > 1
-        status = mkdir(fullfile(strImgDir,'ImgAug'));
-        if ~status
-            warning('Problem making default Augmented Images directory')
-        end
-    end
     
     % Find max call frequency for cutoff
     % freqCutoff = max(sum(Calls.Box(:,[2,4]), 2));
@@ -184,7 +186,7 @@ for k = 1:length(trainingdata)
                 wind,noverlap,nfft,...
                 ffn,...
                 replicatenumber);  
-            TTable = [TTable;{bAug, ffn, box}];
+            TTable = [TTable;[{bAug}, {ffn}, box]];
         end
         catch
             disp("Something wrong with calculating bounding box indices - talk to Gabi!");
@@ -302,38 +304,41 @@ else
 im = adapthisteq(flipud(p),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',alf);    
 end
 
-% Find the box within the spectrogram
-x1 = axes2pix(length(ti), ti, Calls.Box(:,1));
-x2 = axes2pix(length(ti), ti, Calls.Box(:,3));
-y1 = axes2pix(length(fr), fr./1000, Calls.Box(:,2));
-y2 = axes2pix(length(fr), fr./1000, Calls.Box(:,4));
-box = ceil([x1, length(fr)-y1-y2, x2, y2]);
-box = box(Calls.Accept == 1, :);
-% No zeros (must be at least 1)
-box(box <= 0) = 1;
-% start time index must be at least 1 less than (length of ti - 1)
-box(box(:,1) > length(ti)-2,1) = length(ti)-2;
-% 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
-box((box(:,3)+box(:,1)) >= length(ti),3) = length(ti)-1-box((box(:,3)+box(:,1)) >= length(ti),1);
-% start freq index must be at least 1 less than (length of fr - 1)
-% actual axis of im = length(fr)-1 (frequencies must correspond
-% to between pixels not the pixels themselves)
-box(box(:,2) > length(fr)-2,2) = length(fr)-2;
-% 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
-% <= because actual axis of im = length(fr)-1 (frequencies must correspond
-% to between pixels not the pixels themselves)
-box((box(:,4)+box(:,2)) >= length(fr),4) = length(fr)-1-box((box(:,4)+box(:,2)) >= length(fr),2);
-
 % resize images for 300x300 YOLO Network (Could be bigger but works nice)
 targetSize = [300 300];
 sz=size(im);
-im = imresize(im,targetSize);
-box = bboxresize(box,targetSize./sz);
 
-if any((box(:,1)+box(:,3)) > 300,'all') || any((box(:,2)+box(:,4)) > 300,'all')
-    error('Training image bounding indices still not working right - talk to Gabi')
+if ~isempty(Calls)
+    % Find the box within the spectrogram
+    x1 = axes2pix(length(ti), ti, Calls.Box(:,1));
+    x2 = axes2pix(length(ti), ti, Calls.Box(:,3));
+    y1 = axes2pix(length(fr), fr./1000, Calls.Box(:,2));
+    y2 = axes2pix(length(fr), fr./1000, Calls.Box(:,4));
+    box = ceil([x1, length(fr)-y1-y2, x2, y2]);
+    box = box(Calls.Accept == 1, :);
+    % No zeros (must be at least 1)
+    box(box <= 0) = 1;
+    % start time index must be at least 1 less than (length of ti - 1)
+    box(box(:,1) > length(ti)-2,1) = length(ti)-2;
+    % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
+    box((box(:,3)+box(:,1)) >= length(ti),3) = length(ti)-1-box((box(:,3)+box(:,1)) >= length(ti),1);
+    % start freq index must be at least 1 less than (length of fr - 1)
+    % actual axis of im = length(fr)-1 (frequencies must correspond
+    % to between pixels not the pixels themselves)
+    box(box(:,2) > length(fr)-2,2) = length(fr)-2;
+    % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
+    % <= because actual axis of im = length(fr)-1 (frequencies must correspond
+    % to between pixels not the pixels themselves)
+    box((box(:,4)+box(:,2)) >= length(fr),4) = length(fr)-1-box((box(:,4)+box(:,2)) >= length(fr),2);
+
+    box = bboxresize(box,targetSize./sz);
+
+    if any((box(:,1)+box(:,3)) > 300,'all') || any((box(:,2)+box(:,4)) > 300,'all')
+        error('Training image bounding indices still not working right - talk to Gabi')
+    end
 end
 
+im = imresize(im,targetSize);
 % Insert box for testing
 % im = insertShape(im, 'rectangle', box);
 imwrite(im, filename, 'BitDepth', 8);
