@@ -25,6 +25,18 @@ if isfield(data, 'Calls')
     Calls.Score = double(Calls.Score);
 
     %% Supply defaults for any misc missing variables
+    if ~any(strcmp('Audiodata', Calls.Properties.VariableNames)) && ~isempty(audiodata)
+        Calls.Audiodata = repmat(audiodata,height(Calls),1);
+    elseif ~any(strcmp('Audiodata', Calls.Properties.VariableNames))
+        error('Could not identify audio info since multi-file update - complain to GA')
+    end
+    if ~any(strcmp('DetSpect', Calls.Properties.VariableNames)) || isempty(fieldnames(Calls.DetSpect(1)))
+        DetSpect.wind = 0;
+        DetSpect.noverlap = 0;
+        DetSpect.nfft = 0;
+        Calls.DetSpect = repmat(DetSpect,height(Calls),1);
+        Calls.DetSpect(:) = DetSpect;
+    end
     if ~any(strcmp('CallID', Calls.Properties.VariableNames)) || length(unique(Calls.CallID)) ~= height(Calls)
         warning('CallID non-existent or not unique - replacing with 1:height(Calls)')
         Calls.CallID = categorical(1:height(Calls))';
@@ -39,6 +51,9 @@ if isfield(data, 'Calls')
     end
     if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames))
         Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
+    end
+    if ~any(strcmp('Accept', Calls.Properties.VariableNames))
+        Calls.Accept(:) = 1;
     end
     if ~any(strcmp('Ovlp', Calls.Properties.VariableNames))
         Calls.Ovlp(:) = 0;
