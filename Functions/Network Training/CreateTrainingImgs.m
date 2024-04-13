@@ -207,7 +207,7 @@ end
 
 
 % Create training images and boxes
-function [im, box] = CreateTrainingData(audio,rate,Calls,wind,noverlap,nfft,filename,replicatenumber)
+function [im, sepbox] = CreateTrainingData(audio,rate,Calls,wind,noverlap,nfft,filename,replicatenumber)
 AmplitudeRange = [.5, 1.5];
 %StretchRange = [0.75, 1.25];
 % Order of current unaugmented FFT
@@ -336,6 +336,9 @@ if ~isempty(Calls)
     if any((box(:,1)+box(:,3)) > 300,'all') || any((box(:,2)+box(:,4)) > 300,'all')
         error('Training image bounding indices still not working right - talk to Gabi')
     end
+
+    sepbox = cell(1,1);
+    sepbox{1} = {box(Calls.Type=='Call',:)};
 end
 
 im = imresize(im,targetSize);
