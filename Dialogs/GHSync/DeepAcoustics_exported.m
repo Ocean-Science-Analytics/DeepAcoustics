@@ -138,6 +138,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Training Image Dialog variables
         TrainImgSettings
+        TrainImgbCancel
     end
     
     methods (Access = public)
@@ -147,7 +148,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             handles = newhandles;
             handles.data.saveSettings();
             if ~isempty(handles.data.audiodata)
-                update_fig(hObject, eventdata, handles, true);
+                update_fig(hObject, handles, true);
                 % Update the color limits because changing from amplitude to
                 % power would mess with them
                 %handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
@@ -484,7 +485,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                     DrawBox(hObject, eventdata, handles);
                 case 127 % Delete key
                     handles.data.calls(handles.data.currentcall,:) = [];
-                    SortCalls(hObject, [], handles, 'time', 0, handles.data.currentcall - 1);
+                    SetFocusCall(hObject, handles, handles.data.currentcall-1)
                 case 30 % char(30) is up arrow key
                     MoveFocus(+ handles.data.settings.focus_window_size, hObject, eventdata, handles)
                 case 31 % char(31) is down arrow key
@@ -496,7 +497,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                     % Index of the shortcut
                     idx = contains(handles.data.labelShortcuts, eventdata.Character);
                     handles.data.calls.Type(handles.data.currentcall) = categorical(handles.data.settings.labels(idx));
-                    update_fig(hObject, eventdata, handles);
+                    update_fig(hObject, handles);
             end
         end
 
@@ -737,7 +738,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             %update_focus_display has preference for existing EntThresh, so need to
             %overwrite for this call
             handles.data.calls.EntThresh(handles.data.currentcall) = (get(hObject,'Value'));
-            update_fig(hObject, eventdata, handles);
+            update_fig(hObject, handles);
         end
 
         % Value changed function: dropdownNeuralNet

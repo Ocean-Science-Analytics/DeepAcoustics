@@ -2,29 +2,18 @@ function SetFocusCall(hObject, handles, call_index)
 % Set mouse busy signal
 set(handles.hFig, 'pointer', 'watch')
 
-% Get beginning and end rows for the current audio file
-handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'first');
-handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
-
 % Subset calls to those restricted to current audio file
-subCalls = handles.data.calls(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
+subCalls = handles.data.calls;
 
 % Reset current call index accordingly
 if ~isempty(subCalls)
     if select_added == 0
         % Select first call in this audio file
-        call_index = handles.data.thisaudst;
+        call_index = 1;
     elseif select_added == -1
         % Select most recently added call (last call pre-sort, offset with
         % thisaudst, one-based indexing)
-        call_index = handles.data.thisaudend;
-    else
-        % Handle weirdness
-        if call_index < handles.data.thisaudst
-            call_index = handles.data.thisaudst;
-        elseif call_index > handles.data.thisaudend
-            call_index = handles.data.thisaudend;
-        end
+        call_index = height(subCalls);
     end
 % If not calls in audio file, default to zero?
 else
