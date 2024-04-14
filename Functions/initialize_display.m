@@ -98,7 +98,7 @@ handles.currentWindowRectangle = rectangle(handles.spectrogramWindow,...
     'LineStyle','--',...
     'PickableParts', 'none');
 
-update_fig(hObject, eventdata, handles);
+update_fig(hObject, handles);
 handles = guidata(hObject);
 
 %% Find the color scale limits

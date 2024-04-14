@@ -247,6 +247,8 @@ for i = 1:length(ravenname)
         close(hc);
     end
 end
+% Sort Calls
+Calls = SortCalls(Calls,'time');
 % Auto-name Detections.mat using audioname
 [~ ,FileName] = fileparts(audioname{1}{1});
 FileName = [FileName '_' num2str(nAudCt) 'AudFiles'];

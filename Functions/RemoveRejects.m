@@ -17,5 +17,5 @@ else
     handles.data.currentcall = 1;
 end
 
-update_fig(hObject, eventdata, handles);
+update_fig(hObject, handles);
 guidata(hObject, handles);

@@ -4,6 +4,6 @@ hObject = get(rectangle,'Parent');
 handles = guidata(hObject);
 tag = str2double(get(rectangle,'Tag'));
 handles.data.calls{tag,'Box'} = rectangle.Position;
-SortCalls(hObject, [], handles, 'time', 0, tag);
+SetFocusCall(hObject,handles,tag);
 end
 

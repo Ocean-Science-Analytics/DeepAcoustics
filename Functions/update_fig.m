@@ -1,4 +1,4 @@
-function update_fig(hObject, eventdata, handles, force_render_page)
+function update_fig(hObject, handles, force_render_page)
 if nargin < 4
     force_render_page = false;
 end
