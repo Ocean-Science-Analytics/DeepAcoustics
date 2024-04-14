@@ -24,6 +24,6 @@ function MoveFocus(focus_offset, hObject, eventdata, handles)
         end
     
         guidata(hObject,handles);
-        update_fig(hObject, eventdata, handles);
+        update_fig(hObject, handles);
     end
 end

@@ -129,4 +129,4 @@ end
 handles.data.calls = Calls;
 handles.data.bAnnotate = true;
 handles.data.anncalls = CallsAnn;
-update_fig(hObject, eventdata, handles);
+update_fig(hObject, handles);

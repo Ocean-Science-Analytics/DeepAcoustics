@@ -28,5 +28,5 @@ function FwdALot(hObject, eventdata, handles)
         end
     end
     
-    update_fig(hObject, eventdata, handles);
+    update_fig(hObject, handles);
 end

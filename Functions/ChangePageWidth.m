@@ -20,7 +20,7 @@ handles.data.settings.pageSize = page_seconds;
 handles.data.saveSettings();
 
 if ~isempty(handles.data.audiodata)
-    update_fig(hObject, eventdata, handles, true);
+    update_fig(hObject, handles, true);
 else
     guidata(hObject, handles);
 end

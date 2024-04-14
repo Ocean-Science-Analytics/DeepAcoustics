@@ -224,6 +224,8 @@ for i = 1:length(ravenname)
 
         %% Put all the variables into a table
         Calls = table(Box,Score,Accept,Type,'VariableNames',{'Box','Score','Accept','Type'});
+        % Sort Calls
+        Calls = SortCalls(Calls,'time');
         % Auto-name Detections.mat using audioname
         [~ ,FileName] = fileparts(audioname{i}{j});
         % Save Detections.mat

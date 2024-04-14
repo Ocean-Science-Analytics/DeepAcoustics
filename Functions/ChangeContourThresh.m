@@ -49,7 +49,7 @@ function ChangeContourThresh(hObject, eventdata, handles)
     
         update_folders(hObject, eventdata, handles);
         try
-            update_fig(hObject, eventdata, handles);
+            update_fig(hObject, handles);
         catch
             disp('Could not update figure. Is a call loaded?')
         end

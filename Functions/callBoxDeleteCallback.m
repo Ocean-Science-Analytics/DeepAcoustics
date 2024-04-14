@@ -12,11 +12,11 @@ clicked_tag = str2double(get(rectangle, 'Tag'));
 switch  evt.SelectionType
     case 'right' % delete if right click
         handles.data.calls(clicked_tag,:) = [];
-        SortCalls(hObject, [], handles, 'time', 0, clicked_tag - 1);
+        SetFocusCall(hObject,handles,clicked_tag-1);
     case 'left' % Make it the current call if left clicked
         if clicked_tag ~= handles.data.currentcall
             handles.data.currentcall = clicked_tag;
-            update_fig(hObject, [], handles)
+            update_fig(hObject, handles)
         end
     case {'ctrl', 'double'}
         choosedialog(rectangle,handles);
@@ -87,7 +87,7 @@ uiwait(d);
         if ~isempty(i)
             handles.data.calls{clicked_tag,'Type'} = {new_type};
             delete(gcf);
-            update_fig(hObject, [], handles);
+            update_fig(hObject, handles);
         end
     end
 

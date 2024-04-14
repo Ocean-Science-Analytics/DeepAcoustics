@@ -14,6 +14,6 @@ if ~isempty(handles.data.calls)
 end
 
 % update_fig runs guidata so we don't need that here
-update_fig(hObject, eventdata, handles);
+update_fig(hObject, handles);
 end
 
