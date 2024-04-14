@@ -135,7 +135,7 @@ if nargout < 4
         Calls = removevars(Calls, intersect(Calls.Properties.VariableNames, {'RelBox', 'Rate', 'Audio','Power'}));
         
         % Sort calls by time
-        %Calls = sortrows(Calls, 'Box');
+        Calls = SortCalls(Calls,'time');
     end
     
     

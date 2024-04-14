@@ -232,6 +232,34 @@ for k = 1:length(trainingdata)
 
             FinishTime = max(BoutCalls.Box(:,1) + BoutCalls.Box(:,3));
             CenterTime = (StartTime+(FinishTime-StartTime)/2);
+
+            if (FinishTime-StartTime) >= imLength
+                distAny = pdist2(BoutCalls.Box(:, 1), BoutCalls.Box(:, 1) + BoutCalls.Box(:, 3));
+                % Remove calls further apart than the bin size
+                distAny(distAny > imLength) = 0;
+                % Get the indices of the calls by bout number by using the connected
+                % components of the graph
+
+                % Create chuncks of audio file that contain non-overlapping call bouts
+                bn=1;
+                while bn<height(distAny)
+                    % For each row (beginning of call), find the last column (end of call)
+                    % following it within imLength (delineate this call bout)
+                    lst=find(distAny(bn,bn:end)>0,1,'last')+bn-1;
+                    % For every other call (beginning of call) in the call bout (within that imLength), delete
+                    % all the distances to calls beyond the call bout
+                    for ii=bn+1:lst
+                        distAny(ii,lst+1:end)=zeros(length(distAny(ii,lst+1:end)),1);
+                    end
+                    if isempty(lst)
+                        bn = bn+1;
+                    else
+                        bn = lst+1;
+                    end
+                end
+
+
+            end
             StartTime = CenterTime - (imLength/2);
             FinishTime = CenterTime + (imLength/2);
     

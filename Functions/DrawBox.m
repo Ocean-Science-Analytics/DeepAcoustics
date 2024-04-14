@@ -30,5 +30,6 @@ handles.data.calls = [handles.data.calls; new_box];
 %Now delete the roi and render the figure. The roi will be rendered along
 %with the existing boxes.
 handles.data.current_call_valid = true;
-SortCalls(hObject, eventdata, handles, 'time', 0, -1);
+% Set focus to just-added call and re-sort Calls table
+SetFocusCall(hObject,handles,-1);
 delete(current_box)

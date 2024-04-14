@@ -20,7 +20,7 @@ handles.data.settings.focus_window_size = focus_seconds;
 handles.data.saveSettings();
 
 if ~isempty(handles.data.audiodata)
-    update_fig(hObject, eventdata, handles);
+    update_fig(hObject, handles);
 else
     guidata(hObject, handles);
 end
