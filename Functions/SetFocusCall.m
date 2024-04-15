@@ -7,10 +7,10 @@ subCalls = handles.data.calls;
 
 % Reset current call index accordingly
 if ~isempty(subCalls)
-    if select_added == 0
+    if call_index == 0
         % Select first call in this audio file
         call_index = 1;
-    elseif select_added == -1
+    elseif call_index == -1
         % Select most recently added call (last call pre-sort, offset with
         % thisaudst, one-based indexing)
         call_index = height(subCalls);
