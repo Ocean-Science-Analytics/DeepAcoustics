@@ -82,6 +82,7 @@ if repeats > 1
     end
 end
 
+bNoiseSuccess = false;
 if app.TrainImgSettings.bRandNoise
     uniqLabels = cellstr(['Noise',uniqLabels']);
 end
@@ -197,6 +198,7 @@ for k = 1:length(trainingdata)
                     
                     % Randomly decide to make image or not
                     if rand <= nFracNeg
+                        bNoiseSuccess = true;
                         %% Read Audio
                         audio = audioReader.AudioSamples(NegStTime, FinishTime);
                         try
@@ -314,6 +316,10 @@ for k = 1:length(trainingdata)
 end
 close(h)
 
+if app.TrainImgSettings.bRandNoise && ~bNoiseSuccess
+    warning('There was not enough room between Calls to generate Noise')
+    TTable.Noise =[];
+end
 %matpath = uigetdir(fullfile(handles.data.squeakfolder,'Training'),'Select Directory to Save Images.mat');
 %pathtodet = fullfile(trainingpath,trainingdata{k});
 %save(fullfile(matpath,[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength','pathtodet');
