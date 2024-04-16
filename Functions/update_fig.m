@@ -1,5 +1,5 @@
 function update_fig(hObject, handles, force_render_page)
-if nargin < 4
+if nargin < 3
     force_render_page = false;
 end
 % Okay, so this is pretty annoying, but the GUI is a bit slower to update
