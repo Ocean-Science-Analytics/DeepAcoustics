@@ -112,28 +112,34 @@ if nargin == 1
                       'ResetInputNormalization',false, ... %YOLOv4
                       'Plots','training-progress');
         case 'Customize'
-
-            h = waitbar(0,'Calculating Anchor Boxes');
-            %% Dynamically choose # of Anchor Boxes
-            maxNumAnchors = 15;
-            meanIoU = zeros([maxNumAnchors,1]);
-            arranchorBoxes = cell(maxNumAnchors, 1);
-            for k = 1:maxNumAnchors
-                % Estimate anchors and mean IoU.
-                [arranchorBoxes{k},meanIoU(k)] = estimateAnchorBoxes(dsTrainReSize,k);
-                waitbar(k/maxNumAnchors, h, sprintf('Trying #%g of %g Anchor Boxes', k,maxNumAnchors));      
+            bAnchBox = questdlg('Do you already know how many anchor boxes you want to use?','# Anchor Boxes?','Yes','No','No');
+            switch bAnchBox
+            case 'Yes'
+                nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
+                     dlg_title,num_lines));
+            case 'No'
+                h = waitbar(0,'Calculating Anchor Boxes');
+                %% Dynamically choose # of Anchor Boxes
+                maxNumAnchors = 15;
+                meanIoU = zeros([maxNumAnchors,1]);
+                arranchorBoxes = cell(maxNumAnchors, 1);
+                for k = 1:maxNumAnchors
+                    % Estimate anchors and mean IoU.
+                    [arranchorBoxes{k},meanIoU(k)] = estimateAnchorBoxes(dsTrainReSize,k);
+                    waitbar(k/maxNumAnchors, h, sprintf('Trying #%g of %g Anchor Boxes', k,maxNumAnchors));      
+                end
+                close(h)
+        
+                figure
+                plot(1:maxNumAnchors,meanIoU,'-o')
+                ylabel("Mean IoU")
+                xlabel("Number of Anchors")
+                title("Number of Anchors vs. Mean IoU")
+                dlg_title = 'Anchor Boxes';
+                num_lines = [1 length(dlg_title)+30];
+                nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
+                             dlg_title,num_lines));
             end
-            close(h)
-    
-            figure
-            plot(1:maxNumAnchors,meanIoU,'-o')
-            ylabel("Mean IoU")
-            xlabel("Number of Anchors")
-            title("Number of Anchors vs. Mean IoU")
-            dlg_title = 'Anchor Boxes';
-            num_lines = [1 length(dlg_title)+30];
-            nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
-                         dlg_title,num_lines));
             % Must be even number for Tiny YOLO v4 and divisible by 3 for
             % Darknet
             switch basemodels
