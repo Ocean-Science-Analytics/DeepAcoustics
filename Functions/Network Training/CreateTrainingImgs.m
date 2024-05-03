@@ -62,6 +62,7 @@ strImgDir = fullfile(handles.data.squeakfolder,'Training');
 % User-specified
 strImgDir = uigetdir(strImgDir,'Select Folder to Output Training Images');
 
+imgsize = app.TrainImgSettings.imSize;
 imLength = app.TrainImgSettings.imLength;
 repeats = app.TrainImgSettings.repeats+1;
 
@@ -191,6 +192,7 @@ for k = 1:length(trainingdata)
                                     NegCalls,...
                                     uniqLabels,...
                                     noverlap,nfft,...
+                                    imgsize,...
                                     ffn,...
                                     replicatenumber);  
                                 TTable = [TTable;[{bAug}, {ffn}, box]];
@@ -291,6 +293,7 @@ for k = 1:length(trainingdata)
                             BoutCalls,...
                             uniqLabels,...
                             noverlap,nfft,...
+                            imgsize,...
                             ffn,...
                             replicatenumber);  
                         TTable = [TTable;[{bAug}, {ffn}, box]];
@@ -340,7 +343,7 @@ end
 
 
 % Create training images and boxes
-function [im, sepbox] = CreateTrainingData(audio,rate,Calls,uniqLabels,noverlap,nfft,filename,replicatenumber)
+function [im, sepbox] = CreateTrainingData(audio,rate,Calls,uniqLabels,noverlap,nfft,imgsize,filename,replicatenumber)
 AmplitudeRange = [.5, 1.5];
 %StretchRange = [0.75, 1.25];
 % Order of current unaugmented FFT
@@ -436,7 +439,7 @@ im = adapthisteq(flipud(p),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','ray
 end
 
 % resize images for 300x300 YOLO Network (Could be bigger but works nice)
-targetSize = [300 300];
+targetSize = [imgsize imgsize];
 sz=size(im);
 
 if ~isempty(Calls)
