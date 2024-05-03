@@ -47,6 +47,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
         % Code that executes after component creation
         function startupFcn(app, parentapp, spect, metadata)
+            movegui(app.dlgTrainImg,'center')
             app.MainApp = parentapp;
             app.HandlesSpect = spect;
             app.MainApp.TrainImgbCancel = false;
@@ -262,7 +263,6 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             % Create editWinSize
             app.editWinSize = uieditfield(app.dlgTrainImg, 'numeric');
             app.editWinSize.Limits = [0 Inf];
-            app.editWinSize.RoundFractionalValues = 'on';
             app.editWinSize.ValueDisplayFormat = '%.0f';
             app.editWinSize.HorizontalAlignment = 'center';
             app.editWinSize.Position = [363 259 69 22];
@@ -277,7 +277,6 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             % Create editNFFT
             app.editNFFT = uieditfield(app.dlgTrainImg, 'numeric');
             app.editNFFT.Limits = [0 Inf];
-            app.editNFFT.RoundFractionalValues = 'on';
             app.editNFFT.ValueDisplayFormat = '%.0f';
             app.editNFFT.HorizontalAlignment = 'center';
             app.editNFFT.Position = [363 190 69 22];
