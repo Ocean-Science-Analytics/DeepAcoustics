@@ -467,7 +467,7 @@ if ~isempty(Calls)
 
     box = bboxresize(box,targetSize./sz);
 
-    if any((box(:,1)+box(:,3)) > 300,'all') || any((box(:,2)+box(:,4)) > 300,'all')
+    if any((box(:,1)+box(:,3)) > imgsize,'all') || any((box(:,2)+box(:,4)) > imgsize,'all')
         error('Training image bounding indices still not working right - talk to Gabi')
     end
 
