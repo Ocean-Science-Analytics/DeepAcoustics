@@ -319,7 +319,7 @@ end
 
 
 if ismember('Call',TTable.Properties.VariableNames)
-    if sum(nPiecesTotal)~=height(cell2mat([TTable.Call]))
+    if sum(nPiecesTotal)~=height(cell2mat([TTable.Call(~TTable.bAug)]))
         error('Call counts not adding up; talk to Gabi')
     end
 end
