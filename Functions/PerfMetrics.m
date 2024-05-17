@@ -1,4 +1,4 @@
-function PrecRecall(handles)
+function PerfMetrics(handles)
 % Select Det File for testing network
 [detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder);
 PathToDet = fullfile(detpath,detfile);
@@ -170,7 +170,7 @@ for i = 1:nTypes
         sprintf('mAP (0.1:0.1:0.9 Ovlp Threshold): %.4f', mAP(i))},'P/R Result');
 end
 
-[file,path] = uiputfile([handles.data.settings.networkfolder '\PrecRecallResults.mat'],'Save P/R Results');
+[file,path] = uiputfile([handles.data.settings.networkfolder '\PerformanceMetrics.mat'],'Save Performance Metrics');
 save(fullfile(path,file),'NetPath','NetName','PathToDet','results','precvec','recallvec','prec','recall',...
     'numTrueDets','numTP','numDets','numFP','numFN','fscore','avgprec','mAP','odMetrics','odMetricsmAP')
 

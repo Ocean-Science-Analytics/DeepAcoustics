@@ -40,7 +40,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuBatchReject             matlab.ui.container.Menu
         menuRemoveRejects           matlab.ui.container.Menu
         menuSetStaticBoxHeight      matlab.ui.container.Menu
-        menuPrecRecall              matlab.ui.container.Menu
+        menuPerfMet                 matlab.ui.container.Menu
         menuHelp                    matlab.ui.container.Menu
         menuAbout                   matlab.ui.container.Menu
         menuViewManual              matlab.ui.container.Menu
@@ -681,11 +681,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             ChangeContourThresh(hObject, eventdata, handles);
         end
 
-        % Menu selected function: menuPrecRecall
-        function menuPrecRecall_Callback(app, event)
+        % Menu selected function: menuPerfMet
+        function menuPerfMet_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            PrecRecall(handles);
+            PerfMetrics(handles);
         end
 
         % Menu selected function: menuAbout
@@ -1215,11 +1215,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuSetStaticBoxHeight.Text = 'Set Static Box Height (Frequency)';
             app.menuSetStaticBoxHeight.Tag = 'set_static_box_height';
 
-            % Create menuPrecRecall
-            app.menuPrecRecall = uimenu(app.menuTools);
-            app.menuPrecRecall.MenuSelectedFcn = createCallbackFcn(app, @menuPrecRecall_Callback, true);
-            app.menuPrecRecall.Text = 'Precision/Recall';
-            app.menuPrecRecall.Tag = 'PrecRecall';
+            % Create menuPerfMet
+            app.menuPerfMet = uimenu(app.menuTools);
+            app.menuPerfMet.MenuSelectedFcn = createCallbackFcn(app, @menuPerfMet_Callback, true);
+            app.menuPerfMet.Text = 'Performance Metrics';
+            app.menuPerfMet.Tag = 'PerfMet';
 
             % Create menuHelp
             app.menuHelp = uimenu(app.mainfigure);
