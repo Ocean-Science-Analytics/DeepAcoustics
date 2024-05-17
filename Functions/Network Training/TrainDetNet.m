@@ -1,18 +1,19 @@
 function TrainDetNet(hObject, eventdata, handles)
 %% Train a new neural network
-[TrainingTables, AllSettings] = ImportTrainingImgs(handles,true);
+[TrainingTables, AllSettings,PathToITs] = ImportTrainingImgs(handles,true);
 if isempty(TrainingTables); return; end
 
 %% Train the network
 choice = questdlg('Train from existing network?', 'Existing Network?', 'Yes', 'Yes - TensorFlow', 'No', 'Yes');
 switch choice
     case 'Yes'
-        detname = [];
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
         netload = load([NetPath NetName]);
         detector = netload.detector;
         options = netload.options;
         detname = netload.detname;
+        % Add to image tables record
+        PathToITs = [netload.PathToITs,PathToITs];
 
         if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && detector.ClassNames==categorical({'USV'}))
             choice = questdlg('It looks like you are trying to build on an older USV model.  Do you want to make sure new detections are also labelled USV? (Recommend Yes unless you know what you are doing.)', 'Yes', 'No');
@@ -42,7 +43,7 @@ imLength = max(AllSettings(:,4));
 options.ValidationData = [];
 
 version = handles.DAVersion;
-save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength','detname');
+save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength','detname','PathToITs');
 
 %% Update the menu
 update_folders(hObject, eventdata, handles);
