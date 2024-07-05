@@ -31,7 +31,7 @@ end
 h = waitbar(0,'Loading Calls Please wait...');
 % Whenever load new file, reset bAnnotate to false
 handles.data.bAnnotate = false;
-[handles.data.calls, handles.data.settings.spect, detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+[handles.data.calls, handles.data.allAudio, handles.data.settings.spect, detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
 
 % Make sure audio exists in linked locations
 uniqAud = unique({handles.data.calls.Audiodata.Filename},'stable');

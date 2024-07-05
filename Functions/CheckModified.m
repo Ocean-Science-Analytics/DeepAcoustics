@@ -5,7 +5,7 @@ if ~isempty(handles.data.calls)
     opts.Interpreter = 'tex';
     opts.Default='Yes';
     if ~isempty(handles.current_file_id) && ~isempty(handles.current_detection_file)
-        [~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+        [~, ~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
         if ~isequaln(modcheck.calls, handles.data.calls) || ~isequaln(modcheck.spect, handles.data.settings.spect)
             if ~isequaln(modcheck.calls, handles.data.calls) 
                 saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Detection file has been modified. Would you like to save changes?','Save Detection File?','Yes','No',opts);

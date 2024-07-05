@@ -59,6 +59,7 @@ handles = guidata(hObject);  % Get newest version of handles
 
 detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
 Calls = [];
+allAudio = [];
 
 % Load neural network
 h = waitbar(0,'Loading neural network...');
@@ -109,6 +110,7 @@ for j = 1:length(audioselections)
     if ~isempty(Calls_ThisAudio)
         Calls = [Calls; Calls_ThisAudio];
     end
+    allAudio = [allAudio; audioinfo(AudioFile)];
     delete(h)
 end
 
@@ -119,7 +121,7 @@ if ~isempty(Calls)
         'networkselection', {handles.networkfiles(networkselection).name});
     %audiodata = audioinfo(AudioFile);
     spect = handles.data.settings.spect;
-    save(fname,'Calls','detection_metadata','spect','-v7.3','-mat');
+    save(fname,'Calls','allAudio','detection_metadata','spect','-v7.3','-mat');
 end
 update_folders(hObject, eventdata, handles);
 guidata(hObject, handles);

@@ -75,7 +75,8 @@ detection_metadata = struct(...
     'detectiontime', detectiontime,...
     'networkselections', 'N/A; UV Import');
 spect = handles.data.settings.spect;
-save(filename,'Calls','detection_metadata','spect','-v7.3');
+allAudio = audiodata;
+save(filename,'Calls','allAudio','detection_metadata','spect','-v7.3');
 
 close(h);
 

@@ -63,7 +63,14 @@ for file = fname
     end
     Calls = struct2table(Calls);
     Calls.Audiodata = repmat(audiodata,height(Calls),1);
-    save(fullfile(outpath, [data.file(end-4:end) '_Detections.mat']), 'Calls', '-v7.3');
+    detectiontime = datestr(datetime('now'),'YYYY-MM-DD HH_MM PM');
+    detection_metadata = struct(...
+        'Settings', 'N/A; XBAT Import',...
+        'detectiontime', detectiontime,...
+        'networkselections', 'N/A; XBAT Import');
+    spect = handles.data.settings.spect;
+    allAudio = audiodata;
+    save(fullfile(outpath, [data.file(end-4:end) '_Detections.mat']),'Calls','allAudio','detection_metadata','spect','-v7.3');
 end
 close(hc);
 update_folders(hObject, eventdata, handles);
