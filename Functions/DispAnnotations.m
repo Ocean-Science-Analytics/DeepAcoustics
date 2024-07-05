@@ -3,6 +3,7 @@ function DispAnnotations(hObject, eventdata, handles)
 Calls = handles.data.calls;
 if isempty(Calls)
     LoadCalls(hObject, eventdata, handles)
+    Calls = handles.data.calls;
 end
 [annfile, annpath] = uigetfile('','Select a ground-truthed Detections.mat to evaluate the loaded file');
 CallsAnn = loadCallfile(fullfile(annpath,annfile),handles,false);

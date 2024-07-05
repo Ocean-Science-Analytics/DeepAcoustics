@@ -11,10 +11,12 @@ detectionFilename = cellstr(detectionFilename);
 
 % Concatenate detection files
 Calls_temp = [];
+allAudio = [];
 
 for j = 1:length(detectionFilename)
-    Calls_ThisFile = loadCallfile(fullfile(detectionFilepath, detectionFilename{j}),handles,false);
+    [Calls_ThisFile, allAudio_ThisFile] = loadCallfile(fullfile(detectionFilepath, detectionFilename{j}),handles,false);
     Calls_temp = [Calls_temp; Calls_ThisFile];
+    allAudio = [allAudio; allAudio_ThisFile];
 end
 
 %% Merge overlapping boxes in det files from same audio
@@ -35,6 +37,6 @@ detection_metadata = struct(...
     'detectiontime', detectiontime,...
     'networkselections', 'N/A; Det Merge');
 spect = handles.data.settings.spect;
-save(fullfile(PathName, FileName),'Calls','detection_metadata','spect','-v7.3');
+save(fullfile(PathName, FileName),'Calls','allAudio','detection_metadata','spect','-v7.3');
 update_folders(hObject, eventdata, handles);
 close(hc);

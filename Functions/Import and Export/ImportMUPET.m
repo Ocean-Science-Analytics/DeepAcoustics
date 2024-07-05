@@ -38,7 +38,8 @@ detection_metadata = struct(...
     'detectiontime', detectiontime,...
     'networkselections', 'N/A; MUPET Import');
 spect = handles.data.settings.spect;
+allAudio = audiodata;
 % Save Detections.mat
-save([PathName, FileName],'Calls','detection_metadata','spect','-v7.3');
+save([PathName, FileName],'Calls','allAudio','detection_metadata','spect','-v7.3');
 close(hc);
 update_folders(hObject, eventdata, handles);
