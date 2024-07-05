@@ -153,7 +153,7 @@ for currentfile = selections % Do this for each file
     if isempty(spect)
         spect = handles.data.settings.spect;
     end
-    save(fullfile(handles.detectionfiles(currentfile).folder,handles.detectionfiles(currentfile).name),'Calls','spect','-v7.3');
+    save(fullfile(handles.detectionfiles(currentfile).folder,handles.detectionfiles(currentfile).name),'Calls','spect','-v7.3','-append');
 
 end
 close(h);

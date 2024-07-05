@@ -44,9 +44,14 @@ Calls.Audiodata = repmat(audiodata,height(Calls),1);
 
 % FileName = [audio_file_name, datestr(datetime('now'),'mmm-dd-yyyy hh_MM AM'), ' ',box_file_name, '.mat'];
 % FilePath = [handles.data.settings.detectionfolder, FileName];
-[FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [box_file_name '_Detections.mat']),'Save Call File');
+[FileName, ~] = uiputfile(fullfile(handles.data.settings.detectionfolder, [box_file_name '_Detections.mat']),'Save Call File');
 FilePath = [handles.data.settings.detectionfolder, FileName];
+detectiontime = datestr(datetime('now'),'YYYY-MM-DD HH_MM PM');
+detection_metadata = struct(...
+    'Settings', 'N/A; SV Import',...
+    'detectiontime', detectiontime,...
+    'networkselections', 'N/A; SV Import');
 spect = handles.data.settings.spect;
-save(FilePath,'Calls','spect','-v7.3');
+save(FilePath,'Calls','detection_metadata','spect','-v7.3');
 close(hc);
 update_folders(hObject, eventdata, handles);
