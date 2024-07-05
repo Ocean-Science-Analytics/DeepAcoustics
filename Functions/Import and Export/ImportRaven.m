@@ -76,6 +76,7 @@ switch answer
         % name of audio file
         ravenname = {ravenname};
         audioname = {{thisaudioname}};
+        allAudio = audioinfo(fullfile(audiopath,thisaudioname));
     case 'Cancel'
         uiwait(msgbox('You chose to cancel the Raven import'))
         return
@@ -84,6 +85,12 @@ end
 % If we are importing either multiple Raven tables or multiple audio
 % files...
 if ~bAutoTry
+    % Get all audio
+    allAudio = [];
+    for i = 1:length(audiodir)
+        allAudio = [allAudio; audioinfo(fullfile(audiopath, audiodir(i).name))];
+    end
+
     % For every Raven selection table selected...
     for i = 1:length(ravenname)
         % Import as table (method depends on incoming file type)
@@ -235,7 +242,7 @@ for i = 1:length(ravenname)
             'networkselections', 'N/A; Raven Import');
         spect = handles.data.settings.spect;
         % Save Detections.mat
-        save(fullfile(outpath,[FileName '_Detections.mat']),'Calls', 'audiodata','detection_metadata','spect','-v7.3');
+        save(fullfile(outpath,[FileName '_Detections.mat']),'Calls','allAudio','audiodata','detection_metadata','spect','-v7.3');
         close(hc);
     end
 end

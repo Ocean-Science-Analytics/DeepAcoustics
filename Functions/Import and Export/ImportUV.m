@@ -70,7 +70,7 @@ Calls = merge_boxes(Calls.Box, Calls.Score, Calls.Type, audiodata, 1, 0, 0);
 h = waitbar(.9,'Saving Output Structures');
 detectiontime = datestr(datetime('now'),'YYYY-MM-DD HH_MM PM');
 spect = handles.data.settings.spect;
-save(filename,'Calls','audiodata','spect','detectiontime','-v7.3');
+save(filename,'Calls','allAudio','audiodata','spect','detectiontime','-v7.3');
 
 close(h);
 

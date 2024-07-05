@@ -1,9 +1,10 @@
-function [Calls,audiodata,spect,detection_metadata,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT)
+function [Calls,allAudio,audiodata,spect,detection_metadata,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT)
 
 modcheck = struct();
 data = load(filename);
 
 Calls = table();
+allAudio = [];
 audiodata = struct();
 spect = [];
 detection_metadata = [];
@@ -11,6 +12,12 @@ ClusteringData = table();
 
 if isfield(data, 'audiodata')
     audiodata = data.audiodata;
+end
+
+if isfield(data, 'allAudio')
+    allAudio = data.allAudio;
+else
+    warning('This is an older Call file that may be lacking complete allAudio information')
 end
 
 %% Unpack the data
@@ -90,7 +97,7 @@ if isfield(data, 'Calls')
         end
         spect = data.spect;
     end
-    if nargout == 6
+    if nargout == 7
         %% Output for detection mat modification check
         modcheck.calls = data.Calls;
         modcheck.spect = spect;
@@ -99,7 +106,7 @@ if isfield(data, 'Calls')
         % have the power to update handles...
         handles.data.settings.spect = spect;
     end
-elseif nargout < 5 % If ClusteringData is requested, we don't need Calls
+elseif nargout < 6 % If ClusteringData is requested, we don't need Calls
     error('This doesn''t appear to be a detection file!')
 end
 
@@ -116,7 +123,7 @@ if isfield(data, 'ClusteringData')
     end
 end
 
-if nargout < 5
+if nargout < 6
     
     %% Make sure there's nothing wrong with the call file
     if isempty(Calls)

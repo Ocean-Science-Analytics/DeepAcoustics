@@ -27,9 +27,11 @@ AllBoxes = [];
 AllScores = [];
 AllClass = [];
 AllAccept = [];
+allAudio = [];
 
 for j = 1:length(detectionFilename)
-    Calls = loadCallfile(fullfile(detectionFilepath, detectionFilename{j}),handles,false);
+    [Calls, allAudio_ThisFile] = loadCallfile(fullfile(detectionFilepath, detectionFilename{j}),handles,false);
+    allAudio = [allAudio; allAudio_ThisFile];
 
     AllBoxes = [AllBoxes; Calls.Box];
     AllScores = [AllScores; Calls.Score];
@@ -56,6 +58,6 @@ detection_metadata = struct(...
     'detectiontime', detectiontime,...
     'networkselections', 'N/A; Det Merge');
 spect = handles.data.settings.spect;
-save(fullfile(PathName, FileName),'Calls','detection_metadata','spect','-v7.3');
+save(fullfile(PathName, FileName),'Calls','allAudio','detection_metadata','spect','-v7.3');
 update_folders(hObject, eventdata, handles);
 close(hc);

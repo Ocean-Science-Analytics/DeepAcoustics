@@ -53,6 +53,6 @@ detection_metadata = struct(...
     'detectiontime', detectiontime,...
     'networkselections', 'N/A; SV Import');
 spect = handles.data.settings.spect;
-save(FilePath,'Calls','audiodata','detection_metadata','spect','-v7.3');
+save(FilePath,'Calls','allAudio','audiodata','detection_metadata','spect','-v7.3');
 close(hc);
 update_folders(hObject, eventdata, handles);

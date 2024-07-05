@@ -2,7 +2,7 @@ function PrecRecall(handles)
 % Select Det File for testing network
 [detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder);
 PathToDet = fullfile(detpath,detfile);
-[CallsAnn, detaudiodata, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
+[CallsAnn, allAudio, detaudiodata, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
 AudioFile = detaudiodata.Filename;
 
 [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Network to Evaluate');
@@ -135,7 +135,7 @@ if ~isempty(Calls)
         'detectiontime', detectiontime,...
         'networkselections', NetName);
     audiodata = audioinfo(AudioFile);
-    save(fullfile(fpath,fname),'Calls','audiodata','detection_metadata','spect','-v7.3', '-mat');
+    save(fullfile(fpath,fname),'Calls','allAudio','audiodata','detection_metadata','spect','-v7.3', '-mat');
 end
 
 end
