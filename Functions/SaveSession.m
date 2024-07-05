@@ -36,9 +36,9 @@ szaudiodata = whos('audiodata');
 szspect = whos('spect');
 szTotal = szCalls.bytes + szaudiodata.bytes+ szspect.bytes;
 if szTotal >= 2000000000
-    save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7.3');
+    save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7.3','-append');
 else
-    save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7');
+    save(fullfile(PathName, FileName), 'Calls','audiodata','spect', '-v7','-append');
 end
 update_folders(hObject, eventdata, handles);
 guidata(hObject, handles);

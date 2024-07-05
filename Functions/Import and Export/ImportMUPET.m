@@ -31,6 +31,13 @@ end
 Calls = struct2table(Calls);
 [~, name] = fileparts(mupetname);
 [FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, [name '_Detections.mat']),'Save Call File');
-save([PathName, FileName],'Calls', 'audiodata', '-v7.3');
+detectiontime = datestr(datetime('now'),'YYYY-MM-DD HH_MM PM');
+detection_metadata = struct(...
+    'Settings', 'N/A; MUPET Import',...
+    'detectiontime', detectiontime,...
+    'networkselections', 'N/A; MUPET Import');
+spect = handles.data.settings.spect;
+% Save Detections.mat
+save([PathName, FileName],'Calls','audiodata','detection_metadata','spect','-v7.3');
 close(hc);
 update_folders(hObject, eventdata, handles);

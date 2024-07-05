@@ -228,8 +228,14 @@ for i = 1:length(ravenname)
         Calls = SortCalls(Calls,'time');
         % Auto-name Detections.mat using audioname
         [~ ,FileName] = fileparts(audioname{i}{j});
+        detectiontime = datestr(datetime('now'),'YYYY-MM-DD HH_MM PM');
+        detection_metadata = struct(...
+            'Settings', 'N/A; Raven Import',...
+            'detectiontime', detectiontime,...
+            'networkselections', 'N/A; Raven Import');
+        spect = handles.data.settings.spect;
         % Save Detections.mat
-        save(fullfile(outpath,[FileName '_Detections.mat']),'Calls', 'audiodata');
+        save(fullfile(outpath,[FileName '_Detections.mat']),'Calls', 'audiodata','detection_metadata','spect','-v7.3');
         close(hc);
     end
 end

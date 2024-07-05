@@ -135,7 +135,7 @@ if ~isempty(Calls)
         'detectiontime', detectiontime,...
         'networkselections', NetName);
     audiodata = audioinfo(AudioFile);
-    save(fullfile(fpath,fname),'Calls', 'detection_metadata', 'audiodata' ,'-v7.3', '-mat');
+    save(fullfile(fpath,fname),'Calls','audiodata','detection_metadata','spect','-v7.3', '-mat');
 end
 
 end
