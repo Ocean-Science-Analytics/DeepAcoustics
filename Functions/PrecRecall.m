@@ -164,7 +164,8 @@ if ~isempty(Calls)
         'Settings', Settings,...
         'detectiontime', detectiontime,...
         'networkselections', NetName);
-    save(fullfile(fpath,fname),'Calls', 'detection_metadata','-v7.3', '-mat');
+    spect = handles.data.settings.spect;
+    save(fullfile(fpath,fname),'Calls', 'detection_metadata','spect','-v7.3', '-mat');
 end
 
 end

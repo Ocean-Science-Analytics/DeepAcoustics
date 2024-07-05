@@ -29,6 +29,12 @@ end
 
 [FileName, PathName] = uiputfile(fullfile(handles.data.settings.detectionfolder, '*.mat'), 'Save Merged Detections');
 waitbar(1/2, hc, 'Saving...');
-save(fullfile(PathName, FileName),'Calls','-v7.3');
+detectiontime = datestr(datetime('now'),'YYYY-MM-DD HH_MM PM');
+detection_metadata = struct(...
+    'Settings', 'N/A; Det Merge',...
+    'detectiontime', detectiontime,...
+    'networkselections', 'N/A; Det Merge');
+spect = handles.data.settings.spect;
+save(fullfile(PathName, FileName),'Calls','detection_metadata','spect','-v7.3');
 update_folders(hObject, eventdata, handles);
 close(hc);

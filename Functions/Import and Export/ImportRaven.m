@@ -252,6 +252,12 @@ Calls = SortCalls(Calls,'time');
 % Auto-name Detections.mat using audioname
 [~ ,FileName] = fileparts(audioname{1}{1});
 FileName = [FileName '_' num2str(nAudCt) 'AudFiles'];
+detectiontime = datestr(datetime('now'),'YYYY-MM-DD HH_MM PM');
+detection_metadata = struct(...
+    'Settings', 'N/A; Raven Import',...
+    'detectiontime', detectiontime,...
+    'networkselections', 'N/A; Raven Import');
+spect = handles.data.settings.spect;
 % Save Detections.mat
-save(fullfile(outpath,[FileName '_Detections.mat']),'Calls');
+save(fullfile(outpath,[FileName '_Detections.mat']),'Calls','detection_metadata','spect','-v7.3');
 update_folders(hObject, eventdata, handles);
