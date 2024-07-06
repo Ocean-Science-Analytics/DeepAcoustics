@@ -978,6 +978,10 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function menuLoadAnn_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            if isempty(handles.data.calls)
+                LoadCalls(hObject, eventdata, handles)
+            end
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             DispAnnotations(hObject, eventdata, handles);
         end
     end

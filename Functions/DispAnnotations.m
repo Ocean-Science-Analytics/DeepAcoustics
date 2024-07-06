@@ -1,12 +1,11 @@
 function DispAnnotations(hObject, eventdata, handles)
 
 Calls = handles.data.calls;
-if isempty(Calls)
-    LoadCalls(hObject, eventdata, handles)
-    Calls = handles.data.calls;
-end
 [annfile, annpath] = uigetfile('','Select a ground-truthed Detections.mat to evaluate the loaded file');
-CallsAnn = loadCallfile(fullfile(annpath,annfile),handles,false);
+[CallsAnn,allAudio] = loadCallfile(fullfile(annpath,annfile),handles,false);
+
+Calls = CreateBoxAdj(Calls,allAudio);
+CallsAnn = CreateBoxAdj(CallsAnn,allAudio);
 
 % Create Val Column
 Calls.Ovlp = zeros(height(Calls),1);
@@ -27,22 +26,27 @@ for i = 1:height(CallsAnn)
     % before true call start and end is after true call start)
     indB = Calls.Box(:,1) < thisboxst & (Calls.Box(:,1)+Calls.Box(:,3)) >= thisboxst & strcmp({Calls.Audiodata.Filename}',thisaud);
     ind = indA | indB;
+    % For multi-class, make sure type matches
+    indC = [Calls.Type]==CallsAnn.Type(i);
+    ind = ind & indC;
     % Subset of dets that overlap with this true call
     Calls_sub = Calls.Box(ind,:);
-    % Calculate percentage overlap
-    percOvlp = bboxOverlapRatio(thisbox,Calls_sub);
-    % Find the detected call with the most overlap
-    [percOvlp,indMax] = max(percOvlp);
-    % Ind = indices of calls that overlap with true call
-    ind = find(ind);
-    % Ind = index of call with the most overlap with true call
-    ind = ind(indMax);
-    % Only if the Ovlp is better than the detected call's overlap with
-    % any other true call, save Ovlp & index of true call that
-    % corresponds to that Ovlp
-    if percOvlp > Calls.Ovlp(ind)
-        Calls.Ovlp(ind) = percOvlp;
-        Calls.IndMatch(ind) = i;
+    if ~isempty(Calls_sub)
+        % Calculate percentage overlap
+        percOvlp = bboxOverlapRatio(thisbox,Calls_sub);
+        % Find the detected call with the most overlap
+        [percOvlp,indMax] = max(percOvlp);
+        % Ind = indices of calls that overlap with true call
+        ind = find(ind);
+        % Ind = index of call with the most overlap with true call
+        ind = ind(indMax);
+        % Only if the Ovlp is better than the detected call's overlap with
+        % any other true call, save Ovlp & index of true call that
+        % corresponds to that Ovlp
+        if percOvlp > Calls.Ovlp(ind)
+            Calls.Ovlp(ind) = percOvlp;
+            Calls.IndMatch(ind) = i;
+        end
     end
 end
 
@@ -104,21 +108,26 @@ if bDupsFound
             ind = indA | indB;
             % Remove Calls that still have a better match
             ind = ind & Calls.IndMatch == 0;
+            % For multi-class, make sure type matches
+            indC = [Calls.Type]==CallsAnn.Type(i);
+            ind = ind & indC;
             % Subset of dets that overlap with this true call and remain
             % unassigned
             Calls_sub = Calls.Box(ind,:);
-            % Calculate percentage overlap
-            percOvlp = bboxOverlapRatio(thisbox,Calls_sub);
-            % Find the detected call with the most overlap
-            [percOvlp,indMax] = max(percOvlp);
-            % Ind = indices of calls that overlap with true call
-            ind = find(ind);
-            % Ind = index of call with the most overlap with true call
-            ind = ind(indMax);
-            % Save Ovlp & index of true call that
-            % corresponds to that Ovlp
-            Calls.Ovlp(ind) = percOvlp;
-            Calls.IndMatch(ind) = i;
+            if ~isempty(Calls_sub)
+                % Calculate percentage overlap
+                percOvlp = bboxOverlapRatio(thisbox,Calls_sub);
+                % Find the detected call with the most overlap
+                [percOvlp,indMax] = max(percOvlp);
+                % Ind = indices of calls that overlap with true call
+                ind = find(ind);
+                % Ind = index of call with the most overlap with true call
+                ind = ind(indMax);
+                % Save Ovlp & index of true call that
+                % corresponds to that Ovlp
+                Calls.Ovlp(ind) = percOvlp;
+                Calls.IndMatch(ind) = i;
+            end
         end
     end
 end

@@ -3,9 +3,6 @@ function PerfMetrics(handles)
 [detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder);
 PathToDet = fullfile(detpath,detfile);
 [CallsAnn, allAudio, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
-%allAudio = unique({CallsAnn.Audiodata.Filename},'stable');
-% Set up adjusted box variable
-CallsAnn.BoxAdj = CallsAnn.Box;
 
 [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Network to Evaluate');
 lastwarn('');
@@ -43,30 +40,15 @@ drawnow
 Calls = [];
 for i = 1:length(allAudio)
     % Run detector
-    AudioFile = allAudio{i};
+    AudioFile = allAudio(i).Filename;
     Calls_ThisAudio = SqueakDetect(AudioFile,netload,Settings,1,1);
 
     % Add detections to all Calls tables
     if ~isempty(Calls_ThisAudio)
-        % Add new Box col with adjusted boxes for P/R calculation
-        Calls_ThisAudio.BoxAdj = Calls_ThisAudio.Box;
-    
-        % Accumulate audio durations for BoxAdj
-        if i > 1
-            % Get indices of rows corresponding to the previous audio file
-            nPrevFirst = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'first');
-            nPrevLast = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'last');
-            % Pull duration of previous audio file
-            nCumulDur = CallsAnn.Audiodata(nPrevFirst).Duration;
-            % Adjust annotated calls
-            CallsAnn.BoxAdj(nPrevFirst:nPrevLast,1) = CallsAnn.Box(nPrevFirst:nPrevLast,1)+nCumulDur;
-            % Adjust fresh calls
-            Calls_ThisAudio.BoxAdj(:,1) = Calls_ThisAudio.Box(:,1)+nCumulDur;
-        end
-
         Calls = [Calls; Calls_ThisAudio];
     end
 end
+Calls = CreateBoxAdj(Calls,allAudio);
 CallsAnn = CreateBoxAdj(CallsAnn,allAudio);
 close(d)
 close(fig)
