@@ -68,7 +68,7 @@ filename = fullfile(PathName,FileName);
 Calls = merge_boxes(Calls.Box, Calls.Score, Calls.Type, audiodata, 1, 0, 0);
 
 h = waitbar(.9,'Saving Output Structures');
-detectiontime = datestr(datetime('now'),'YYYY-MM-DD HH_MM PM');
+detectiontime = datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
 spect = handles.data.settings.spect;
 save(filename,'Calls','allAudio','audiodata','spect','detectiontime','-v7.3');
 
