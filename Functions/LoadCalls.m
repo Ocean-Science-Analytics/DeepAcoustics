@@ -9,7 +9,7 @@ if nargin < 5
     CheckModified(hObject,eventdata,handles);
     
     % Select new detections file
-    [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file',handles.data.settings.detectionfolder);
+    [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file to load',handles.data.settings.detectionfolder);
     % If cancel, return
     if isequaln(newdetfile,0)
        return;
@@ -37,7 +37,7 @@ if handles.data.bAnnotate
         handles.data.bAnnotate = false;
     end
 end
-[handles.data.calls, handles.data.allAudio, handles.data.settings.spect, detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+[handles.data.calls, handles.data.allAudio, handles.data.settings.spect, handles.data.detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
 
 % If not automatically reloading due to another function (e.g. Next/Prev
 % Call) user needs to pick which audio file to load
@@ -65,8 +65,8 @@ else
     handles.data.thisaudst = indSt;
 end
 handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
-if ~isempty(detmetadata)
-    handles.data.settings.detectionSettings = sprintfc('%g',detmetadata.Settings)';
+if ~isempty(handles.data.detmetadata)
+    handles.data.settings.detectionSettings = sprintfc('%g',handles.data.detmetadata.Settings)';
 end
 
 % Position of the focus window to the first call in the file

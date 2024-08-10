@@ -3,6 +3,7 @@ classdef squeakData < handle
         calls
         anncalls
         allAudio
+        detmetadata
         bAnnotate = false
         currentcall = 1
         current_call_valid = true
