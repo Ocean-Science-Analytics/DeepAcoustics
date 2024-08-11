@@ -14,7 +14,7 @@ function ExportRaven(hObject, eventdata, handles)
             DeltaTime = EndTime - BeginTime;
             DeltaFreq = HighFreq - LowFreq;
             AvgPwr = 1;
-            Annotation = handles.data.calls.Accept(i);
+            Annotation = char(handles.data.calls.Type(i));
             BeginPath = handles.data.calls.Audiodata(i).Filename;
             FileOffset = handles.data.calls.Box(i, 1);
             raventable = [raventable; {Selection} {View} {Channel} {BeginTime} {EndTime} {LowFreq} {HighFreq} {DeltaTime} {DeltaFreq} {AvgPwr} {Annotation} {BeginPath} {FileOffset}];
