@@ -135,8 +135,9 @@ end
 % If there are STILL duplicates, error and cry at Gabi because that sure
 % makes things complicated...
 uniqIM = unique(Calls.IndMatch);
-% (+1 for the 0)
-if length(uniqIM) ~= length(find(Calls.IndMatch))+1
+% Remove the 0
+uniqIM(uniqIM==0) = [];
+if length(uniqIM) ~= length(find(Calls.IndMatch))
     error('Overlaps are too complicated to calculate Precision/Recall - talk to Gabi about further development')
 end
 
