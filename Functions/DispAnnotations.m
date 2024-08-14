@@ -27,8 +27,8 @@ for i = 1:height(CallsAnn)
     indB = Calls.Box(:,1) < thisboxst & (Calls.Box(:,1)+Calls.Box(:,3)) >= thisboxst & strcmp({Calls.Audiodata.Filename}',thisaud);
     ind = indA | indB;
     % For multi-class, make sure type matches
-    indC = [Calls.Type]==CallsAnn.Type(i);
-    ind = ind & indC;
+    %indC = [Calls.Type]==CallsAnn.Type(i);
+    %ind = ind & indC;
     % Subset of dets that overlap with this true call
     Calls_sub = Calls.Box(ind,:);
     if ~isempty(Calls_sub)
@@ -109,8 +109,8 @@ if bDupsFound
             % Remove Calls that still have a better match
             ind = ind & Calls.IndMatch == 0;
             % For multi-class, make sure type matches
-            indC = [Calls.Type]==CallsAnn.Type(i);
-            ind = ind & indC;
+            %indC = [Calls.Type]==CallsAnn.Type(i);
+            %ind = ind & indC;
             % Subset of dets that overlap with this true call and remain
             % unassigned
             Calls_sub = Calls.Box(ind,:);
