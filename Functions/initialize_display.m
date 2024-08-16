@@ -98,6 +98,16 @@ handles.currentWindowRectangle = rectangle(handles.spectrogramWindow,...
     'LineStyle','--',...
     'PickableParts', 'none');
 
+% Whenever load new file, reset bAnnotate to false
+if handles.data.bAnnotate
+    bContinue = questdlg('Do you want to continue your current Annotation Session?','Continue Annotating?','Yes','No','No');
+    switch bContinue
+    case 'Yes'
+        DispAnnotations(hObject, eventdata, handles);
+    case 'No'
+        handles.data.bAnnotate = false;
+    end
+end
 update_fig(hObject, handles);
 handles = guidata(hObject);
 

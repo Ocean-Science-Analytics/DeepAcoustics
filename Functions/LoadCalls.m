@@ -29,14 +29,6 @@ if nargin < 5
 end
 
 h = waitbar(0,'Loading Calls Please wait...');
-% Whenever load new file, reset bAnnotate to false
-if handles.data.bAnnotate
-    bContinue = questdlg('Do you want to continue your current Annotation Session?','Continue Annotating?','Yes','No','No');
-    switch bContinue
-    case 'No'
-        handles.data.bAnnotate = false;
-    end
-end
 [handles.data.calls, handles.data.allAudio, handles.data.settings.spect, handles.data.detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
 
 % If not automatically reloading due to another function (e.g. Next/Prev
