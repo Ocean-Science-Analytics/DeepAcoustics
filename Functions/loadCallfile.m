@@ -120,10 +120,10 @@ if isfield(data, 'Calls')
         clustcat(:) = {'None'};
         Calls.ClustCat = categorical(clustcat)';
     end
-    if ~any(strcmp('EntThresh', Calls.Properties.VariableNames))
+    if ~any(strcmp('EntThresh', Calls.Properties.VariableNames)) || all(Calls.EntThresh(:) == 0)
         Calls.EntThresh(:) = handles.data.settings.EntropyThreshold;
     end
-    if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames))
+    if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames)) || all(Calls.AmpThresh(:) == 0)
         Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
     end
     if ~any(strcmp('Accept', Calls.Properties.VariableNames))

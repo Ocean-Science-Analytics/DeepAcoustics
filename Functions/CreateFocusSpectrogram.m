@@ -52,6 +52,15 @@ if make_spectrogram
     audioreader = squeakData([]);
     audioreader.audiodata = call.Audiodata;
     audio = audioreader.AudioSamples(box(1), box(1) + box(3));
+    if (length(audio) < min([windowsize,noverlap,nfft]))
+        warning('Call too short to generate spectrogram, returning empty')
+        I = [];
+        s = [];
+        fr = [];
+        ti = [];
+        p = [];
+        return
+    end
     [s, fr, ti, p] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
 else
     indbox = handles.data.page_spect.t > call.Box(1) & handles.data.page_spect.t < sum(call.Box([1,3]));
