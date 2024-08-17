@@ -42,7 +42,7 @@ handles.currentWindowRectangle.Position = [
 
 %% Render the page view if the page changed
 if handles.data.lastWindowPosition ~= handles.data.windowposition || force_render_page
-    handles = renderEpochSpectrogram(hObject,handles);
+    handles = renderEpochSpectrogram(handles);
 end
 
 handles = update_focus_display(handles);

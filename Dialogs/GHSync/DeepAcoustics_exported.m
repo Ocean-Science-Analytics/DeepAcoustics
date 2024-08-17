@@ -41,6 +41,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuRemoveRejects           matlab.ui.container.Menu
         menuSetStaticBoxHeight      matlab.ui.container.Menu
         menuPerfMet                 matlab.ui.container.Menu
+        DenoiseMenu                 matlab.ui.container.Menu
         menuHelp                    matlab.ui.container.Menu
         menuAbout                   matlab.ui.container.Menu
         menuViewManual              matlab.ui.container.Menu
@@ -148,6 +149,9 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             handles = newhandles;
             handles.data.saveSettings();
             if ~isempty(handles.data.audiodata)
+                if handles.data.bDenoise
+                    Denoise(handles)
+                end
                 update_fig(hObject, handles, true);
                 % Update the color limits because changing from amplitude to
                 % power would mess with them
@@ -984,6 +988,14 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             DispAnnotations(hObject, eventdata, handles);
         end
+
+        % Menu selected function: DenoiseMenu
+        function menuDenoise_Callback(app, event)
+            % Create GUIDE-style callback args - Added by Migration Tool
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            Denoise(handles);
+            update_fig(hObject, handles,true);
+        end
     end
 
     % Component initialization
@@ -1224,6 +1236,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuPerfMet.MenuSelectedFcn = createCallbackFcn(app, @menuPerfMet_Callback, true);
             app.menuPerfMet.Text = 'Performance Metrics';
             app.menuPerfMet.Tag = 'PerfMet';
+
+            % Create DenoiseMenu
+            app.DenoiseMenu = uimenu(app.menuTools);
+            app.DenoiseMenu.MenuSelectedFcn = createCallbackFcn(app, @menuDenoise_Callback, true);
+            app.DenoiseMenu.Text = 'Denoise';
 
             % Create menuHelp
             app.menuHelp = uimenu(app.mainfigure);

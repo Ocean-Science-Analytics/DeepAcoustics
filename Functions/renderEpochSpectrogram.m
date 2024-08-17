@@ -1,4 +1,4 @@
-function  handles = renderEpochSpectrogram(hObject, handles)
+function  handles = renderEpochSpectrogram(handles)
 %Plot current spectrogram window
 
 handles.data.lastWindowPosition = handles.data.windowposition;
@@ -30,6 +30,12 @@ audio = handles.data.AudioSamples(window_start, window_stop);
 [s, f, t] = spectrogram(audio,windowsize,noverlap,nfft,handles.data.audiodata.SampleRate,'yaxis');
 t = t + window_start; % Add the start of the window the time units
 s_display = scaleSpectrogram(s, handles.data.settings.spect.type, windowsize, handles.data.audiodata.SampleRate);
+
+%% Denoise
+if handles.data.bDenoise
+    s_display = s_display - handles.data.medspec;
+    s_display(s_display<0) = 0;
+end
 
 %% Find the color scale limits
 % handles.data.clim = prctile(s_display(20:10:end-20, 1:20:end),[10,90], 'all')';

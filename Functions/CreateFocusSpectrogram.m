@@ -75,7 +75,7 @@ else
         end
         warning('%s\n%s\n','Recommend decreasing FFT size in Display Settings')
     end
-    s  = handles.data.page_spect.s(:,indbox);
+    s  = handles.data.page_spect.s_display(:,indbox);
     ti = handles.data.page_spect.t(indbox);
     fr = handles.data.page_spect.f;
     p = (1/(rate*(hamming(nfft)'*hamming(nfft))))*abs(s).^2;
