@@ -993,6 +993,9 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function menuDenoise_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            if isempty(handles.data.audiodata)
+                LoadCalls(hObject, eventdata, handles)
+            end
             Denoise(handles);
             update_fig(hObject, handles,true);
         end
