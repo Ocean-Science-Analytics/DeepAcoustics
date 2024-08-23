@@ -1,8 +1,13 @@
 # DeepAcoustics for Marine & Terrestrial Data
-**Forked from DeepSqueak v3: Using Machine Vision to Accelerate Bioacoustics Research**
+DeepAcoustics is a cutting-edge deep learning software tool designed for passive acoustic monitoring (PAM) in marine environments. Developed by Ocean Science Analytics in collaboration with Acoustic Interactions, the software is built on the foundation of deep learning algorithms, which are increasingly used for bioacoustic analysis due to their ability to process and analyze complex acoustic data with high accuracy. DeepAcoustics is particularly notable for its user-friendly design, featuring a graphical user interface (GUI) that makes advanced acoustic data analysis accessible to a broader audience. Unlike many other tools that require extensive programming knowledge, DeepAcoustics allows users to interact with the software through an intuitive interface, making it easier for researchers and conservationists with varying levels of technical expertise to use the tool effectively.
 
+This open-access, MATLAB-based tool is a modified version of a program called DeepSqueak (Coffey et al., 2019). Originally designed for use with ultrasonic calls from rats for neurological studies, our modification of the program has led to an independent version of the software that has further developed network training interactivity, multi-class call detection, applicability to large dataset detection processing and more. To learn more about using DeepAcoustics, please visit our tool documentation: DeepAcoustics Guide & Tutorial
+
+
+**Forked from DeepSqueak v3: Using Machine Vision to Accelerate Bioacoustics Research**
 **Links below connect to DeepSqueak documentation at the time of forking (08/02/2022)**
-**DeepAcoustics-specific documentation pending**
+
+Coffey, K. R., Marx, R. E., & Neumaier, J. F. (2019). DeepSqueak: a deep learning-based system for detection and analysis of ultrasonic vocalizations. Neuropsychopharmacology, 44(5), 859-868.
 
 [![Version](https://camo.githubusercontent.com/2c8911863c44b5f1bde8f97aae78bb31142c56d5b238adafb7ff906792166e42/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f56657273696f6e2d332e302d73756363657373)](https://camo.githubusercontent.com/2c8911863c44b5f1bde8f97aae78bb31142c56d5b238adafb7ff906792166e42/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f56657273696f6e2d332e302d73756363657373)
 [![Manuscript](https://camo.githubusercontent.com/6306d37523298ae46d57fa6b2a51830975025ecb7237c361f0afcf14b0e41da9/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4d616e757363726970742d4e6575726f7068737963686f706861726d61636f6c6f67792d626c7565)](https://www.nature.com/articles/s41386-018-0303-6)
