@@ -16,4 +16,4 @@ Coffey, K. R., Marx, R. E., & Neumaier, J. F. (2019). DeepSqueak: a deep learnin
 
 Copyright © 2021 by Ruby Marx, Kevin Coffey, Robert Ciszek, & Lara Valderrabano All Rights Reserved.
 
-Modified work Copyright © 2024 Peter Sugarman, Gabriela Alongi, Elizabeth Ferguson, & Jennifer Pettis Schallert   All Rights Reserved.
+Modified work Copyright © 2024 by Peter Sugarman, Gabriela Alongi, Elizabeth Ferguson, & Jennifer Pettis Schallert   All Rights Reserved.
