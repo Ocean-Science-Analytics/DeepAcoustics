@@ -732,17 +732,20 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Value changed function: sliderTonality
         function sliderTonality_Callback(app, event)
-            % Create GUIDE-style callback args - Added by Migration Tool
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            
-            %GA 210807: Slider now only used for individual adjustments, so I don't think I want to save to
-            %handles.data.settings.EntropyThreshold=(get(hObject,'Value'));
-            %settings.mat
-            %handles.data.saveSettings();
-            %update_focus_display has preference for existing EntThresh, so need to
-            %overwrite for this call
-            handles.data.calls.EntThresh(handles.data.currentcall) = (get(hObject,'Value'));
-            update_fig(hObject, handles);
+            % Absolutely unhinged ValueChanging behavior and idk why
+            if strcmp(event.EventName,'ValueChanged')
+                % Create GUIDE-style callback args - Added by Migration Tool
+                [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+                
+                %GA 210807: Slider now only used for individual adjustments, so I don't think I want to save to
+                %handles.data.settings.EntropyThreshold=(get(hObject,'Value'));
+                %settings.mat
+                %handles.data.saveSettings();
+                %update_focus_display has preference for existing EntThresh, so need to
+                %overwrite for this call
+                handles.data.calls.EntThresh(handles.data.currentcall) = event.Value;
+                update_fig(hObject, handles);
+            end
         end
 
         % Value changed function: dropdownNeuralNet
@@ -996,6 +999,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             if isempty(handles.data.audiodata)
                 LoadCalls(hObject, eventdata, handles)
             end
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             Denoise(handles);
             update_fig(hObject, handles,true);
         end
@@ -1243,6 +1247,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             % Create DenoiseMenu
             app.DenoiseMenu = uimenu(app.menuTools);
             app.DenoiseMenu.MenuSelectedFcn = createCallbackFcn(app, @menuDenoise_Callback, true);
+            app.DenoiseMenu.Visible = 'off';
+            app.DenoiseMenu.Enable = 'off';
             app.DenoiseMenu.Text = 'Denoise';
 
             % Create menuHelp

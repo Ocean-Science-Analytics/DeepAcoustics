@@ -33,8 +33,9 @@ s_display = scaleSpectrogram(s, handles.data.settings.spect.type, windowsize, ha
 
 %% Denoise
 if handles.data.bDenoise
-    s_display = s_display - handles.data.medspec;
-    s_display(s_display<0) = 0;
+    minval = min(s_display,[],'all');
+    ind_reset = s_display - handles.data.medspec;
+    s_display(ind_reset<0) = minval;
 end
 
 %% Find the color scale limits

@@ -63,6 +63,7 @@ if make_spectrogram
     end
     [s, fr, ti, p] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
 else
+    audio = [];
     indbox = handles.data.page_spect.t > call.Box(1) & handles.data.page_spect.t < sum(call.Box([1,3]));
     % if spect resolution issues, warning and adjust box so enough dims to
     % function
