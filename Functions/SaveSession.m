@@ -25,17 +25,40 @@ end
 if FileName == 0
     return
 end
-h = waitbar(0.5, 'saving');
+
+% Only need allAudio and detmetadata if creating new detections file
+allAudio = handles.data.allAudio;
+if ~isempty(handles.data.detmetadata)
+    detection_metadata = handles.data.detmetadata;
+else
+    detectiontime = datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
+    detection_metadata = struct(...
+        'Settings', 'N/A or not available',...
+        'detectiontime', detectiontime,...
+        'networkselections', 'N/A or not available');
+end
 
 spect = handles.data.settings.spect;
 
+h = waitbar(0.5, 'saving');
+
 szCalls = whos('Calls');
+szallAudio = whos('allAudio');
+szdetmd = whos('detection_metadata');
 szspect = whos('spect');
-szTotal = szCalls.bytes + szspect.bytes;
+szTotal = szCalls.bytes + szspect.bytes + szdetmd.bytes + szallAudio.bytes;
 if szTotal >= 2000000000
-    save(fullfile(PathName, FileName), 'Calls','spect', '-v7.3','-append');
+    if exist(fullfile(PathName, FileName),'file')
+        save(fullfile(PathName, FileName), 'Calls','spect', '-v7.3','-append');
+    else
+        save(fullfile(PathName, FileName), 'Calls','allAudio','detection_metadata','spect', '-v7.3');
+    end
 else
-    save(fullfile(PathName, FileName), 'Calls','spect', '-v7','-append');
+    if exist(fullfile(PathName, FileName),'file')
+        save(fullfile(PathName, FileName), 'Calls','spect', '-v7','-append');
+    else
+        save(fullfile(PathName, FileName), 'Calls','allAudio','detection_metadata','spect','-v7','-mat');
+    end
 end
 update_folders(hObject, eventdata, handles);
 guidata(hObject, handles);

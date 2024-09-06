@@ -98,6 +98,25 @@ handles.currentWindowRectangle = rectangle(handles.spectrogramWindow,...
     'LineStyle','--',...
     'PickableParts', 'none');
 
+% Whenever load new file, check to continue Annotations and Denoising
+if handles.data.bAnnotate
+    bContinue = questdlg('Do you want to continue your current Annotation Session?','Continue Annotating?','Yes','No','No');
+    switch bContinue
+    case 'Yes'
+        DispAnnotations(hObject, eventdata, handles);
+    case 'No'
+        handles.data.bAnnotate = false;
+    end
+end
+if handles.data.bDenoise
+    bContinue = questdlg('Do you want to continue denoising?','Continue Denoising?','Yes','No','No');
+    switch bContinue
+    case 'Yes'
+        Denoise(handles);
+    case 'No'
+        handles.data.bDenoise = false;
+    end
+end
 update_fig(hObject, handles);
 handles = guidata(hObject);
 

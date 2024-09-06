@@ -1,11 +1,8 @@
-function PrecRecall(handles)
+function PerfMetrics(handles)
 % Select Det File for testing network
 [detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder);
 PathToDet = fullfile(detpath,detfile);
 [CallsAnn, allAudio, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
-%allAudio = unique({CallsAnn.Audiodata.Filename},'stable');
-% Set up adjusted box variable
-CallsAnn.BoxAdj = CallsAnn.Box;
 
 [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Network to Evaluate');
 lastwarn('');
@@ -43,30 +40,15 @@ drawnow
 Calls = [];
 for i = 1:length(allAudio)
     % Run detector
-    AudioFile = allAudio{i};
+    AudioFile = allAudio(i).Filename;
     Calls_ThisAudio = SqueakDetect(AudioFile,netload,Settings,1,1);
 
     % Add detections to all Calls tables
     if ~isempty(Calls_ThisAudio)
-        % Add new Box col with adjusted boxes for P/R calculation
-        Calls_ThisAudio.BoxAdj = Calls_ThisAudio.Box;
-    
-        % Accumulate audio durations for BoxAdj
-        if i > 1
-            % Get indices of rows corresponding to the previous audio file
-            nPrevFirst = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'first');
-            nPrevLast = find(strcmp({CallsAnn.Audiodata.Filename},allAudio(i-1)),1,'last');
-            % Pull duration of previous audio file
-            nCumulDur = CallsAnn.Audiodata(nPrevFirst).Duration;
-            % Adjust annotated calls
-            CallsAnn.BoxAdj(nPrevFirst:nPrevLast,1) = CallsAnn.Box(nPrevFirst:nPrevLast,1)+nCumulDur;
-            % Adjust fresh calls
-            Calls_ThisAudio.BoxAdj(:,1) = Calls_ThisAudio.Box(:,1)+nCumulDur;
-        end
-
         Calls = [Calls; Calls_ThisAudio];
     end
 end
+Calls = CreateBoxAdj(Calls,allAudio);
 CallsAnn = CreateBoxAdj(CallsAnn,allAudio);
 close(d)
 close(fig)
@@ -86,10 +68,17 @@ if isempty(Calls)
     return
 end
 
-results = table({table2array(Calls(:,'BoxAdj'))},{table2array(Calls(:,2))},{categorical(ones(height(Calls),1),1,'Call')});
+results = table({table2array(Calls(:,'BoxAdj'))},{table2array(Calls(:,2))},{categorical(Calls.Type)});
 results = renamevars(results,1:3,{'Box','Scores','Label'});
-grdtruth = table({table2array(CallsAnn(:,'BoxAdj'))},{categorical(ones(height(CallsAnn),1),1,'Call')});
+grdtruth = table({table2array(CallsAnn(:,'BoxAdj'))},{categorical(CallsAnn.Type)});
 grdtruth = renamevars(grdtruth,1:2,{'Box','Label'});
+
+uniqClass = netload.detector.ClassNames;
+nTypes = length(uniqClass);
+
+% Set underlying category possibilities for annotated calls so eOD() can
+% run below
+grdtruth.Label{:} = setcats(grdtruth.Label{:},uniqClass);
 
 strVer = version;
 strVer = regexp(strVer,'R20[0-9]{2}[a-b]','match');
@@ -98,12 +87,27 @@ strVer = regexp(strVer,'20[0-9]{2}','match');
 strVer = str2double(strVer{1});
 if strVer >= 2023
     odMetrics = evaluateObjectDetection(results, grdtruth, percTPThresh);
-    avgprec = odMetrics.ClassMetrics.AP{'Call'};
-    recallvec = odMetrics.ClassMetrics.Recall{'Call'};
-    precvec = odMetrics.ClassMetrics.Precision{'Call'};
-    odMetrics = evaluateObjectDetection(results, grdtruth, 0.1:0.1:0.9);
-    mAP = odMetrics.ClassMetrics.mAP('Call');
+    odMetricsmAP = evaluateObjectDetection(results, grdtruth, 0.1:0.1:0.9);
+    avgprec = zeros(nTypes,1);
+    mAP = zeros(nTypes,1);
+    prec = zeros(nTypes,1);
+    recall = zeros(nTypes,1);
+    recallvec = cell(nTypes,1);
+    precvec = cell(nTypes,1);
+    for i = 1:nTypes
+        avgprec(i) = odMetrics.ClassMetrics.AP{uniqClass(i)};
+        recallvec{i} = odMetrics.ClassMetrics.Recall{uniqClass(i)};
+        precvec{i} = odMetrics.ClassMetrics.Precision{uniqClass(i)};
+        mAP(i) = odMetricsmAP.ClassMetrics.mAP(uniqClass(i));
+
+        % Retrieve only the precision and recall values if accept all scores
+        prec(i) = precvec{i}(end);
+        recall(i) = recallvec{i}(end);
+    end
 else
+    if nTypes > 1
+        error('Multi-Class not set up for Matlab functions in versions < 2023 - update Matlab or beg Gabi');
+    end
     grdtruth = table({table2array(CallsAnn(:,'BoxAdj'))});
     grdtruth = renamevars(grdtruth,1,'Call');
     [avgprec, recallvec, precvec] = evaluateDetectionPrecision(results, grdtruth, percTPThresh);
@@ -111,43 +115,47 @@ else
     mAP = NaN;
     warning('Object detection metrics only available with Matlab 2023 or greater')
 end
-% Retrieve only the precision and recall values if accept all scores
-prec = precvec(end);
-recall = recallvec(end);
 
-numTrueDets = height(CallsAnn);
-numTP = recall*numTrueDets;
-numDets = numTP/prec;
+numTrueDets = zeros(nTypes,1);
+for i = 1:nTypes
+    numTrueDets(i) = sum(CallsAnn.Type==uniqClass(i));
+end
+numTP = recall.*numTrueDets;
+numDets = numTP./prec;
 numFP = numDets-numTP;
 numFN = numTrueDets - numTP;
-fscore = 2*((prec*recall)/(prec+recall));
+fscore = 2.*((prec.*recall)./(prec+recall));
 
-figure
-scores = [results.Scores];
-scores = vertcat(scores{:});
-scores = sort(scores,'descend');
-scores = [scores;0];
-scatter(recallvec,precvec,[],scores,'filled','MarkerEdgeColor',[0 0 0])
-grid on
-c = colorbar;
-c.Label.String = 'Score Threshold';
-title(sprintf('Average Precision = %.1f',avgprec))
-xlabel('Recall')
-ylabel('Precision')
+scores = cell(nTypes,1);
+for i = 1:nTypes
+    scores{i} = [results.Scores{1}(results.Label{:} == uniqClass(i))];
+    scores{i} = sort(scores{i},'descend');
+    scores{i} = [scores{i};0];
+    figure
+    scatter(recallvec{i},precvec{i},[],scores{i},'filled','MarkerEdgeColor',[0 0 0])
+    grid on
+    c = colorbar;
+    c.Label.String = 'Score Threshold';
+    title({sprintf('Call Type: %s',uniqClass{i}); ...
+        sprintf('Average Precision = %.1f',avgprec(i))})
+    xlabel('Recall')
+    ylabel('Precision')
 
-msgbox({'Values for Score Threshold == 0:'; ...
-    sprintf('# True Positives: %u',int16(numTP)); ...
-    sprintf('# False Positives: %u', int16(numFP));...
-    sprintf('# of False Negatives: %u', int16(numFN));...
-    sprintf('Precision: %.4f',prec);...
-    sprintf('Recall: %.4f', recall);...
-    sprintf('F-Score: %.4f', fscore);...
-    sprintf('Average Prec (%.2f Ovlp Threshold): %.4f',percTPThresh, avgprec);...
-    sprintf('mAP (0.1:0.1:0.9 Ovlp Threshold): %.4f', mAP)},'P/R Result');
+    msgbox({sprintf('Call Type: %s',uniqClass{i});...
+        'Values for Score Threshold == 0:'; ...
+        sprintf('# True Positives: %u',int16(numTP(i))); ...
+        sprintf('# False Positives: %u', int16(numFP(i)));...
+        sprintf('# of False Negatives: %u', int16(numFN(i)));...
+        sprintf('Precision: %.4f',prec(i));...
+        sprintf('Recall: %.4f', recall(i));...
+        sprintf('F-Score: %.4f', fscore(i));...
+        sprintf('Average Prec (%.2f Ovlp Threshold): %.4f',percTPThresh, avgprec(i));...
+        sprintf('mAP (0.1:0.1:0.9 Ovlp Threshold): %.4f', mAP(i))},'P/R Result');
+end
 
-[file,path] = uiputfile([handles.data.settings.networkfolder '\PrecRecallResults.mat'],'Save P/R Results');
+[file,path] = uiputfile([handles.data.settings.networkfolder '\PerformanceMetrics.mat'],'Save Performance Metrics');
 save(fullfile(path,file),'NetPath','NetName','PathToDet','results','precvec','recallvec','prec','recall',...
-    'numTrueDets','numTP','numDets','numFP','numFN','fscore','avgprec','mAP','odMetrics')
+    'numTrueDets','numTP','numDets','numFP','numFN','fscore','avgprec','mAP','odMetrics','odMetricsmAP')
 
 [~,audioname] = fileparts(AudioFile);
 detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');

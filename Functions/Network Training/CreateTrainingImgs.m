@@ -21,6 +21,7 @@ metadata.maxfreq = 0;
 metadata.minSR = Inf;
 metadata.maxSR = 0;
 
+uniqLabels = [];
 h = waitbar(0,'Loading Call File(s)');
 Calls = [];
 for k = 1:length(trainingdata)
@@ -47,6 +48,7 @@ metadata.maxSR = max([Calls.Audiodata.SampleRate]);
 uniqLabels = unique(cellstr(Calls.Type));
 
 app.RunTrainImgDlg(handles.data.settings.spect, metadata);
+if app.TrainImgbCancel; return; end
 
 h = waitbar(0,'Initializing');
 
@@ -60,6 +62,7 @@ strImgDir = fullfile(handles.data.squeakfolder,'Training');
 % User-specified
 strImgDir = uigetdir(strImgDir,'Select Folder to Output Training Images');
 
+imgsize = app.TrainImgSettings.imSize;
 imLength = app.TrainImgSettings.imLength;
 repeats = app.TrainImgSettings.repeats+1;
 
@@ -72,7 +75,13 @@ if repeats > 1
     end
 end
 
-TTable = table({},{},{},'VariableNames',{'bAug','imageFilename','Call'});
+bNoiseSuccess = false;
+if app.TrainImgSettings.bRandNoise
+    uniqLabels = cellstr(['Noise',uniqLabels']);
+end
+TTable = array2table(zeros(0,2+length(uniqLabels)));
+TTable.Properties.VariableNames = ['bAug','imageFilename',uniqLabels];
+
 nCallsTotal = height(Calls);
 nCallsWhole = ones(1,nCallsTotal);
 nCallsSplit = zeros(1,nCallsTotal);
@@ -115,7 +124,25 @@ for k = 1:length(trainingdata)
 
         bins = SplitBouts(subCalls,imLength,imLength);
         
+        % Set # of negatives to include and calibrate a random selector
+        % accordingly
         nBouts = length(unique(bins));
+        nTotPossImgs = floor(audioReader.audiodata.Duration/imLength);
+        % Set # of negative images to same as # of positive images, or
+        % what's available
+        nNumApproxNeg = min(nTotPossImgs-nBouts,nBouts);
+        % Fraction of possible negative images we actually hope to generate
+        nFracNeg = nNumApproxNeg/(nTotPossImgs-nBouts);
+        % Randomly set seed of random number generator
+        rng("shuffle");
+
+        FinishTime = 0;
+        NegInxNum = 1;
+        NegMinDur = quantile(subCalls.Box(:,3),0.05);
+        % Don't let duration exceed imLength
+        NegMaxDur = min(imLength,quantile(subCalls.Box(:,3),0.95));
+        NegMinBW = quantile(subCalls.Box(:,4),0.05);
+        NegMaxBW = quantile(subCalls.Box(:,4),0.95);
         for bin = 1:length(unique(bins))
             indSC = find(bins==bin);
             BoutCalls = subCalls(bins == bin, :);
@@ -123,6 +150,61 @@ for k = 1:length(trainingdata)
             %Center audio on middle of call bout and extract clip imLength in
             %length
             StartTime = max(min(BoutCalls.Box(:,1)), 0);
+            
+            if app.TrainImgSettings.bRandNoise
+                % Check for space to write a negative image
+                while (StartTime-FinishTime) > imLength
+                    NegStTime = FinishTime;
+                    FinishTime = FinishTime+imLength;
+                    
+                    % Random duration based on subCalls range of sizes
+                    NegDur = rand*(NegMaxDur-NegMinDur)+NegMinDur;
+                    NegBW = rand*(NegMaxBW-NegMinBW)+NegMinBW;
+                    NegTSt = rand*(FinishTime-NegDur-NegStTime)+NegStTime;
+                    freqNyq = floor(audioReader.audiodata.SampleRate/2)/1000;
+                    NegFSt = rand*(freqNyq-NegBW);
+                    NegBox = [NegTSt,NegFSt,NegDur,NegBW];
+                    NegAccept = 1;
+                    NegType = categorical({'Noise'});
+                    NegCalls = table(NegBox,NegAccept,NegType,'VariableNames',{'Box','Accept','Type'});
+                    
+                    % Randomly decide to make image or not
+                    if rand <= nFracNeg
+                        bNoiseSuccess = true;
+                        %% Read Audio
+                        audio = audioReader.AudioSamples(NegStTime, FinishTime);
+                        try
+                            for replicatenumber = 1:repeats
+                                IMname = sprintf('%g_%g_%g_%g.png', k, j, nBouts+NegInxNum, replicatenumber);
+                                ffn = fullfile(strImgDir,IMname);
+                                % Insert augmented images folder into filename to separate augs
+                                % from ogs
+                                bAug = false;
+                                if replicatenumber > 1
+                                    ffn = fullfile(strImgDir,'ImgAug',IMname);
+                                    bAug = true;
+                                end
+                                % Do not need any outputs - this is just to
+                                % manipulate and write the image to file
+                                [~,box] = CreateTrainingData(...
+                                    audio,...
+                                    audioReader.audiodata.SampleRate,...
+                                    NegCalls,...
+                                    uniqLabels,...
+                                    noverlap,nfft,...
+                                    imgsize,...
+                                    ffn,...
+                                    replicatenumber);  
+                                TTable = [TTable;[{bAug}, {ffn}, box]];
+                            end
+                            NegInxNum = NegInxNum+1;
+                        catch
+                            disp("Something wrong with calculating bounding box indices - talk to Gabi!");
+                        end
+                    end
+                end
+            end
+
             FinishTime = max(BoutCalls.Box(:,1) + BoutCalls.Box(:,3));
             CenterTime = (StartTime+(FinishTime-StartTime)/2);
 
@@ -209,7 +291,9 @@ for k = 1:length(trainingdata)
                             audio,...
                             audioReader.audiodata.SampleRate,...
                             BoutCalls,...
+                            uniqLabels,...
                             noverlap,nfft,...
+                            imgsize,...
                             ffn,...
                             replicatenumber);  
                         TTable = [TTable;[{bAug}, {ffn}, box]];
@@ -223,8 +307,19 @@ for k = 1:length(trainingdata)
 end
 close(h)
 
+if app.TrainImgSettings.bRandNoise && ~bNoiseSuccess
+    warning('There was not enough room between Calls to generate Noise')
+    TTable.Noise =[];
+end
+
+nNoise = 0;
+if ismember('Noise',TTable.Properties.VariableNames)
+     nNoise = height(cell2mat([TTable.Noise]));
+end
+
+
 if ismember('Call',TTable.Properties.VariableNames)
-    if sum(nPiecesTotal)~=height(cell2mat([TTable.Call]))
+    if sum(nPiecesTotal)~=height(cell2mat([TTable.Call(~TTable.bAug)]))
         error('Call counts not adding up; talk to Gabi')
     end
 end
@@ -248,7 +343,7 @@ end
 
 
 % Create training images and boxes
-function [im, box] = CreateTrainingData(audio,rate,Calls,noverlap,nfft,filename,replicatenumber)
+function [im, sepbox] = CreateTrainingData(audio,rate,Calls,uniqLabels,noverlap,nfft,imgsize,filename,replicatenumber)
 AmplitudeRange = [.5, 1.5];
 %StretchRange = [0.75, 1.25];
 % Order of current unaugmented FFT
@@ -343,38 +438,46 @@ else
 im = adapthisteq(flipud(p),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',alf);    
 end
 
-% Find the box within the spectrogram
-x1 = axes2pix(length(ti), ti, Calls.Box(:,1));
-x2 = axes2pix(length(ti), ti, Calls.Box(:,3));
-y1 = axes2pix(length(fr), fr./1000, Calls.Box(:,2));
-y2 = axes2pix(length(fr), fr./1000, Calls.Box(:,4));
-box = ceil([x1, length(fr)-y1-y2, x2, y2]);
-box = box(Calls.Accept == 1, :);
-% No zeros (must be at least 1)
-box(box <= 0) = 1;
-% start time index must be at least 1 less than (length of ti - 1)
-box(box(:,1) > length(ti)-2,1) = length(ti)-2;
-% 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
-box((box(:,3)+box(:,1)) >= length(ti),3) = length(ti)-1-box((box(:,3)+box(:,1)) >= length(ti),1);
-% start freq index must be at least 1 less than (length of fr - 1)
-% actual axis of im = length(fr)-1 (frequencies must correspond
-% to between pixels not the pixels themselves)
-box(box(:,2) > length(fr)-2,2) = length(fr)-2;
-% 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
-% <= because actual axis of im = length(fr)-1 (frequencies must correspond
-% to between pixels not the pixels themselves)
-box((box(:,4)+box(:,2)) >= length(fr),4) = length(fr)-1-box((box(:,4)+box(:,2)) >= length(fr),2);
-
 % resize images for 300x300 YOLO Network (Could be bigger but works nice)
-targetSize = [300 300];
+targetSize = [imgsize imgsize];
 sz=size(im);
-im = imresize(im,targetSize);
-box = bboxresize(box,targetSize./sz);
 
-if any((box(:,1)+box(:,3)) > 300,'all') || any((box(:,2)+box(:,4)) > 300,'all')
-    error('Training image bounding indices still not working right - talk to Gabi')
+if ~isempty(Calls)
+    % Find the box within the spectrogram
+    x1 = axes2pix(length(ti), ti, Calls.Box(:,1));
+    x2 = axes2pix(length(ti), ti, Calls.Box(:,3));
+    y1 = axes2pix(length(fr), fr./1000, Calls.Box(:,2));
+    y2 = axes2pix(length(fr), fr./1000, Calls.Box(:,4));
+    box = ceil([x1, length(fr)-y1-y2, x2, y2]);
+    box = box(Calls.Accept == 1, :);
+    % No zeros (must be at least 1)
+    box(box <= 0) = 1;
+    % start time index must be at least 1 less than (length of ti - 1)
+    box(box(:,1) > length(ti)-2,1) = length(ti)-2;
+    % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
+    box((box(:,3)+box(:,1)) >= length(ti),3) = length(ti)-1-box((box(:,3)+box(:,1)) >= length(ti),1);
+    % start freq index must be at least 1 less than (length of fr - 1)
+    % actual axis of im = length(fr)-1 (frequencies must correspond
+    % to between pixels not the pixels themselves)
+    box(box(:,2) > length(fr)-2,2) = length(fr)-2;
+    % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
+    % <= because actual axis of im = length(fr)-1 (frequencies must correspond
+    % to between pixels not the pixels themselves)
+    box((box(:,4)+box(:,2)) >= length(fr),4) = length(fr)-1-box((box(:,4)+box(:,2)) >= length(fr),2);
+
+    box = bboxresize(box,targetSize./sz);
+
+    if any((box(:,1)+box(:,3)) > imgsize,'all') || any((box(:,2)+box(:,4)) > imgsize,'all')
+        error('Training image bounding indices still not working right - talk to Gabi')
+    end
+
+    sepbox = cell(1,length(uniqLabels));
+    for i = 1:length(uniqLabels)
+        sepbox{i} = {box(Calls.Type==uniqLabels{i},:)};
+    end
 end
 
+im = imresize(im,targetSize);
 % Insert box for testing
 % im = insertShape(im, 'rectangle', box);
 imwrite(im, filename, 'BitDepth', 8);

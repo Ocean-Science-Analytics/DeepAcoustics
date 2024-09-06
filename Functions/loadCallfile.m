@@ -14,15 +14,46 @@ if isfield(data, 'audiodata')
     audiodata = data.audiodata;
 end
 
-if isfield(data, 'allAudio')
-    allAudio = data.allAudio;
-else
-    warning('This is an older Call file that may be lacking complete allAudio information')
-end
-
 %% Unpack the data
 if isfield(data, 'Calls')
     Calls = data.Calls;
+
+    if isfield(data, 'allAudio')
+        allAudio = data.allAudio;
+    else
+        if nargout < 6
+            bUpdate = questdlg('This is an older detections file that is lacking complete allAudio information - do you want to fix this now (recommended)?','Assign allAudio?','Yes','No','No');
+            switch bUpdate
+            case 'Yes'
+                % Find audio in folder (default to directory of first call in
+                % Calls
+                [audiopath,~,~] = fileparts(Calls.Audiodata(1).Filename);
+                % If Calls directory doesn't exist, open preset audiofolder
+                if exist(audiopath,'file') ~= 7
+                    audiopath = handles.data.settings.audiofolder;
+                end
+                audiopath = uigetdir(audiopath,'Select Folder Containing All Audio Files Used to Generate This Detections File');
+                audiodir = [dir([audiopath '\*.wav']); ...
+                    dir([audiopath '\*.ogg']); ...
+                    dir([audiopath '\*.flac']); ...
+                    dir([audiopath '\*.UVD']); ...
+                    dir([audiopath '\*.au']); ...
+                    dir([audiopath '\*.aiff']); ...
+                    dir([audiopath '\*.aif']); ...
+                    dir([audiopath '\*.aifc']); ...
+                    dir([audiopath '\*.mp3']); ...
+                    dir([audiopath '\*.m4a']); ...
+                    dir([audiopath '\*.mp4'])];
+    
+                for i = 1:length(audiodir)
+                    allAudio = [allAudio; audioinfo(fullfile(audiopath, audiodir(i).name))];
+                end
+                save(filename,'allAudio','-append');
+            case 'No'
+                warning('This is an older detections file that is lacking complete allAudio information')
+            end
+        end
+    end
     
     if isfield(data,'detection_metadata')
         detection_metadata = data.detection_metadata;
@@ -38,6 +69,41 @@ if isfield(data, 'Calls')
     elseif ~any(strcmp('Audiodata', Calls.Properties.VariableNames))
         error('Could not identify audio info since multi-file update - complain to GA')
     end
+
+    % Make sure audio exists in linked locations
+    uniqAud = unique({Calls.Audiodata.Filename},'stable');
+    newpn = '';
+    if nargout < 6
+        for i = 1:length(uniqAud)
+            % Get current file parts
+            [~, thisfn, thisext] = fileparts(uniqAud{i});
+            % Does the audio file exist in the current set location?
+            bExist = exist(uniqAud{i},'file');
+            % If not...
+            if ~bExist
+                % ...and we recently set a new file path, check that path for this
+                % audio file
+                if ~strcmp(newpn,'')
+                    bExist = exist(fullfile(newpn,[thisfn thisext]),'file');
+                end
+                % If we're still not finding the audio file, ask user to supply new
+                % path
+                if ~bExist
+                    newpn = uigetdir(handles.data.settings.audiofolder,['Select folder containing ',thisfn]);
+                    % Double-check that they chose a good path
+                    if ~exist(fullfile(newpn,[thisfn thisext]),'file')
+                        error([thisfn ' not found in ' newpn])
+                    end
+                end
+                % Replace old path with new, good path
+                indrep = find(strcmp({Calls.Audiodata.Filename},uniqAud{i}));
+                for j = indrep
+                    Calls.Audiodata(j).Filename = fullfile(newpn,[thisfn thisext]);
+                end
+            end
+        end
+    end
+
     if ~any(strcmp('DetSpect', Calls.Properties.VariableNames)) || isempty(fieldnames(Calls.DetSpect(1)))
         DetSpect.wind = 0;
         DetSpect.noverlap = 0;
@@ -54,10 +120,10 @@ if isfield(data, 'Calls')
         clustcat(:) = {'None'};
         Calls.ClustCat = categorical(clustcat)';
     end
-    if ~any(strcmp('EntThresh', Calls.Properties.VariableNames))
+    if ~any(strcmp('EntThresh', Calls.Properties.VariableNames)) || all(Calls.EntThresh(:) == 0)
         Calls.EntThresh(:) = handles.data.settings.EntropyThreshold;
     end
-    if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames))
+    if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames)) || all(Calls.AmpThresh(:) == 0)
         Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
     end
     if ~any(strcmp('Accept', Calls.Properties.VariableNames))
@@ -98,6 +164,20 @@ if isfield(data, 'Calls')
         end
         spect = data.spect;
     end
+    
+    if nargout > 0 && nargout < 6 && length(unique(Calls.Type)) > 1
+        list = cellstr(unique(Calls.Type));
+        [indx,tf] = listdlg('PromptString',{'Select the call types you would like to load.',...
+            'WARNING: Saving after this point','without modifying the file name will','overwrite your existing detections file',...
+            'with only the selected call types.',' ',' '},...
+            'ListString',list,'ListSize',[200,300]);
+        if tf
+            Calls = Calls(ismember(Calls.Type,list(indx)),:);
+        else
+            error('You chose to cancel')
+        end
+    end
+
     if nargout == 6
         %% Output for detection mat modification check
         modcheck.calls = data.Calls;

@@ -54,7 +54,8 @@ if dim1 ~= dim2
 end
 
 % User input so can reduce size if memory error
-warning('If GPU crashes (out of memory error), you may need to reduce the image size.')
+warning('%s\n%s\n','If GPU crashes (out of memory error), you may need to reduce the image size.', ...
+    'Warning: If you choose an image size > the resolution used to create the images, your effective image size will be the resolution used to create the images.')
 prompt = {'Enter image size (square):'};
 dlg_title = 'Image Size';
 num_lines = [1 length(dlg_title)+30];
@@ -357,6 +358,13 @@ function data = preprocessData(data,targetSize)
 for ii = 1:size(data,1)
     I = data{ii,1};
     imgSize = size(I);
+
+    if ii==1
+        if max(imgSize) < max(targetSize)
+            warning('%s%d%s%d%s\n','The selected image size (',max(targetSize),') is > the resolution used to create the images. Resolution of training images is effectively ',...
+                max(imgSize),' pixels square.')
+        end
+    end
     
     bboxes = data{ii,2};
     
@@ -366,7 +374,9 @@ for ii = 1:size(data,1)
     end
     I = im2single(imresize(I,targetSize(1:2)));
     scale = targetSize(1:2)./imgSize(1:2);
-    bboxes = bboxresize(bboxes,scale);
+    if ~isempty(bboxes)
+        bboxes = bboxresize(bboxes,scale);
+    end
     
     data(ii,1:2) = {I,bboxes};
 end

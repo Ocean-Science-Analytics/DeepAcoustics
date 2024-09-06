@@ -18,17 +18,32 @@ function ExportExcel(hObject, eventdata, handles)
 
                 % Get spectrogram data
                 [I,windowsize,noverlap,nfft,rate,box] = CreateFocusSpectrogram(Calls(i, :),handles,true, []);
-                
-                % If each call was saved with its own Entropy and Amplitude
-                % Threshold, run CalculateStats with those values,
-                % otherwise run with global settings
-                if any(strcmp('EntThresh',Calls.Properties.VariableNames)) && ...
-                    ~isempty(Calls.EntThresh(i))
-                    % Calculate statistics
-                    stats = CalculateStats(I,windowsize,noverlap,nfft,rate,box,Calls.EntThresh(i),Calls.AmpThresh(i));
+                if isempty(I)
+                    stats.BeginTime = [];
+                    stats.EndTime = [];
+                    stats.DeltaTime = [];
+                    stats.PrincipalFreq = [];
+                    stats.LowFreq = [];
+                    stats.HighFreq = [];
+                    stats.DeltaFreq = [];
+                    stats.stdev = [];
+                    stats.Slope = [];
+                    stats.Sinuosity = [];
+                    stats.MeanPower = [];
+                    stats.SignalToNoise = [];
+                    stats.PeakFreq = [];
                 else
-                    % Calculate statistics
-                    stats = CalculateStats(I,windowsize,noverlap,nfft,rate,box,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
+                    % If each call was saved with its own Entropy and Amplitude
+                    % Threshold, run CalculateStats with those values,
+                    % otherwise run with global settings
+                    if any(strcmp('EntThresh',Calls.Properties.VariableNames)) && ...
+                        ~isempty(Calls.EntThresh(i))
+                        % Calculate statistics
+                        stats = CalculateStats(I,windowsize,noverlap,nfft,rate,box,Calls.EntThresh(i),Calls.AmpThresh(i));
+                    else
+                        % Calculate statistics
+                        stats = CalculateStats(I,windowsize,noverlap,nfft,rate,box,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
+                    end
                 end
                 
                 ID = i;

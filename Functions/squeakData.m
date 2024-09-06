@@ -2,8 +2,11 @@ classdef squeakData < handle
     properties
         calls
         anncalls
+        medspec
         allAudio
+        detmetadata
         bAnnotate = false
+        bDenoise = false
         currentcall = 1
         current_call_valid = true
         thisaudst = 1

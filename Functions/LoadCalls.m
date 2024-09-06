@@ -9,7 +9,7 @@ if nargin < 5
     CheckModified(hObject,eventdata,handles);
     
     % Select new detections file
-    [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file',handles.data.settings.detectionfolder);
+    [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file to load',handles.data.settings.detectionfolder);
     % If cancel, return
     if isequaln(newdetfile,0)
        return;
@@ -29,41 +29,7 @@ if nargin < 5
 end
 
 h = waitbar(0,'Loading Calls Please wait...');
-% Whenever load new file, reset bAnnotate to false
-handles.data.bAnnotate = false;
-[handles.data.calls, handles.data.allAudio, handles.data.settings.spect, detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
-
-% Make sure audio exists in linked locations
-uniqAud = unique({handles.data.calls.Audiodata.Filename},'stable');
-newpn = '';
-for i = 1:length(uniqAud)
-    % Get current file parts
-    [~, thisfn, thisext] = fileparts(uniqAud{i});
-    % Does the audio file exist in the current set location?
-    bExist = exist(uniqAud{i},'file');
-    % If not...
-    if ~bExist
-        % ...and we recently set a new file path, check that path for this
-        % audio file
-        if ~strcmp(newpn,'')
-            bExist = exist(fullfile(newpn,[thisfn thisext]),'file');
-        end
-        % If we're still not finding the audio file, ask user to supply new
-        % path
-        if ~bExist
-            newpn = uigetdir(handles.data.settings.audiofolder,['Select folder containing ',thisfn]);
-            % Double-check that they chose a good path
-            if ~exist(fullfile(newpn,[thisfn thisext]),'file')
-                error([thisfn ' not found in ' newpn])
-            end
-        end
-        % Replace old path with new, good path
-        indrep = find(strcmp({handles.data.calls.Audiodata.Filename},uniqAud{i}));
-        for j = indrep
-            handles.data.calls.Audiodata(j).Filename = fullfile(newpn,[thisfn thisext]);
-        end
-    end
-end
+[handles.data.calls, handles.data.allAudio, handles.data.settings.spect, handles.data.detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
 
 % If not automatically reloading due to another function (e.g. Next/Prev
 % Call) user needs to pick which audio file to load
@@ -91,8 +57,8 @@ else
     handles.data.thisaudst = indSt;
 end
 handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
-if ~isempty(detmetadata)
-    handles.data.settings.detectionSettings = sprintfc('%g',detmetadata.Settings)';
+if ~isempty(handles.data.detmetadata)
+    handles.data.settings.detectionSettings = sprintfc('%g',handles.data.detmetadata.Settings)';
 end
 
 % Position of the focus window to the first call in the file

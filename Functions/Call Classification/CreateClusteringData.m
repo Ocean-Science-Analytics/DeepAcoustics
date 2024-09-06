@@ -99,6 +99,13 @@ for i = 1:height(Calls)
     audioReader.audiodata = Calls.Audiodata(i);
         
     [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles, true, []);
+    
+    % If spectrogram settings iffy
+    if any(size(pow) < 3)
+        warning('FFT settings suboptimal and causing calls to be skipped when creating Clustering Data - recommend changing')
+        continue
+    end
+
     % im = mat2gray(flipud(I),[0 max(max(I))/4]); % Set max brightness to 1/4 of max
     % im = mat2gray(flipud(I), prctile(I, [1 99], 'all')); % normalize brightness
     pow(pow==0)=.01;

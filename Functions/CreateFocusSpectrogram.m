@@ -49,9 +49,21 @@ noverlap = round(rate * options.overlap);
 nfft = round(rate * options.nfft);
     
 if make_spectrogram
-    audio = call.Audiodata.AudioSamples(box(1), box(1) + box(3));
+    audioreader = squeakData([]);
+    audioreader.audiodata = call.Audiodata;
+    audio = audioreader.AudioSamples(box(1), box(1) + box(3));
+    if (length(audio) < min([windowsize,noverlap,nfft]))
+        warning('Call too short to generate spectrogram, returning empty')
+        I = [];
+        s = [];
+        fr = [];
+        ti = [];
+        p = [];
+        return
+    end
     [s, fr, ti, p] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
 else
+    audio = [];
     indbox = handles.data.page_spect.t > call.Box(1) & handles.data.page_spect.t < sum(call.Box([1,3]));
     % if spect resolution issues, warning and adjust box so enough dims to
     % function
@@ -64,7 +76,7 @@ else
         end
         warning('%s\n%s\n','Recommend decreasing FFT size in Display Settings')
     end
-    s  = handles.data.page_spect.s(:,indbox);
+    s  = handles.data.page_spect.s_display(:,indbox);
     ti = handles.data.page_spect.t(indbox);
     fr = handles.data.page_spect.f;
     p = (1/(rate*(hamming(nfft)'*hamming(nfft))))*abs(s).^2;
