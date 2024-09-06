@@ -7,10 +7,15 @@ handles.data.focusCenter = max(handles.data.focusCenter,  handles.data.settings.
 handles.data.focusCenter = min(handles.data.focusCenter,  handles.data.audiodata.Duration - handles.data.settings.focus_window_size/2);
 
 %% Find the call closest to the click and make it the current call
+% Subset calls to those restricted to current audio file
 if ~isempty(handles.data.calls)
-    callMidpoints = handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3)/2;
-    [~, closestCall] = min(abs(callMidpoints - handles.data.focusCenter));
-    handles.data.currentcall = closestCall;
+    subCalls = handles.data.calls(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
+    if ~isempty(subCalls)
+        callMidpoints = subCalls.Box(:,1) + subCalls.Box(:,3)/2;
+        [~, closestCall] = min(abs(callMidpoints - handles.data.focusCenter));
+        % Correct for index in full calls table using thisaudst
+        handles.data.currentcall = closestCall + handles.data.thisaudst - 1;
+    end
 end
 
 % update_fig runs guidata so we don't need that here

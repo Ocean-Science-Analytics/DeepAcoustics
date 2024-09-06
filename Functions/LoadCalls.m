@@ -1,15 +1,15 @@
 % --- Executes on button press in LOAD CALLS.
-function LoadCalls(hObject, eventdata, handles, ~)
+function LoadCalls(hObject, eventdata, handles, indSt, ~)
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);
-% if "Load Calls" button pressed, check for changes, then select a file to load,
-% else reload the current (or load Next/Prev) file
-if nargin == 3 
-    % Check if pre-existing detection file has changed to save file before loading a new one.
+
+% if "Load Calls" button pressed, check for modifications to current file,
+% then load a user selected file, else reload the current file
+if nargin < 5 
     CheckModified(hObject,eventdata,handles);
     
     % Select new detections file
-    [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file',handles.data.settings.detectionfolder);
+    [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file to load',handles.data.settings.detectionfolder);
     % If cancel, return
     if isequaln(newdetfile,0)
        return;
@@ -29,18 +29,40 @@ if nargin == 3
 end
 
 h = waitbar(0,'Loading Calls Please wait...');
-% Whenever load new file, reset bAnnotate to false
-handles.data.bAnnotate = false;
-handles.data.calls = [];
-handles.data.allAudio = [];
-handles.data.audiodata = [];
-[handles.data.calls, handles.data.allAudio, handles.data.audiodata, handles.data.settings.spect, detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
-if ~isempty(detmetadata)
-    handles.data.settings.detectionSettings = sprintfc('%g',detmetadata.Settings)';
+[handles.data.calls, handles.data.allAudio, handles.data.settings.spect, handles.data.detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+
+% If not automatically reloading due to another function (e.g. Next/Prev
+% Call) user needs to pick which audio file to load
+if nargin < 5
+    % Default to first/only audio file
+    if nargin == 3
+        indSt = 1;
+    end
+    % Get names of audio files contributing to this detection file
+    allAudio = unique({handles.data.calls.Audiodata.Filename},'stable');
+    % If more than one audio file, have user pick which one to start
+    if length(allAudio) > 1
+        audioselection = listdlg('PromptString','Select which Audio to Load :','ListSize',[500 300],'SelectionMode','single','ListString',allAudio);
+        indSt = find(strcmp({handles.data.calls.Audiodata.Filename},allAudio{audioselection}),1,'first');
+    end
+end
+
+% Get audio info for the correct audio file
+% indSt == 0 => We want the previous audio file
+if indSt == 0
+    handles.data.audiodata = handles.data.calls.Audiodata(handles.data.thisaudst-1);
+    handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'first');
+else
+    handles.data.audiodata = handles.data.calls.Audiodata(indSt);
+    handles.data.thisaudst = indSt;
+end
+handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
+if ~isempty(handles.data.detmetadata)
+    handles.data.settings.detectionSettings = sprintfc('%g',handles.data.detmetadata.Settings)';
 end
 
 % Position of the focus window to the first call in the file
-handles.data.focusCenter = handles.data.calls.Box(1,1) + handles.data.calls.Box(1,3)/2;
+handles.data.focusCenter = handles.data.calls.Box(handles.data.thisaudst,1) + handles.data.calls.Box(handles.data.thisaudst,3)/2;
 
 % For some unknown reason, if "h" is closed after running
 % "initialize_display", then holding down an arror key will be a little

@@ -239,6 +239,8 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
 
             % Create editOverlap
             app.editOverlap = uieditfield(app.dlgDisplay, 'numeric');
+            app.editOverlap.Limits = [0 100];
+            app.editOverlap.ValueDisplayFormat = '%3.1f';
             app.editOverlap.HorizontalAlignment = 'center';
             app.editOverlap.Position = [225 167 69 22];
 

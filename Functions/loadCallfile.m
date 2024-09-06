@@ -1,4 +1,4 @@
-function [Calls,allAudio,audiodata,spect,detection_metadata,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT)
+function [Calls,allAudio,spect,detection_metadata,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT)
 
 modcheck = struct();
 data = load(filename);
@@ -14,15 +14,47 @@ if isfield(data, 'audiodata')
     audiodata = data.audiodata;
 end
 
-if isfield(data, 'allAudio')
-    allAudio = data.allAudio;
-else
-    warning('This is an older Call file that may be lacking complete allAudio information')
-end
-
 %% Unpack the data
 if isfield(data, 'Calls')
     Calls = data.Calls;
+
+    if isfield(data, 'allAudio')
+        allAudio = data.allAudio;
+    else
+        if nargout < 6
+            bUpdate = questdlg('This is an older detections file that is lacking complete allAudio information - do you want to fix this now (recommended)?','Assign allAudio?','Yes','No','No');
+            switch bUpdate
+            case 'Yes'
+                % Find audio in folder (default to directory of first call in
+                % Calls
+                [audiopath,~,~] = fileparts(Calls.Audiodata(1).Filename);
+                % If Calls directory doesn't exist, open preset audiofolder
+                if exist(audiopath,'file') ~= 7
+                    audiopath = handles.data.settings.audiofolder;
+                end
+                audiopath = uigetdir(audiopath,'Select Folder Containing All Audio Files Used to Generate This Detections File');
+                audiodir = [dir([audiopath '\*.wav']); ...
+                    dir([audiopath '\*.ogg']); ...
+                    dir([audiopath '\*.flac']); ...
+                    dir([audiopath '\*.UVD']); ...
+                    dir([audiopath '\*.au']); ...
+                    dir([audiopath '\*.aiff']); ...
+                    dir([audiopath '\*.aif']); ...
+                    dir([audiopath '\*.aifc']); ...
+                    dir([audiopath '\*.mp3']); ...
+                    dir([audiopath '\*.m4a']); ...
+                    dir([audiopath '\*.mp4'])];
+    
+                for i = 1:length(audiodir)
+                    allAudio = [allAudio; audioinfo(fullfile(audiopath, audiodir(i).name))];
+                end
+                save(filename,'allAudio','-append');
+            case 'No'
+                warning('This is an older detections file that is lacking complete allAudio information')
+            end
+        end
+    end
+    
     if isfield(data,'detection_metadata')
         detection_metadata = data.detection_metadata;
     end
@@ -37,6 +69,41 @@ if isfield(data, 'Calls')
     elseif ~any(strcmp('Audiodata', Calls.Properties.VariableNames))
         error('Could not identify audio info since multi-file update - complain to GA')
     end
+
+    % Make sure audio exists in linked locations
+    uniqAud = unique({Calls.Audiodata.Filename},'stable');
+    newpn = '';
+    if nargout < 6
+        for i = 1:length(uniqAud)
+            % Get current file parts
+            [~, thisfn, thisext] = fileparts(uniqAud{i});
+            % Does the audio file exist in the current set location?
+            bExist = exist(uniqAud{i},'file');
+            % If not...
+            if ~bExist
+                % ...and we recently set a new file path, check that path for this
+                % audio file
+                if ~strcmp(newpn,'')
+                    bExist = exist(fullfile(newpn,[thisfn thisext]),'file');
+                end
+                % If we're still not finding the audio file, ask user to supply new
+                % path
+                if ~bExist
+                    newpn = uigetdir(handles.data.settings.audiofolder,['Select folder containing ',thisfn]);
+                    % Double-check that they chose a good path
+                    if ~exist(fullfile(newpn,[thisfn thisext]),'file')
+                        error([thisfn ' not found in ' newpn])
+                    end
+                end
+                % Replace old path with new, good path
+                indrep = find(strcmp({Calls.Audiodata.Filename},uniqAud{i}));
+                for j = indrep
+                    Calls.Audiodata(j).Filename = fullfile(newpn,[thisfn thisext]);
+                end
+            end
+        end
+    end
+
     if ~any(strcmp('DetSpect', Calls.Properties.VariableNames)) || isempty(fieldnames(Calls.DetSpect(1)))
         DetSpect.wind = 0;
         DetSpect.noverlap = 0;
@@ -53,10 +120,10 @@ if isfield(data, 'Calls')
         clustcat(:) = {'None'};
         Calls.ClustCat = categorical(clustcat)';
     end
-    if ~any(strcmp('EntThresh', Calls.Properties.VariableNames))
+    if ~any(strcmp('EntThresh', Calls.Properties.VariableNames)) || all(Calls.EntThresh(:) == 0)
         Calls.EntThresh(:) = handles.data.settings.EntropyThreshold;
     end
-    if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames))
+    if ~any(strcmp('AmpThresh', Calls.Properties.VariableNames)) || all(Calls.AmpThresh(:) == 0)
         Calls.AmpThresh(:) = handles.data.settings.AmplitudeThreshold;
     end
     if ~any(strcmp('Accept', Calls.Properties.VariableNames))
@@ -66,9 +133,9 @@ if isfield(data, 'Calls')
         Calls.Ovlp(:) = 0;
     end
     if ~any(strcmp('StTime', Calls.Properties.VariableNames)) || ~isa(Calls.StTime(1),'datetime')
-        if ~isempty(audiodata) && bTryDT
+        if bTryDT
             [~,fnonly,~] = fileparts(filename);
-            Calls = AddDateTime(Calls,audiodata,fnonly);
+            Calls = AddDateTime(Calls,fnonly);
         else
             if any(strcmp('StTime', Calls.Properties.VariableNames))
                 Calls.StTime = [];
@@ -97,7 +164,21 @@ if isfield(data, 'Calls')
         end
         spect = data.spect;
     end
-    if nargout == 7
+    
+    if nargout > 0 && nargout < 6 && length(unique(Calls.Type)) > 1
+        list = cellstr(unique(Calls.Type));
+        [indx,tf] = listdlg('PromptString',{'Select the call types you would like to load.',...
+            'WARNING: Saving after this point','without modifying the file name will','overwrite your existing detections file',...
+            'with only the selected call types.',' ',' '},...
+            'ListString',list,'ListSize',[200,300]);
+        if tf
+            Calls = Calls(ismember(Calls.Type,list(indx)),:);
+        else
+            error('You chose to cancel')
+        end
+    end
+
+    if nargout == 6
         %% Output for detection mat modification check
         modcheck.calls = data.Calls;
         modcheck.spect = spect;
@@ -106,7 +187,7 @@ if isfield(data, 'Calls')
         % have the power to update handles...
         handles.data.settings.spect = spect;
     end
-elseif nargout < 6 % If ClusteringData is requested, we don't need Calls
+elseif nargout < 5 % If ClusteringData is requested, we don't need Calls
     error('This doesn''t appear to be a detection file!')
 end
 
@@ -123,7 +204,7 @@ if isfield(data, 'ClusteringData')
     end
 end
 
-if nargout < 6
+if nargout < 5
     
     %% Make sure there's nothing wrong with the call file
     if isempty(Calls)
@@ -146,44 +227,45 @@ if nargout < 6
     
     
     %% If audiodata isn't present, make it so
-    if ~isempty(handles) && isempty(audiodata) || ~isfield(audiodata, 'Filename') || ~isfile(audiodata.Filename)
+    if ~isempty(handles) && (~any(strcmp('Audiodata', Calls.Properties.VariableNames)) && (isempty(audiodata) || ~isfield(audiodata, 'Filename') || ~isfile(audiodata.Filename)))
+        error('This should never happen.  If it does let GA know and she will figure out how to fix it.')
         % Does anything in the audio folder match the filename? If so, assume
         % this is the matching audio file, else select the right one.
-        [~, detection_name] = fileparts(filename);
-        filename_match = [];
-        for i = 1:length(handles.audiofilesnames)
-            [~, name_only] = fileparts(handles.audiofiles(i).name);
-            filename_match(i) = contains(detection_name, name_only);
-        end
-        filename_match = find(filename_match);
-        
-        % Did we find a matching file?
-        if ~isempty(filename_match)
-            audio_file = fullfile(handles.audiofiles(filename_match).folder, handles.audiofiles(filename_match).name);
-        else
-            [file, path] = uigetfile({
-                '*.wav;*.ogg;*.flac;*.UVD;*.au;*.aiff;*.aif;*.aifc;*.mp3;*.m4a;*.mp4' 'Audio File'
-                '*.wav' 'WAVE'
-                '*.flac' 'FLAC'
-                '*.ogg' 'OGG'
-                '*.UVD' 'Ultravox File'
-                '*.aiff;*.aif', 'AIFF'
-                '*.aifc', 'AIFC'
-                '*.mp3', 'MP3 (it''s probably a bad idea to record in MP3'
-                '*.m4a;*.mp4' 'MPEG-4 AAC'
-                }, sprintf('Importing from standard DeepAcoustics. Select audio matching the detection file %s',detection_name), detection_name);
-            audio_file = fullfile(path, file);
-            if isequal(file,0) % If user pressed cancel
-                errordlg('DeepAcoustics requires the audio file accompanying the detection file.')
-                return
-            end
-        end
-        
-        audiodata = audioinfo(audio_file);
-        disp('Saving call file with updated audio')
-        save(filename, 'audiodata', '-append');
-    end
-    if audiodata.NumChannels > 1
-        warning('Audio file contains more than one channel. Use channel 1...')
+%         [~, detection_name] = fileparts(filename);
+%         filename_match = [];
+%         for i = 1:length(handles.audiofilesnames)
+%             [~, name_only] = fileparts(handles.audiofiles(i).name);
+%             filename_match(i) = contains(detection_name, name_only);
+%         end
+%         filename_match = find(filename_match);
+%         
+%         % Did we find a matching file?
+%         if ~isempty(filename_match)
+%             audio_file = fullfile(handles.audiofiles(filename_match).folder, handles.audiofiles(filename_match).name);
+%         else
+%             [file, path] = uigetfile({
+%                 '*.wav;*.ogg;*.flac;*.UVD;*.au;*.aiff;*.aif;*.aifc;*.mp3;*.m4a;*.mp4' 'Audio File'
+%                 '*.wav' 'WAVE'
+%                 '*.flac' 'FLAC'
+%                 '*.ogg' 'OGG'
+%                 '*.UVD' 'Ultravox File'
+%                 '*.aiff;*.aif', 'AIFF'
+%                 '*.aifc', 'AIFC'
+%                 '*.mp3', 'MP3 (it''s probably a bad idea to record in MP3'
+%                 '*.m4a;*.mp4' 'MPEG-4 AAC'
+%                 }, sprintf('Importing from standard DeepAcoustics. Select audio matching the detection file %s',detection_name), detection_name);
+%             audio_file = fullfile(path, file);
+%             if isequal(file,0) % If user pressed cancel
+%                 errordlg('DeepAcoustics requires the audio file accompanying the detection file.')
+%                 return
+%             end
+%         end
+%         
+%         audiodata = audioinfo(audio_file);
+%         disp('Saving call file with updated audio')
+%         save(filename, 'audiodata', '-append');
+%     end
+%     if audiodata.NumChannels > 1
+%         warning('Audio file contains more than one channel. Use channel 1...')
     end
 end

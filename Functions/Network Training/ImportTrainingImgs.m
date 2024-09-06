@@ -1,11 +1,11 @@
-function [TrainingTables, AllSettings] = ImportTrainingImgs(handles, bTraining)
-%function [TrainingTables, AllSettings, PathToDet] = ImportTrainingImgs(handles, bTraining)
+%function [TrainingTables, AllSettings] = ImportTrainingImgs(handles, bTraining)
+function [TrainingTables, AllSettings, PathToITs] = ImportTrainingImgs(handles, bTraining)
 %% Train a new neural network
 cd(handles.data.squeakfolder);
 
 TrainingTables = [];
 AllSettings = [];
-%PathToDet = {};
+PathToITs = {};
 % Apparently, "wind" is a function name, so initialize it as empty
 wind = [];
 
@@ -45,6 +45,7 @@ for i = 1:length(trainingdata)
 %     if exist('pathtodet','var')
 %         PathToDet{i} = pathtodet;
 %     end
+    PathToITs{i} = [trainingpath trainingdata{i}];
 end
 if ~all([isfile(TrainingTables.imageFilename)])
     error('Images Could Not Be Found On Path Specified in Images.mat')
@@ -60,7 +61,7 @@ end
 if ~strcmp(warningmsg,'Continue anyway')
     TrainingTables = [];
     AllSettings = [];
-    %PathToDet = {};
+    PathToITs = {};
     return
 end
 end

@@ -1,4 +1,4 @@
-function  handles = renderEpochSpectrogram(hObject, handles)
+function  handles = renderEpochSpectrogram(handles)
 %Plot current spectrogram window
 
 handles.data.lastWindowPosition = handles.data.windowposition;
@@ -31,6 +31,13 @@ audio = handles.data.AudioSamples(window_start, window_stop);
 t = t + window_start; % Add the start of the window the time units
 s_display = scaleSpectrogram(s, handles.data.settings.spect.type, windowsize, handles.data.audiodata.SampleRate);
 
+%% Denoise
+if handles.data.bDenoise
+    minval = min(s_display,[],'all');
+    ind_reset = s_display - handles.data.medspec;
+    s_display(ind_reset<0) = minval;
+end
+
 %% Find the color scale limits
 % handles.data.clim = prctile(s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
 % handles.data.clim = prctile(handles.data.clim,90,1);
@@ -49,10 +56,11 @@ set(handles.epochSpect,'CData',s_display,'XData', t, 'YData',f/1000);
 % contents of StTime are datetime format, set start time of the file to the StTime of
 % the first call in the audio file - the # of seconds into file the call is
 if height(handles.data.calls) > 0 && ...
-    any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && ...
-        isa(handles.data.calls.StTime(1),'datetime') && ...
-        ~isnat(handles.data.calls.StTime(1))
-    sttime = handles.data.calls.StTime(1) - handles.data.calls.Box(1,1)/86400;
+        any(strcmp('StTime', handles.data.calls.Properties.VariableNames)) && ...
+        ~isempty(handles.data.thisaudst) && ~isempty(handles.data.thisaudend) && ...
+        isa(handles.data.calls.StTime(handles.data.thisaudst),'datetime') && ...
+        ~isnat(handles.data.calls.StTime(handles.data.thisaudst))
+    sttime = handles.data.calls.StTime(handles.data.thisaudst) - handles.data.calls.Box(handles.data.thisaudst,1)/86400;
 else
     sttime = 0;
 end

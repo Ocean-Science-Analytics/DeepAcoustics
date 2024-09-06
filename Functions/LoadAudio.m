@@ -16,7 +16,7 @@ current_file_id = get(handles.AudioFilespopup,'Value');
 
 handles.data.audiodata = audioinfo(fullfile(handles.data.settings.audiofolder,handles.audiofiles(current_file_id).name));
 
-Calls = table(zeros(0,4),[],[],[],[],[],[],[],[],[],[], 'VariableNames', {'Box', 'Score', 'Type', 'DetSpect', 'CallID', 'ClustCat','EntThresh', 'AmpThresh', 'Accept','Ovlp','StTime'});
+Calls = table(zeros(0,4),[],[],[],[],[],[],[],[],[],[],[], 'VariableNames', {'Box', 'Score', 'Type', 'Audiodata', 'DetSpect','CallID', 'ClustCat','EntThresh', 'AmpThresh', 'Accept','Ovlp','StTime'});
 % Calls.Box = [0 0 1 1];
 % Calls.Score = 0;
 % Calls.Type = categorical({'NA'});

@@ -21,10 +21,10 @@ Calls = Calls(idx, :);
 
 % Then sort by audio file (should preserve order of previous sort within an
 % audio file
-%[~,idx] = sort({Calls.Audiodata.Filename});
-% if call_index > 0
-%     call_index = find(idx == call_index); 
-% end
-% Calls = Calls(idx, :);
+[~,idx] = sort({Calls.Audiodata.Filename});
+if call_index > 0
+    call_index = find(idx == call_index); 
+end
+Calls = Calls(idx, :);
 
 end

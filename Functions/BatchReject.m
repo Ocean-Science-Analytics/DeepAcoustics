@@ -83,17 +83,15 @@ rules(:,1) = num2cell(contains(rules(:,1),'Accept'));
 %% Loop
 h = waitbar(0,'Initializing');
 for currentfile = selections % Do this for each file
-    [Calls,  ~, audiodata, spect] = loadCallfile(fullfile(handles.detectionfiles(currentfile).folder, handles.detectionfiles(currentfile).name),handles,false);
+    [Calls, ~, spect] = loadCallfile(fullfile(handles.detectionfiles(currentfile).folder, handles.detectionfiles(currentfile).name),handles,false);
 
     reject = false(height(Calls),1);
     accept = false(height(Calls),1);
-    audioReader = squeakData([]);
-    audioReader.audiodata = audiodata;
         
     for i = 1:height(Calls)
         waitbar(i ./ height(Calls), h, ['Processing file ' num2str(find(selections == currentfile)) ' of ' num2str(length(selections))]);
 
-        [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles, true, [], audioReader);
+        [I,wind,noverlap,nfft,rate,box,~,~,~,~,~] = CreateFocusSpectrogram(Calls(i,:), handles, true, []);
         % If each call was saved with its own Entropy and Amplitude
         % Threshold, run CalculateStats with those values,
         % otherwise run with global settings
@@ -149,14 +147,13 @@ for currentfile = selections % Do this for each file
         end
     end
 
-
     Calls.Accept(reject) = false;
     Calls.Type(reject) = categorical({'Noise'});
     Calls.Accept(accept) = true;
     if isempty(spect)
         spect = handles.data.settings.spect;
     end
-    save(fullfile(handles.detectionfiles(currentfile).folder,handles.detectionfiles(currentfile).name),'Calls','audiodata','spect','-v7.3','-append');
+    save(fullfile(handles.detectionfiles(currentfile).folder,handles.detectionfiles(currentfile).name),'Calls','spect','-v7.3','-append');
 
 end
 close(h);
@@ -164,6 +161,7 @@ close(h);
 %update the display
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);  % Get newest version of handles
+% Reload current file (and current audio)
 if isfield(handles,'current_detection_file')
-    LoadCalls(hObject, eventdata, handles, true)
+    LoadCalls(hObject, eventdata, handles, handles.data.thisaudst, true)
 end

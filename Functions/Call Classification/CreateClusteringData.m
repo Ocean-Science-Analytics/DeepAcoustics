@@ -46,8 +46,9 @@ audioReader = squeakData([]);
 audiodata = {};
 Calls = [];
 spect = [];
+perFileCallID = [];
 for j = 1:length(fileName)
-    [Calls_tmp,  ~, audiodata{j}, spect, ~, loaded_ClusteringData] = loadCallfile(fullfile(filePath,fileName{j}),handles,false);
+    [Calls_tmp, ~, spect, ~, loaded_ClusteringData] = loadCallfile(fullfile(filePath,fileName{j}),handles,false);
     % If the files is extracted contours, rather than a detection file
     if ~isempty(loaded_ClusteringData)
         ClusteringData = [ClusteringData; table2cell(loaded_ClusteringData)];
@@ -57,9 +58,8 @@ for j = 1:length(fileName)
         if ~p.Results.for_denoise
             Calls_tmp = Calls_tmp(Calls_tmp.Accept == 1 & ~ismember(Calls_tmp.Type,'Noise'), :);
         end
-        % Create a variable that contains the index of audiodata to use
-        Calls_tmp.audiodata_index = repmat(j, height(Calls_tmp), 1);
         Calls = [Calls; Calls_tmp];
+        perFileCallID = [perFileCallID; repmat(j,height(Calls_tmp), 1)];
     end
 end
 
@@ -72,9 +72,6 @@ if ~isempty(Calls)
         else
             maxDuration = p.Results.scale_duration;
         end
-%         time_padding = maxDuration  - sqrt(maxDuration ./ Calls.Box(:,3)) .* Calls.Box(:,3);
-%         Calls.Box(:,3) = Calls.Box(:,3) + time_padding;
-%         Calls.Box(:,1) = Calls.Box(:,1) - time_padding/2;
 
         time_padding = Calls.Box(:,3)*.25;
         Calls.Box(:,3) =  Calls.Box(:,3) + time_padding*2;
@@ -88,8 +85,6 @@ if ~isempty(Calls)
             freqRange(1) = prctile(Calls.Box(:,2), 5);
             freqRange(2) = prctile(Calls.Box(:,4) + Calls.Box(:,2), 95);
         end
-%         Calls.Box(:,2) = freqRange(1);
-%         Calls.Box(:,4) = freqRange(2) - freqRange(1);
 
         freq_padding = Calls.Box(:,4)*.25;
         Calls.Box(:,2) = Calls.Box(:,2) - freq_padding;
@@ -97,20 +92,20 @@ if ~isempty(Calls)
     end
 end
 %% for each call in the file, calculate stats for clustering
-currentAudioFile = 0;
-perFileCallID = 0;
 for i = 1:height(Calls)
-    waitbar(i/height(Calls),h, sprintf('Loading File %u of %u', Calls.audiodata_index(i), length(fileName)));
+    waitbar(i/height(Calls),h, sprintf('Loading File %u of %u', perFileCallID(i), length(fileName)));
     
     % Change the audio file if needed
-    if Calls.audiodata_index(i) ~= currentAudioFile
-        audioReader.audiodata = audiodata{Calls.audiodata_index(i)};
-        currentAudioFile = Calls.audiodata_index(i);
-        perFileCallID = 0;
-    end
-    perFileCallID = perFileCallID + 1;
+    audioReader.audiodata = Calls.Audiodata(i);
         
-    [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles, true, [], audioReader);
+    [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles, true, []);
+    
+    % If spectrogram settings iffy
+    if any(size(pow) < 3)
+        warning('FFT settings suboptimal and causing calls to be skipped when creating Clustering Data - recommend changing')
+        continue
+    end
+
     % im = mat2gray(flipud(I),[0 max(max(I))/4]); % Set max brightness to 1/4 of max
     % im = mat2gray(flipud(I), prctile(I, [1 99], 'all')); % normalize brightness
     pow(pow==0)=.01;
@@ -153,8 +148,8 @@ for i = 1:height(Calls)
         {stats.DeltaTime} % Delta time
         {xFreq} % Time points
         {xTime} % Freq points
-        {[filePath fileName{Calls.audiodata_index(i)}]} % File path
-        {perFileCallID} % Call ID in file
+        {[filePath fileName{perFileCallID(i)}]} % File path
+        {perFileCallID(i)} % Call ID in file
         {stats.Power}
         {box(4)}
         {FreqScale}

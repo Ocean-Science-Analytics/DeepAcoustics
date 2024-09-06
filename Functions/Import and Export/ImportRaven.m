@@ -100,15 +100,19 @@ if ~bAutoTry
             ravenTable = readtable([ravenpath ravenname{i}], 'Delimiter', 'tab');
         end
         % Look for the columns we need to create Detections Table
+        % Some variable name flexibility
+        if ismember('Filename',ravenTable.Properties.VariableNames)
+            ravenTable = renamevars(ravenTable,'Filename','BeginFile');
+        end
         % BeginFile = the audio file corresponding to that detection
         if any(strcmp('BeginFile',ravenTable.Properties.VariableNames))
             % Error out if field with seconds into file is missing
             if ~ismember('FileOffset_s_', ravenTable.Properties.VariableNames)
-                error('"BeginFile" is present but "FileOffset_s_" is not a field in your Raven table')
+                error('"BeginFile" (or "Filename") is present but "FileOffset_s_" is not a field in your Raven table')
             % Error out if all fields that help figure out end time of
             % detection is missing
             elseif ~ismember('DeltaTime_s_', ravenTable.Properties.VariableNames) && ~ismember('EndTime_s_', ravenTable.Properties.VariableNames)
-                error('%s\n%s\n', '"BeginFile" and "FileOffset_s_" are present but both "DeltaTime_s_"',...
+                error('%s\n%s\n', '"BeginFile" (or "Filename") and "FileOffset_s_" are present but both "DeltaTime_s_"',...
                     'and "EndTime_s_" are missing from your Raven table and you need at least one of them.')
             end
             % Store the audio files that are included in this selection
@@ -117,7 +121,7 @@ if ~bAutoTry
         else
             % Switch to a mode that will try to auto-match an audio file
             % based on the filename of the selection table
-            warning('"BeginFile" is not a field in your Raven table - will attempt to auto-match an audio file. \nThis will NOT work properly if there are multiple audio files corresponding to your Raven table')
+            warning('\n%s\n','"BeginFile" (or "Filename") is not a field in your Raven table - will attempt to auto-match an audio file. \nThis will NOT work properly if there are multiple audio files corresponding to your Raven table')
             bAutoTry = true;
         end
 
@@ -176,6 +180,8 @@ if ~bAutoTry
     end
 end
 
+Calls = [];
+nAudCt = 0;
 % For every incoming selection table...
 for i = 1:length(ravenname)
     % Import as table (method depends on incoming file type)
@@ -184,8 +190,20 @@ for i = 1:length(ravenname)
     else
         ravenTable = readtable([ravenpath ravenname{i}], 'Delimiter', 'tab');
     end
+    % Look for the columns we need to create Detections Table
+    % Some variable name flexibility
+    if ismember('Filename',ravenTable.Properties.VariableNames)
+        ravenTable = renamevars(ravenTable,'Filename','BeginFile');
+    end
+    if ismember('StartTime_s_',ravenTable.Properties.VariableNames)
+        ravenTable = renamevars(ravenTable,'StartTime_s_','BeginTime_s_');
+    end
+    if ~ismember('BeginTime_s_',ravenTable.Properties.VariableNames) && ismember('FileOffset_s_',ravenTable.Properties.VariableNames)
+        ravenTable.BeginTime_s_ = ravenTable.FileOffset_s_;
+    end
     % For every audio file contained within this Raven selection table
     for j = 1:length(audioname{i})
+        nAudCt = nAudCt+1;
         % subTable = only the dets that belong to this audio file
         if length(audioname{i}) > 1
             subTable = ravenTable(strcmp(audioname{i}{j},ravenTable.BeginFile),:);
@@ -195,7 +213,7 @@ for i = 1:length(ravenname)
         % Import audiodata
         audiodata = audioinfo(fullfile(audiopath, audioname{i}{j}));
         if audiodata.NumChannels > 1
-            warning('Audio file contains more than one channel. Use channel 1...')
+            warning('\n%s\n','Audio file contains more than one channel. Use channel 1...')
         end
         hc = waitbar(0,'Importing Calls from Raven Log');
 
@@ -228,22 +246,25 @@ for i = 1:length(ravenname)
         else
             Type = categorical(repmat({'Call'}, height(subTable), 1));
         end
+        Audiodata = repmat(audiodata,height(subTable),1);
 
         %% Put all the variables into a table
-        Calls = table(Box,Score,Accept,Type,'VariableNames',{'Box','Score','Accept','Type'});
-        % Sort Calls
-        Calls = SortCalls(Calls,'time');
-        % Auto-name Detections.mat using audioname
-        [~ ,FileName] = fileparts(audioname{i}{j});
-        detectiontime = datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
-        detection_metadata = struct(...
-            'Settings', 'N/A; Raven Import',...
-            'detectiontime', detectiontime,...
-            'networkselections', 'N/A; Raven Import');
-        spect = handles.data.settings.spect;
-        % Save Detections.mat
-        save(fullfile(outpath,[FileName '_Detections.mat']),'Calls','allAudio','audiodata','detection_metadata','spect','-v7.3');
+        Calls_tmp = table(Box,Score,Accept,Type,Audiodata,'VariableNames',{'Box','Score','Accept','Type','Audiodata'});
+        Calls = [Calls; Calls_tmp];
         close(hc);
     end
 end
+% Sort Calls
+Calls = SortCalls(Calls,'time');
+% Auto-name Detections.mat using audioname
+[~ ,FileName] = fileparts(audioname{1}{1});
+FileName = [FileName '_' num2str(nAudCt) 'AudFiles'];
+detectiontime = datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
+detection_metadata = struct(...
+    'Settings', 'N/A; Raven Import',...
+    'detectiontime', detectiontime,...
+    'networkselections', 'N/A; Raven Import');
+spect = handles.data.settings.spect;
+% Save Detections.mat
+save(fullfile(outpath,[FileName '_Detections.mat']),'Calls','allAudio','detection_metadata','spect','-v7.3');
 update_folders(hObject, eventdata, handles);

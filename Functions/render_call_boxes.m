@@ -4,14 +4,15 @@ function handles = render_call_boxes(current_axes,handles,roi, fill_heigth)
 axis_xlim = get(current_axes,'Xlim');
 axis_ylim = get(current_axes,'Ylim');
 
-
 % Find calls within the current window
+% Make sure to restrict calls to those restricted to current audio file
 if isempty(handles.data.calls)
     calls_in_page = [];
 else
-    calls_in_page = find( (handles.data.calls.Box(:,1) >= axis_xlim(1) & handles.data.calls.Box(:,1) < axis_xlim(2)  ) ...
+    calls_in_page = find(strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename) & ...
+        ((handles.data.calls.Box(:,1) >= axis_xlim(1) & handles.data.calls.Box(:,1) < axis_xlim(2)  ) ...
         | ( handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3)  >= axis_xlim(1) & handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3)  <= axis_xlim(2) )...
-        | ( handles.data.calls.Box(:,1)<=  axis_xlim(1) & handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3) >=  axis_xlim(2) )...
+        | ( handles.data.calls.Box(:,1)<=  axis_xlim(1) & handles.data.calls.Box(:,1) + handles.data.calls.Box(:,3) >=  axis_xlim(2) ))...
         );
 end
 
@@ -39,7 +40,7 @@ for box_number = 1:length(calls_in_page)
     
     % Make the line thick if current call
     if handles.data.calls.Accept(calls_in_page(box_number))
-        if handles.data.calls.EntThresh(calls_in_page(box_number)) == handles.data.settings.EntropyThreshold
+        if handles.data.calls.EntThresh(calls_in_page(box_number)) == handles.data.settings.EntropyThreshold || handles.data.calls.EntThresh(calls_in_page(box_number)) == 0
             box_color = [0 1 0];
         else
             % Orange if Tonality has been manually adjusted

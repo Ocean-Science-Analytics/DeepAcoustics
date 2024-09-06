@@ -1,10 +1,10 @@
-function Calls = AddDateTime(Calls,audiodata,detname)
+function Calls = AddDateTime(Calls,detname)
 
 vecStTime = Calls.StTime;
 for i = 1:height(Calls)
     % Skip if D/T already assigned
     if isnat(vecStTime(i))
-        audioname = audiodata.Filename;
+        audioname = Calls.Audiodata(i).Filename;
         % Get only the filename (not path)
         [~,audioname,~] = fileparts(audioname);
         

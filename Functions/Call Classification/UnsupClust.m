@@ -640,7 +640,7 @@ function UnsupClust(app,event)
                 update_folders(hObject, eventdata, handles);
                 handles = guidata(hObject);  % Get newest version of handles
                 if isfield(handles,'current_detection_file') && ~isempty(handles.current_detection_file)    
-                    LoadCalls(hObject, eventdata, handles, true)
+                    LoadCalls(hObject, eventdata, handles, handles.data.thisaudst, true)
                 end
             case false
         end
@@ -1048,7 +1048,7 @@ function C = get_kmeans_centroids(data,varargin)
                 %% Silhouettes Plot
                 figure()
                 %colororder({'b','k'})
-                yyaxis left
+                %yyaxis left
                 xvals = minclust:maxclust;
                 %plot(xvals, greater8, 'Color', 'blue');
                 plot(xvals, meanS, '-b');
@@ -1061,17 +1061,17 @@ function C = get_kmeans_centroids(data,varargin)
                 %plot(xvals, meanAbv_zero, 'Color', 'magenta');
                 plot(xvals, propCAbMean1, '-m');
                 plot(xvals, propCAbMean2, '-c');
-                %plot(xvals, propsing,'-k');
+                plot(xvals, propsing,'-k');
                 ylabel('Silhouette Value');
-                yyaxis right
-                plot(xvals, ctsing, '-k');
+                %yyaxis right
+                %plot(xvals, ctsing, '-k');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
                 legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', 'Prop Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
-                ylabel('# of Singleton Clusters')
+                %ylabel('# of Singleton Clusters')
                 
                 if nargin == 3
                     figfilename = sprintf('BatchSilhouette_%s_%dClusters.png',batchtable.modelname{:},k);

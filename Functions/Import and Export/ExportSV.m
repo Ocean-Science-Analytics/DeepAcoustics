@@ -1,6 +1,6 @@
 function ExportSV(hObject, eventdata, handles)
 
-    function t = loop_calls(Calls, hc,includereject,waitbar_text,handles,call_file,audiodata)
+    function t = loop_calls(Calls, hc,includereject,waitbar_text)
         HZ_IN_kHZ = 1000;
         callboxes = []; 
         for i = 1:height(Calls) % Do this for each call

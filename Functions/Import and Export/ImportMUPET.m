@@ -27,6 +27,7 @@ for i=1:length(MUPET.SyllableNumber)
     Calls(i).Score = 1;
     Calls(i).Accept=1;
     Calls(i).Type=categorical({'Call'});
+    Calls(i).Audiodata = audiodata;
 end
 Calls = struct2table(Calls);
 [~, name] = fileparts(mupetname);
@@ -39,6 +40,6 @@ detection_metadata = struct(...
 spect = handles.data.settings.spect;
 allAudio = audiodata;
 % Save Detections.mat
-save([PathName, FileName],'Calls','allAudio','audiodata','detection_metadata','spect','-v7.3');
+save([PathName, FileName],'Calls','allAudio','detection_metadata','spect','-v7.3');
 close(hc);
 update_folders(hObject, eventdata, handles);

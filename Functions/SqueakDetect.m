@@ -46,7 +46,7 @@ overlap=networkfile.imLength*.2;
 HighCutoff = max(Settings(2),Settings(3));
 if audio_info.SampleRate < (HighCutoff*1000)*2
     disp('Warning: Upper frequency is above sampling rate / 2. Lowering it to the Nyquist frequency.');
-    HighCutoff=floor(audio_info.SampleRate/2000);
+    HighCutoff=floor(audio_info.SampleRate/2)/1000;
 end
 
 % (3) Low frequency cutoff (kHz)
@@ -60,7 +60,6 @@ score_cuttoff=Settings(4);
 AllBoxes=[];
 AllScores=[];
 AllClass=[];
-AllPowers=[];
 
 % Break the audio file into chunks
 chunks = linspace(1,(DetectLength - overlap) * audio_info.SampleRate,round(DetectLength / chunksize));
@@ -73,7 +72,7 @@ for i = 1:length(chunks)-1
         windR = chunks(i+1) + overlap*audio_info.SampleRate;
         
         % Read the audio
-        audio = audioread(audio_info.Filename,floor([windL, windR]));
+        audio = audioread(audio_info.Filename,double(floor([windL, windR])));
         
         %% Mix multichannel audio:
         % By default, take the mean of multichannel audio.
@@ -174,8 +173,10 @@ end
 if isempty(AllScores); close(h); return; end
 
 h = waitbar(1,h,'Merging Boxes...');
-Calls = merge_boxes(AllBoxes, AllScores, AllClass, audio_info, 1, score_cuttoff, 0);
-
+DetSpect.wind = networkfile.wind;
+DetSpect.noverlap = networkfile.noverlap;
+DetSpect.nfft = networkfile.nfft;
+Calls = merge_boxes(AllBoxes, AllScores, AllClass, audio_info, DetSpect, 1, score_cuttoff, 0);
 close(h);
 end
 

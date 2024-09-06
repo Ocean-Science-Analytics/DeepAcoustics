@@ -70,7 +70,7 @@ for file = fname
         'networkselections', 'N/A; XBAT Import');
     spect = handles.data.settings.spect;
     allAudio = audiodata;
-    save(fullfile(outpath, [data.file(end-4:end) '_Detections.mat']),'Calls','allAudio','audiodata','detection_metadata','spect','-v7.3');
+    save(fullfile(outpath, [data.file(end-4:end) '_Detections.mat']),'Calls','allAudio','detection_metadata','spect','-v7.3');
 end
 close(hc);
 update_folders(hObject, eventdata, handles);
