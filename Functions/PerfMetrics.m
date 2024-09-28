@@ -41,7 +41,7 @@ Calls = [];
 for i = 1:length(allAudio)
     % Run detector
     AudioFile = allAudio(i).Filename;
-    Calls_ThisAudio = SqueakDetect(AudioFile,netload,Settings,1,1);
+    Calls_ThisAudio = DetectInFile(AudioFile,netload,Settings,1,1);
 
     % Add detections to all Calls tables
     if ~isempty(Calls_ThisAudio)

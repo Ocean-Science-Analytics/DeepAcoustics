@@ -25,7 +25,7 @@ Calls = [];
 uniqAudio = unique({handles.data.calls.Audiodata.Filename},'stable');
 for i = 1:length(uniqAudio)
     Calls_ThisAudio = Calls_temp(Calls_temp.Audiodata == uniqAudio(i));
-    Calls_ThisAudio = merge_boxes(Calls_ThisAudio.Box, Calls_ThisAudio.Score, Calls_ThisAudio.Type, uniqAudio(i), Calls_ThisAudio.DetSpect(1), 1, 0, 0);
+    Calls_ThisAudio = merge_boxes(Calls_ThisAudio.Box, Calls_ThisAudio.Score, Calls_ThisAudio.Type, Calls_ThisAudio.DetSpect(1), 1, 0, 0, uniqAudio(i));
     Calls = [Calls; Calls_ThisAudio];
 end
 

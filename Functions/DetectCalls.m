@@ -1,72 +1,33 @@
-% --- Executes on button press in multinetdect.
+% --- Method for detecting all calls in (an) audio file(s)
 function DetectCalls(hObject, eventdata, handles)
 
-if isempty(handles.audiofiles)
-    errordlg('No Audio Selected')
-    return
-end
-if isempty(handles.networkfiles)
-    errordlg('No Network Selected')
-    return
+if nargin < 4
+    bRT = false;
 end
 
-% Check if pre-existing detection file has changed to save file before loading a new one.
-CheckModified(hObject, eventdata, handles);
+if ~bRT
+    if isempty(handles.audiofiles)
+        errordlg('No Audio Selected')
+        return
+    end
+    
+    % Check if pre-existing detection file has changed to save file before loading a new one.
+    CheckModified(hObject, eventdata, handles);
 
-%if exist(handles.data.settings.detectionfolder,'dir')==0
-    % Find audio in folder
-    path=uigetdir(handles.data.settings.detectionfolder,'Select Output Detection File Folder');
-    if isnumeric(path);return;end
-    handles.data.settings.detectionfolder = path;
-    handles.data.saveSettings();
-    update_folders(hObject, eventdata, handles);
-    handles = guidata(hObject);  % Get newest version of handles
-%end
-
-audioselections = listdlg('PromptString','Select Audio Files:','ListSize',[500 300],'ListString',handles.audiofilesnames);
-if isempty(audioselections)
-    return
-end
-networkselection = listdlg('PromptString','Select a Network:','ListSize',[500 300],'SelectionMode','single','ListString',handles.networkfilesnames);
-if isempty(networkselection)
-    return
+    audioselections = listdlg('PromptString','Select Audio Files:','ListSize',[500 300],'ListString',handles.audiofilesnames);
+    if isempty(audioselections)
+        return
+    end
 end
 
-% Set detection settings
-prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (Hz)','High Frequency Cutoff (Hz)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
-dlg_title = ['Settings for ' handles.networkfiles(networkselection).name];
-num_lines=[1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
-def = handles.data.settings.detectionSettings;
-% Convert freq to Hz for display
-def(2) = sprintfc('%g',str2double(def{2})*1000);
-def(3) = sprintfc('%g',str2double(def{3})*1000);
-Settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
-
-if isempty(Settings) % Stop if user presses cancel
-    return
-end
-
-% Convert freq inputs to kHz
-Settings(2:3) = Settings(2:3)/1000;
-
-handles.data.settings.detectionSettings = sprintfc('%g',Settings(:,1))';
-
-% Save the new settings
-handles.data.saveSettings();
-
-update_folders(hObject, eventdata, handles);
+NeuralNetwork = DetectSetup(hObject, eventdata, handles, bRT);
 handles = guidata(hObject);  % Get newest version of handles
+
+Settings = str2double(handles.data.settings.detectionSettings);
 
 detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
 Calls = [];
 allAudio = [];
-
-% Load neural network
-h = waitbar(0,'Loading neural network...');
-networkname = handles.networkfiles(networkselection).name;
-networkpath = fullfile(handles.networkfiles(networkselection).folder,networkname);
-NeuralNetwork=load(networkpath);%get currently selected option from menu
-close(h);
 
 % Set DetSpect from network files
 DetSpect.wind = NeuralNetwork.wind;
@@ -78,7 +39,7 @@ for j = 1:length(audioselections)
     CurrentAudioFile = audioselections(j);
 
     AudioFile = fullfile(handles.audiofiles(CurrentAudioFile).folder,handles.audiofiles(CurrentAudioFile).name);
-    Calls_ThisAudio = SqueakDetect(AudioFile,NeuralNetwork,Settings,j,length(audioselections));
+    Calls_ThisAudio = DetectInFile(AudioFile,NeuralNetwork,Settings,j,length(audioselections));
     
     [~,audioname] = fileparts(AudioFile);
 

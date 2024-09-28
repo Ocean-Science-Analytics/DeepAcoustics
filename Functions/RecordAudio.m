@@ -6,26 +6,11 @@ get(hObject,'Value');
 handles = guidata(hObject);
 
 %Check if detection file has changed to save file before loading a new one.
-if ~isempty(handles.data.calls)
-    tmpcalls = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
-    if ismember('Power',tmpcalls.Properties.VariableNames)
-        tmpcalls = removevars(tmpcalls,'Power');
-    end
-    if ~isequaln(tmpcalls, handles.data.calls)
-        opts.Interpreter = 'tex';
-        opts.Default='Yes';
-        saveChanges = questdlg('\color{red}\bf WARNING! \color{black} Detection file has been modified. Would you like to save changes?','Save Detection File?','Yes','No',opts);
-        switch saveChanges
-            case 'Yes'
-                SaveSession(hObject, eventdata, handles);
-            case 'No'
-        end
-    end
-end
+CheckModified(hObject,eventdata,handles);
 
 if eventdata.Source.Value==1
+    % Clear everything if calls are present
     if isfield(handles,'epochSpect')
-        % Clear everything if calls are present
         cla(handles.contourWindow);
         cla(handles.detectionAxes);
         cla(handles.focusWindow);
@@ -51,87 +36,231 @@ if eventdata.Source.Value==1
     detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
     def = {'0','44100',strcat(detectiontime,' -Live')};
     recSettings=inputdlg(prompt,dlg_title,num_lines,def,options);
-    if isempty(recSettings)==0
-    deviceReader = audioDeviceReader(str2num(recSettings{2}),round(str2num((recSettings{2}))*handles.data.settings.focus_window_size));
-    fileWriter = dsp.AudioFileWriter('SampleRate',deviceReader.SampleRate,'Filename',fullfile(handles.data.settings.audiofolder,[recSettings{3} '.flac']),'FileFormat','FLAC');
-    rate = deviceReader.SampleRate;
-    if str2num(recSettings{1})<=0;
-        recTime=inf;
-    else
-        recTime=str2num(recSettings{1});
-    end
-    
-    %Optimal Spectrogram Settings
-    noverlap = .5;
-    optimalWindow = sqrt(handles.data.settings.focus_window_size/(rate));
-    optimalWindow = optimalWindow + optimalWindow.*noverlap;
-    options = struct;
-    options.windowsize = round(rate*optimalWindow);
-    options.overlap = round(rate*optimalWindow .* noverlap);
-    options.nfft = round(rate*optimalWindow);
-    
-    loop=1;
-    tic
-    while toc<recTime && eventdata.Source.Value==1
-        audio = deviceReader();
-        fileWriter(audio);
-        
-        if loop==1;
-            % Blank Epoch spectrogram
-            c=0;
-            [~, fr, ti, p] = spectrogram(audio,options.windowsize,options.overlap,options.nfft,rate,'yaxis');
-            p(p==0)=.01;
-            p = log10(p);
-            p = rescale(imcomplement(abs(p)));
-            % Create Adjusted Image for Identification
-            xTile=ceil(size(p,1)/50);
-            yTile=ceil(size(p,2)/50);
-            if xTile>1 && yTile>1
-                p = adapthisteq(p,'NumTiles',[xTile yTile],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
-            else
-                p = adapthisteq(p,'NumTiles',[5 5],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
-            end
-            handles.liveSpect = imagesc(ti,fr/1000,p,'Parent', handles.focusWindow,prctile(p,[1,100], 'all')');
-            colormap(handles.data.cmap);
-            cb=colorbar(handles.focusWindow);
-            cb.Label.String = handles.data.settings.spect.type;
-            cb.Color = [1 1 1];
-            cb.FontSize = 11;
-            ylabel(handles.focusWindow,'Frequency (kHz)','Color','w','FontSize',11);
-            xlabel(handles.focusWindow,'Time (s)','Color','w');
-            set(handles.focusWindow,'YDir', 'normal','YColor',[1 1 1],'XColor',[1 1 1]);
-            set(handles.focusWindow,'Clim',prctile(p,[1,100], 'all')');
-            loop=2;
-            drawnow;
+    if ~isempty(recSettings)
+        deviceReader = audioDeviceReader(str2double(recSettings{2}));
+        audioffn = fullfile(handles.data.settings.audiofolder,[recSettings{3} '.flac']);
+        fileWriter = dsp.AudioFileWriter('SampleRate',deviceReader.SampleRate,'Filename',audioffn,'FileFormat','FLAC');
+        %rate = deviceReader.SampleRate;
+        if str2double(recSettings{1})<=0
+            recTime=inf;
+        else
+            recTime=str2double(recSettings{1});
         end
-        
-        if loop==2;
-            c=c+1;
-            lT=handles.data.settings.focus_window_size*c;
-            [~, fr, ti, p] = spectrogram(audio,options.windowsize,options.overlap,options.nfft,rate,'yaxis');
-            p(p==0)=.01;
-            p = log10(p);
-            p = rescale(imcomplement(abs(p)));
-            % Create Adjusted Image for Identification
-            if xTile>1 && yTile>1
-                p = adapthisteq(p,'NumTiles',[xTile yTile],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
-            else
-                p = adapthisteq(p,'NumTiles',[5 5],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
-            end
-            set(handles.liveSpect,'CData',p,'XData', ti, 'YData',fr/1000);
-            %set(handles.focusWindow,'CLim',prctile(p,[1,100], 'all')');
-            xt = xticks;
-            xticklabels(xt+lT);
-            drawnow;
+
+        % Detect Calls in RT recording?
+        answer = questdlg('Would you like to load a network to detect calls during this recording?', ...
+	        'Detect Calls', ...
+	        'Yes','No','Yes');
+        % Handle response
+        switch answer
+            case 'Yes'
+                bDet = true;
+                NeuralNetwork = DetectSetup(hObject,eventdata,handles,true);
+                handles = guidata(hObject);
+
+                % Set detection variables
+                Settings = str2double(handles.data.settings.detectionSettings);
+                % Switched high- and low-freq cutoff order in dialog, but should be back
+                % compatible
+                % (2) High frequency cutoff (kHz)
+                HighCutoff = max(Settings(2),Settings(3));
+                if deviceReader.SampleRate < (HighCutoff*1000)*2
+                    disp('Warning: Upper frequency is above sampling rate / 2. Lowering it to the Nyquist frequency.');
+                    HighCutoff=floor(deviceReader.SampleRate/2)/1000;
+                end
+                
+                % (3) Low frequency cutoff (kHz)
+                LowCutoff = min(Settings(2),Settings(3));
+                
+                % (4) Score cutoff (kHz) - FOR MERGE BOXES FN
+                score_cutoff=Settings(4);
+
+                DetSpect.wind = NeuralNetwork.wind;
+                DetSpect.noverlap = NeuralNetwork.noverlap;
+                DetSpect.nfft = NeuralNetwork.nfft;
+                
+                % Adjust settings, so spectrograms are the same for different sample rates
+                wind = round(DetSpect.wind * deviceReader.SampleRate);
+                noverlap = round(DetSpect.noverlap * deviceReader.SampleRate);
+                nfft = round(DetSpect.nfft * deviceReader.SampleRate);
+
+                % Initialize variables
+                AllBoxes=[];
+                AllScores=[];
+                AllClass=[];
+
+                % Set audio read length to image length for network
+                readLen = NeuralNetwork.imLength*deviceReader.SampleRate;
+                detBuff = zeros(1,readLen);
+                % lenmove = 20% of buffer (image length)
+                lenmove = length(detBuff)-floor(readLen*0.8);
+            case 'No'
+                bDet = false;
+                NeuralNetwork = [];
+                % Set audio read length to focus window display size
+                readLen = handles.data.settings.focus_window_size*deviceReader.SampleRate;
+                detBuff = [];
         end
-    end
-    release(deviceReader);
-    release(fileWriter);
-    drawnow nocallbacks;
+
+        loop=1;
+        audDur = 0;
+        tic
+        while toc<recTime && eventdata.Source.Value==1
+            % Allocate array for one image length/focus window worth of data
+            focusSig = zeros(readLen,1);
+            fSind = 1;
+            release(deviceReader);
+            deviceReader = audioDeviceReader(str2double(recSettings{2}));
+            deviceReader.SamplesPerFrame = 1024;
+            % Record audio 1024 samples at a time (ML default, seems to
+            % need to be small-ish)
+            while fSind<length(focusSig)
+                fEind = min(fSind+1024-1,length(focusSig));
+                if deviceReader.SamplesPerFrame ~= fEind-fSind+1
+                    release(deviceReader);
+                    deviceReader = audioDeviceReader(str2double(recSettings{2}));
+                    deviceReader.SamplesPerFrame = fEind-fSind+1;
+                end
+                [focusSig(fSind:fEind),noverrun] = deviceReader();
+                fSind = fSind+1024;
+            end
+
+            % Write audio to file
+            % This will one day be to spot to stash the audio in a variable
+            % rather than writing and reading to file
+            % For now, cut-off first 20% of first write because we don't
+            % want to release the fileWriter, in which case we can't change
+            % the length of focusSig
+            if loop == 1
+                fileWriter(focusSig(lenmove+1:end));
+            else
+                fileWriter(focusSig);
+            end
+            % If first time through, load newly created audio file
+            if loop == 1
+                audDur = readLen-lenmove;
+                windL = 1;
+
+                % Copy audio to detection buffer
+                if bDet
+                    detBuff = focusSig;
+                end
+
+                LoadAudio(hObject,eventdata,handles,audioffn)
+                handles = guidata(hObject);
+                % Force render on screen
+                drawnow
+
+                % Reset variables for future loops
+                loop = 2;
+                % 80% bc if applying network, need 20% image overlap
+                readLen = floor(readLen*0.8);
+                % release(fileWriter);
+                % fileWriter = dsp.AudioFileWriter('SampleRate',deviceReader.SampleRate,'Filename',audioffn,'FileFormat','FLAC');
+            else
+                audDur = audDur + readLen;
+                windL = audDur - length(detBuff) + 1;
+                % Copy audio to detection buffer
+                if bDet
+                    % MAKE SURE THIS MATH IS RIGHT
+                    % Move last 20% to front of buffer
+                    detBuff(1:lenmove) = detBuff(readLen+1:end);
+                    % Fill in last 80% of new buffer with new signal read
+                    detBuff(lenmove+1:end) = focusSig;
+                end
+
+                % Sometimes there is a problem applying audiodata - I think
+                % possibly the audiofile is locked by a previous call, so I
+                % added some pauses to try and give it a chance to unlock.
+                % Ideally one day I will have the display accessing the
+                % recorded audio directly rather than closing and opening
+                % the file every time, but for now hopefully this will let
+                % us limp along
+
+                % Update loaded audio information and move focus to display
+                % most recently recorded data
+                attemptno = 0;
+                errno = 0;
+                while attemptno == errno && attemptno < 10
+                    attemptno = attemptno+1;
+                    try
+                        % Update audiodata
+                        handles.data.audiodata = audioinfo(audioffn);
+                    catch
+                        errno = errno+1;
+                        if attemptno == 10
+                            error('Problem getting audioinfo - talk to GA')
+                        end
+                        pause(1/1000);
+                    end
+                end
+                guidata(hObject, handles);
+                % Scroll display
+                MoveFocus(readLen/deviceReader.SampleRate, hObject, eventdata, handles, true)
+                % Force render on screen
+                drawnow
+            end
+            % NEXT TIME CONTINUE HERE ASSUMING detBuff ABOVE IS CORRECT;
+            % USE DETECTINFILE TO CONTINUE FILLING IN PIECES
+            if bDet && loop ~= 1
+                % Create spectrogram out of audio segment
+                [~,fr,ti,p] = spectrogram(detBuff,wind,noverlap,nfft,deviceReader.SampleRate,'yaxis');
+                % Air on the side of generosity with the bin cut-offs given
+                % spectrogram settings
+                upper_freq = find(fr>HighCutoff*1000,1,'first');
+                lower_freq = find(fr<LowCutoff*1000,1,'last');
+                % Account for buffer overflow in either direction
+                if isempty(upper_freq)
+                    upper_freq = length(fr);
+                end
+                if isempty(lower_freq)
+                    lower_freq = 1;
+                end
+                disp(['Freq cut-offs (given spec settings) set to ' num2str(fr(lower_freq)) ' Hz and ' num2str(fr(upper_freq)) ' Hz']);
+                pow = p(lower_freq:upper_freq,:);
+        
+                [nbboxes, scores, Class] = DetectChunk(fr,ti,pow,NeuralNetwork);
+
+                if ~isempty(nbboxes)
+                    % Convert boxes from pixels to time and kHz
+                    bboxes = [];
+                    bboxes(:,1) = ti(nbboxes(:,1)) + (windL ./ deviceReader.SampleRate);
+                    bboxes(:,2) = fr(upper_freq - (nbboxes(:,2) + nbboxes(:,4))) ./ 1000;
+                    bboxes(:,3) = ti(nbboxes(:,3));
+                    %bboxes(:,4) = fr(nbboxes(:,4)) ./ 1000;
+                    binwidth = (fr(2)-fr(1)) ./ 1000;
+                    bboxes(:,4) = single(nbboxes(:,4)).*binwidth;
+                    
+                    % Concatenate the results
+                    AllBoxes=[AllBoxes
+                        bboxes];
+                    AllScores=[AllScores
+                        scores];
+                    AllClass=[AllClass
+                        Class];
+    
+                    % Merge boxes and send Calls info to handles
+                    if ~isempty(AllBoxes)
+                        Calls = merge_boxes(AllBoxes, AllScores, AllClass, DetSpect, 1, score_cutoff, 0, handles.data.audiodata, audDur, deviceReader.SampleRate);
+                        if ~isequaln(Calls,handles.data.calls)
+                            handles.data.calls = Calls;
+                            % Force render if RT (calls guidata)
+                            update_fig(hObject, handles, true);
+                        end
+                    end
+                end
+            end
+        end
+        % Release drivers
+        release(deviceReader);
+        release(fileWriter);
+        % Prevent user interaction until next drawnow command - not sure
+        % what the point of this is
+        %drawnow nocallbacks;
     end
 end
 
-hObject.String='Record';
+hObject.String='Record Audio';
 hObject.BackgroundColor=[0.20,0.83,0.10];
 eventdata.Source.Value=0;
 update_folders(hObject, eventdata, handles);

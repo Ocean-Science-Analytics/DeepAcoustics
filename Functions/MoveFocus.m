@@ -1,4 +1,7 @@
-function MoveFocus(focus_offset, hObject, eventdata, handles)
+function MoveFocus(focus_offset, hObject, eventdata, handles, bRT)
+    if nargin < 5
+        bRT = false;
+    end
     % Move the focus window one unit over
     new_position = handles.data.focusCenter + focus_offset;
     new_position = min(new_position, handles.data.audiodata.Duration - handles.data.settings.focus_window_size ./ 2);
@@ -24,6 +27,7 @@ function MoveFocus(focus_offset, hObject, eventdata, handles)
         end
     
         guidata(hObject,handles);
-        update_fig(hObject, handles);
+        % Force render if RT
+        update_fig(hObject, handles, bRT);
     end
 end

@@ -1,4 +1,9 @@
-function Calls = merge_boxes(AllBoxes, AllScores, AllClass, audio_info, detspect, merge_in_frequency, score_cuttoff, pad_calls)
+function Calls = merge_boxes(AllBoxes, AllScores, AllClass, detspect, merge_in_frequency, score_cutoff, pad_calls, audio_info, audDur, audSR)
+if nargin == 8
+    audDur = audio_info.Duration;
+    audSR = audio_info.SampleRate;
+end
+
 %% Merge overlapping boxes
 % Sort the boxes by start time
 [AllBoxes,index] = sortrows(AllBoxes);
@@ -49,7 +54,7 @@ duration__ = end_time__ - begin_time;
 bandwidth_ = high_freq_ - lower_freq;
 
 %% Do score cutoff
-Accepted = call_score>score_cuttoff;
+Accepted = call_score>score_cutoff;
 if ~any(Accepted); Calls=table(); return; end
 begin_time = begin_time(Accepted);
 end_time__ = end_time__(Accepted);
@@ -74,9 +79,9 @@ end
 
 % Don't let the calls leave the range of the audio
 begin_time = max(begin_time,0.01);
-end_time__ = min(end_time__,audio_info.Duration);
+end_time__ = min(end_time__,audDur);
 lower_freq = max(lower_freq,0.001);
-high_freq_ = min(high_freq_,audio_info.SampleRate./2000 - 0.001);
+high_freq_ = min(high_freq_,audSR./2000 - 0.001);
 
 duration__ = end_time__ - begin_time;
 bandwidth_ = high_freq_ - lower_freq;

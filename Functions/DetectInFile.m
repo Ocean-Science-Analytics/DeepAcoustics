@@ -1,4 +1,4 @@
-function  Calls=SqueakDetect(inputfile,networkfile,Settings,currentFile,totalFiles)
+function  Calls=DetectInFile(inputfile,networkfile,Settings,currentFile,totalFiles)
 % Find Squeaks
 Calls = table();
 h = waitbar(0,'Initializing');
@@ -53,7 +53,7 @@ end
 LowCutoff = min(Settings(2),Settings(3));
 
 % (4) Score cutoff (kHz)
-score_cuttoff=Settings(4);
+score_cutoff=Settings(4);
 
 %% Detect Calls
 % Initialize variables
@@ -88,7 +88,8 @@ for i = 1:length(chunks)-1
                 [~,index] = max(abs(audio'));
                 audio = audio(sub2ind(size(audio),1:size(audio,1),index));
         end
-        
+
+        % Create spectrogram out of audio segment
         [~,fr,ti,p] = spectrogram(audio(:,1),wind,noverlap,nfft,audio_info.SampleRate,'yaxis'); % Just use the first audio channel
         % Air on the side of generosity with the bin cut-offs given
         % spectrogram settings
@@ -105,40 +106,11 @@ for i = 1:length(chunks)-1
             disp(['Freq cut-offs (given spec settings) set to ' num2str(fr(lower_freq)) ' Hz and ' num2str(fr(upper_freq)) ' Hz']);
         end
         pow = p(lower_freq:upper_freq,:);
-        pow(pow==0)=.01;
-        pow = log10(pow);
-        pow = rescale(imcomplement(abs(pow)));
         
-        % Create Adjusted Image for Identification
-        xTile=ceil(size(pow,1)/50);
-        yTile=ceil(size(pow,2)/50);
-        if xTile>1 && yTile>1
-        im = adapthisteq(flipud(pow),'NumTiles',[xTile yTile],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
-        else
-        im = adapthisteq(flipud(pow),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
-        end
-
-        if size(network.InputSize,2) == 3
-            map = gray(256);
-            im = ind2rgb(im2uint8(im),map);
-        end
-        % Detect!
-        [bboxes, scores, Class] = detect(network, im, 'ExecutionEnvironment','auto','SelectStrongest',1);
-        % Convert bboxes to ints (I'm not sure why they're not...)
-        nbboxes = int16(bboxes);
-        % Check bbox limits
-        % No zeros (must be at least 1)
-        nbboxes(nbboxes<=0) = 1;
-        % start time index must be at least 1 less than length of ti-1
-        nbboxes(nbboxes(:,1) > length(ti)-2,1) = length(ti)-2;
-        % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
-        nbboxes((nbboxes(:,3)+nbboxes(:,1)) >= length(ti),3) = length(ti)-1-nbboxes((nbboxes(:,3)+nbboxes(:,1)) >= length(ti),1);
-        % start freq index must be at least 1 less than length of fr-1
-        nbboxes(nbboxes(:,2) > length(fr)-2,2) = length(fr)-2;
-        % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
-        nbboxes((nbboxes(:,4)+nbboxes(:,2)) >= length(fr),4) = length(fr)-1-nbboxes((nbboxes(:,4)+nbboxes(:,2)) >= length(fr),2);
+        [nbboxes, scores, Class] = DetectChunk(fr,ti,pow,network);
 
         % Convert boxes from pixels to time and kHz
+        bboxes = [];
         bboxes(:,1) = ti(nbboxes(:,1)) + (windL ./ audio_info.SampleRate);
         bboxes(:,2) = fr(upper_freq - (nbboxes(:,2) + nbboxes(:,4))) ./ 1000;
         bboxes(:,3) = ti(nbboxes(:,3));
@@ -146,7 +118,7 @@ for i = 1:length(chunks)-1
         binwidth = (fr(2)-fr(1)) ./ 1000;
         bboxes(:,4) = single(nbboxes(:,4)).*binwidth;
         
-        % Concatinate the results
+        % Concatenate the results
         AllBoxes=[AllBoxes
             bboxes];
         AllScores=[AllScores
@@ -176,7 +148,7 @@ h = waitbar(1,h,'Merging Boxes...');
 DetSpect.wind = networkfile.wind;
 DetSpect.noverlap = networkfile.noverlap;
 DetSpect.nfft = networkfile.nfft;
-Calls = merge_boxes(AllBoxes, AllScores, AllClass, audio_info, DetSpect, 1, score_cuttoff, 0);
+Calls = merge_boxes(AllBoxes, AllScores, AllClass, DetSpect, 1, score_cutoff, 0, audio_info);
 close(h);
 end
 
