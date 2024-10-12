@@ -85,4 +85,4 @@ if ~isempty(Calls)
     save(fname,'Calls','allAudio','detection_metadata','spect','-v7.3','-mat');
 end
 update_folders(hObject, eventdata, handles);
-guidata(hObject, handles);
+%guidata(hObject, handles);

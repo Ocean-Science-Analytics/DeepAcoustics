@@ -5,10 +5,12 @@ function RecordAudio(hObject, eventdata, ~)
 get(hObject,'Value');
 handles = guidata(hObject);
 
-%Check if detection file has changed to save file before loading a new one.
-CheckModified(hObject,eventdata,handles);
-
 if eventdata.Source.Value==1
+    % Check to save any currently loaded detections file
+    CheckModified(hObject,eventdata,handles);
+    % Update handles with changes in CheckModified
+    handles = guidata(hObject);
+
     % Clear everything if calls are present
     if isfield(handles,'epochSpect')
         cla(handles.contourWindow);
@@ -28,9 +30,9 @@ if eventdata.Source.Value==1
         set(handles.powertext,'String','Power: ');
         set(handles.tonalitytext,'String','Tonality: ');
     end
-    hObject.String='Recording';
+    hObject.String='Stop Recording';
     hObject.BackgroundColor=[0.84,0.08,0.18];
-    prompt = {'Recording Length (Seconds; 0 = Continuous)','Sample Rate (Max=250,000)','Filename'};
+    prompt = {'Recording Length (Seconds; 0 = Continuous)','Sample Rate (Hz)','Filename'};
     dlg_title = 'Rercording Settings (Uses Default Microphone)';
     num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
     detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
@@ -38,8 +40,6 @@ if eventdata.Source.Value==1
     recSettings=inputdlg(prompt,dlg_title,num_lines,def,options);
     if ~isempty(recSettings)
         deviceReader = audioDeviceReader(str2double(recSettings{2}));
-        audioffn = fullfile(handles.data.settings.audiofolder,[recSettings{3} '.flac']);
-        fileWriter = dsp.AudioFileWriter('SampleRate',deviceReader.SampleRate,'Filename',audioffn,'FileFormat','FLAC');
         %rate = deviceReader.SampleRate;
         if str2double(recSettings{1})<=0
             recTime=inf;
@@ -94,13 +94,22 @@ if eventdata.Source.Value==1
                 detBuff = zeros(1,readLen);
                 % lenmove = 20% of buffer (image length)
                 lenmove = length(detBuff)-floor(readLen*0.8);
+
+                % Output path same as detection output folder
+                pathout = handles.data.settings.detectionfolder;
             case 'No'
                 bDet = false;
                 NeuralNetwork = [];
                 % Set audio read length to focus window display size
                 readLen = handles.data.settings.focus_window_size*deviceReader.SampleRate;
                 detBuff = [];
+                pathout = uigetdir(handles.data.settings.detectionfolder,'Select Output Folder');
+                if isnumeric(pathout);return;end
         end
+
+        % Setup output file
+        audioffn = fullfile(pathout,[recSettings{3} '.flac']);
+        fileWriter = dsp.AudioFileWriter('SampleRate',deviceReader.SampleRate,'Filename',audioffn,'FileFormat','FLAC');
 
         loop=1;
         audDur = 0;
@@ -112,6 +121,8 @@ if eventdata.Source.Value==1
             release(deviceReader);
             deviceReader = audioDeviceReader(str2double(recSettings{2}));
             deviceReader.SamplesPerFrame = 1024;
+
+            setup(deviceReader);
             % Record audio 1024 samples at a time (ML default, seems to
             % need to be small-ish)
             while fSind<length(focusSig)
@@ -257,6 +268,13 @@ if eventdata.Source.Value==1
         % Prevent user interaction until next drawnow command - not sure
         % what the point of this is
         %drawnow nocallbacks;
+
+        if bDet
+            % Check to save new det file
+            CheckModified(hObject,eventdata,handles);
+            % Update handles with changes in CheckModified
+            handles = guidata(hObject);
+        end
     end
 end
 

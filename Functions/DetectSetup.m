@@ -12,7 +12,7 @@ if isempty(networkselection)
 end
 
 % Chooose output directory for Dets file
-path=uigetdir(handles.data.settings.detectionfolder,'Select Output Detection File Folder');
+path=uigetdir(handles.data.settings.detectionfolder,'Select Output Folder');
 if isnumeric(path);return;end
 handles.data.settings.detectionfolder = path;
 handles.data.saveSettings();

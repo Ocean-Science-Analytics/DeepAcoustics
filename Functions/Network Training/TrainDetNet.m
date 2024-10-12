@@ -47,5 +47,5 @@ save(fullfile(PathName,FileName),'detector','layers','options','info','wind','no
 
 %% Update the menu
 update_folders(hObject, eventdata, handles);
-guidata(hObject, handles);
+%guidata(hObject, handles);
 

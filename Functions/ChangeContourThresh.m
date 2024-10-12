@@ -48,6 +48,7 @@ function ChangeContourThresh(hObject, eventdata, handles)
         end
     
         update_folders(hObject, eventdata, handles);
+        handles = guidata(hObject);  % Get newest version of handles 
         try
             update_fig(hObject, handles);
         catch

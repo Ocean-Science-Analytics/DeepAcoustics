@@ -13,7 +13,11 @@ else
     handles.SaveFile = fullfile(thispn, [thisfn '_' num2str(length(uniqAudio)) '_Detections.mat']);
 end
 
-guidata(hObject, handles);
+if ~any(strcmp('CallID', handles.data.calls.Properties.VariableNames)) || length(unique(handles.data.calls.CallID)) ~= height(handles.data.calls)
+    %warning('CallID non-existent or not unique - replacing with 1:height(Calls)')
+    handles.data.calls.CallID = categorical(1:height(handles.data.calls))';
+end
+%guidata(hObject, handles);
 
 Calls = handles.data.calls;
 if bAuto
@@ -24,6 +28,10 @@ else
 end
 if FileName == 0
     return
+end
+
+if ~isfield(handles,'current_detection_file') || isempty(handles.current_detection_file)
+    handles.current_detection_file = FileName;
 end
 
 % Only need allAudio and detmetadata if creating new detections file
@@ -61,5 +69,5 @@ else
     end
 end
 update_folders(hObject, eventdata, handles);
-guidata(hObject, handles);
+%guidata(hObject, handles);
 close(h);

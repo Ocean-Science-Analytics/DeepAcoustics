@@ -35,6 +35,7 @@ function AddCustomLabels(hObject, eventdata, handles)
         handles.data.settings.labels = new_labels;
         handles.data.saveSettings();
         update_folders(hObject, eventdata, handles);
+        handles = guidata(hObject);  % Get newest version of handles
     end
     guidata(hObject, handles);
 end
