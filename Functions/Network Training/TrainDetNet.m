@@ -15,7 +15,7 @@ switch choice
         % Add to image tables record
         PathToITs = [netload.PathToITs,PathToITs];
 
-        if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && detector.ClassNames==categorical({'USV'}))
+        if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && any(detector.ClassNames==categorical({'USV'})))
             choice = questdlg('It looks like you are trying to build on an older USV model.  Do you want to make sure new detections are also labelled USV? (Recommend Yes unless you know what you are doing.)', 'Yes', 'No');
             switch choice
                 case 'Yes'

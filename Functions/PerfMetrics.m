@@ -48,6 +48,12 @@ for i = 1:length(allAudio)
         Calls = [Calls; Calls_ThisAudio];
     end
 end
+
+if isempty(Calls)
+    msgbox('No Calls detected in audio file(s)')
+    return
+end
+
 Calls = CreateBoxAdj(Calls,allAudio);
 CallsAnn = CreateBoxAdj(CallsAnn,allAudio);
 close(d)
@@ -61,11 +67,6 @@ percTPThresh = inputdlg(prompt,dlg_title,num_lines,definput);
 percTPThresh = str2double(percTPThresh);
 if percTPThresh < 0 || percTPThresh > 1
     error('Threshold for overlap must be between 0 and 1')
-end
-
-if isempty(Calls)
-    msgbox('No Calls detected in audio file(s)')
-    return
 end
 
 results = table({table2array(Calls(:,'BoxAdj'))},{table2array(Calls(:,2))},{categorical(Calls.Type)});

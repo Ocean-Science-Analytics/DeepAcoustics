@@ -11,7 +11,6 @@ if audio_info.NumChannels > 1
 end
 
 % Get network and spectrogram settings
-network=networkfile.detector;
 wind=networkfile.wind;
 noverlap=networkfile.noverlap;
 nfft=networkfile.nfft;
@@ -107,7 +106,7 @@ for i = 1:length(chunks)-1
         end
         pow = p(lower_freq:upper_freq,:);
         
-        [nbboxes, scores, Class] = DetectChunk(fr,ti,pow,network);
+        [nbboxes, scores, Class] = DetectChunk(fr,ti,pow,networkfile);
 
         % Convert boxes from pixels to time and kHz
         bboxes = [];
