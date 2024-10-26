@@ -1,11 +1,11 @@
 % --- Executes on button press in LOAD CALLS.
-function LoadCalls(hObject, eventdata, handles, indSt, ~)
+function LoadCalls(hObject, eventdata, handles, indSt)
 update_folders(hObject, eventdata, handles);
 handles = guidata(hObject);
 
 % if "Load Calls" button pressed, check for modifications to current file,
 % then load a user selected file, else reload the current file
-if nargin < 5 
+if nargin < 4
     CheckModified(hObject,eventdata,handles);
     
     % Select new detections file
@@ -26,18 +26,14 @@ if nargin < 5
         update_folders(hObject, eventdata, handles);
         handles = guidata(hObject);  % Get newest version of handles
     end
-end
 
-h = waitbar(0,'Loading Calls Please wait...');
-[handles.data.calls, handles.data.allAudio, handles.data.settings.spect, handles.data.detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
-
-% If not automatically reloading due to another function (e.g. Next/Prev
-% Call) user needs to pick which audio file to load
-if nargin < 5
+    h = waitbar(0,'Loading Calls Please wait...');
+    [handles.data.calls, handles.data.allAudio, handles.data.settings.spect, handles.data.detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+    
+    % If not automatically reloading due to another function (e.g. Next/Prev
+    % Call) user needs to pick which audio file to load
     % Default to first/only audio file
-    if nargin == 3
-        indSt = 1;
-    end
+    indSt = 1;
     % Get names of audio files contributing to this detection file
     allAudio = unique({handles.data.calls.Audiodata.Filename},'stable');
     % If more than one audio file, have user pick which one to start
