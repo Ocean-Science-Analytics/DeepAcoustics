@@ -162,5 +162,5 @@ close(h);
 %update the display
 update_folders(hObject, eventdata, handles);
 if isfield(handles,'current_detection_file')
-    loadcalls_Callback(hObject, eventdata, handles, true)
+    loadcalls_Callback(hObject, eventdata, handles)
 end
