@@ -41,21 +41,24 @@ for i = 1:length(trainingdata)
         warning('Older Images mat - any augmented images are not flagged and will be included in validation data which is not recommended')
     end
 
-    % Add missing columns
-    if size(TTable,2) ~= size(TrainingTables,2)
-        warning('Warning: At least one call type in one image table is not present in another image table.  If this is not as it should be, check your image tables before proceeding!')
-        allvarnames = unique([TrainingTables.Properties.VariableNames,TTable.Properties.VariableNames],'stable');
-        TT1varadd = allvarnames(~ismember(allvarnames,TrainingTables.Properties.VariableNames));
-        TT2varadd = allvarnames(~ismember(allvarnames,TTable.Properties.VariableNames));
-        for j = 1:length(TT1varadd)
-            coladd = cell(size(TrainingTables,1),1);
-            TrainingTables = addvars(TrainingTables,coladd);
-            TrainingTables = renamevars(TrainingTables,'coladd',TT1varadd(j));
-        end
-        for j = 1:length(TT2varadd)
-            coladd = cell(size(TTable,1),1);
-            TTable = addvars(TTable,coladd);
-            TTable = renamevars(TTable,'coladd',TT2varadd(j));
+    % If concatenating more than one image table
+    if i>1
+        % Add missing columns
+        if size(TTable,2) ~= size(TrainingTables,2)
+            warning('Warning: At least one call type in one image table is not present in another image table.  If this is not as it should be, check your image tables before proceeding!')
+            allvarnames = unique([TrainingTables.Properties.VariableNames,TTable.Properties.VariableNames],'stable');
+            TT1varadd = allvarnames(~ismember(allvarnames,TrainingTables.Properties.VariableNames));
+            TT2varadd = allvarnames(~ismember(allvarnames,TTable.Properties.VariableNames));
+            for j = 1:length(TT1varadd)
+                coladd = cell(size(TrainingTables,1),1);
+                TrainingTables = addvars(TrainingTables,coladd);
+                TrainingTables = renamevars(TrainingTables,'coladd',TT1varadd(j));
+            end
+            for j = 1:length(TT2varadd)
+                coladd = cell(size(TTable,1),1);
+                TTable = addvars(TTable,coladd);
+                TTable = renamevars(TTable,'coladd',TT2varadd(j));
+            end
         end
     end
 
