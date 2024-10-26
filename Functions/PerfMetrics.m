@@ -12,7 +12,7 @@ if ~isempty(warnMsg)
     error('Problem pathing to ValidationData - Talk to Gabi')
 end
 
-if ~isempty(detmetadata)
+if ~isempty(detmetadata) && isa(detmetadata.Settings,'double')
     Settings = detmetadata.Settings;
 else
     prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (Hz)','High Frequency Cutoff (Hz)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};

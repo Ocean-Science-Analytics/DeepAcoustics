@@ -57,7 +57,7 @@ else
     handles.data.thisaudst = indSt;
 end
 handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
-if ~isempty(handles.data.detmetadata)
+if ~isempty(handles.data.detmetadata) && isa(detmetadata.Settings,'double')
     handles.data.settings.detectionSettings = sprintfc('%g',handles.data.detmetadata.Settings)';
 end
 
