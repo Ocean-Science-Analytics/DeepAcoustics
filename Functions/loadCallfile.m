@@ -214,9 +214,24 @@ if nargout < 5
         if isstruct(Calls)
             Calls = struct2table(Calls, 'AsArray', true);
         end
+
         % Remove calls with boxes of size zero
         Calls(Calls.Box(:,4) == 0, :) = [];
         Calls(Calls.Box(:,3) == 0, :) = [];
+
+        % Remove calls above Nyquist frequency
+        inddel = zeros(height(Calls),1);
+        for i = 1:height(Calls)
+            % If bottom of bounding box is above audio's Nyquist, display
+            % warning and remove call
+            if Calls.Box(i,2) >= Calls.Audiodata(i).SampleRate/2000
+                inddel(i) = 1;
+            end
+        end
+        if any(inddel)
+            warning('Some Calls were above Nyquist and were automatically removed (perhaps your audio was decimated after detections were established?)')
+            Calls(i,:) = [];
+        end
         
         % Remove any old variables that we don't use anymore
         Calls = removevars(Calls, intersect(Calls.Properties.VariableNames, {'RelBox', 'Rate', 'Audio','Power'}));
