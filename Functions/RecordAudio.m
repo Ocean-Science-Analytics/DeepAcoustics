@@ -92,8 +92,6 @@ if eventdata.Source.Value==1
                 % Set audio read length to image length for network
                 readLen = NeuralNetwork.imLength*deviceReader.SampleRate;
                 detBuff = zeros(1,readLen);
-                % lenmove = 20% of buffer (image length)
-                lenmove = length(detBuff)-floor(readLen*0.8);
 
                 % Output path same as detection output folder
                 pathout = handles.data.settings.detectionfolder;
@@ -106,6 +104,9 @@ if eventdata.Source.Value==1
                 pathout = uigetdir(handles.data.settings.detectionfolder,'Select Output Folder');
                 if isnumeric(pathout);return;end
         end
+        
+        % lenmove = 20% of buffer (image length)
+        lenmove = readLen-floor(readLen*0.8);
 
         % Setup output file
         audioffn = fullfile(pathout,[recSettings{3} '.flac']);
