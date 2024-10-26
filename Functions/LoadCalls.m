@@ -5,6 +5,7 @@ handles = guidata(hObject);
 
 % if "Load Calls" button pressed, check for modifications to current file,
 % then load a user selected file, else reload the current file
+h = waitbar(0,'Loading Calls Please wait...');
 if nargin < 4
     CheckModified(hObject,eventdata,handles);
     
@@ -27,7 +28,6 @@ if nargin < 4
         handles = guidata(hObject);  % Get newest version of handles
     end
 
-    h = waitbar(0,'Loading Calls Please wait...');
     [handles.data.calls, handles.data.allAudio, handles.data.settings.spect, handles.data.detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
     
     % If not automatically reloading due to another function (e.g. Next/Prev
