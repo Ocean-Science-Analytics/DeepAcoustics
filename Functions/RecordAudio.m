@@ -282,4 +282,4 @@ end
 hObject.String='Record Audio';
 hObject.BackgroundColor=[0.20,0.83,0.10];
 eventdata.Source.Value=0;
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);

@@ -1,5 +1,5 @@
 % Updates folders and config file
-function update_folders(hObject, eventdata, handles)
+function update_folders(hObject, handles)
 
 % Reads current config file
 handles.data.loadSettings();

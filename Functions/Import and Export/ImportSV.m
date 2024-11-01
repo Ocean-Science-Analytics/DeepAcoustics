@@ -55,4 +55,4 @@ spect = handles.data.settings.spect;
 allAudio = audiodata;
 save(FilePath,'Calls','allAudio','detection_metadata','spect','-v7.3');
 close(hc);
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);

@@ -73,4 +73,4 @@ for file = fname
     save(fullfile(outpath, [data.file(end-4:end) '_Detections.mat']),'Calls','allAudio','detection_metadata','spect','-v7.3');
 end
 close(hc);
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);

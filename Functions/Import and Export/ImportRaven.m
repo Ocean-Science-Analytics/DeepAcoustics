@@ -267,4 +267,4 @@ detection_metadata = struct(...
 spect = handles.data.settings.spect;
 % Save Detections.mat
 save(fullfile(outpath,[FileName '_Detections.mat']),'Calls','allAudio','detection_metadata','spect','-v7.3');
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);

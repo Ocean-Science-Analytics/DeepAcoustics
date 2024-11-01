@@ -46,6 +46,6 @@ version = handles.DAVersion;
 save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength','detname','PathToITs');
 
 %% Update the menu
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);
 %guidata(hObject, handles);
 

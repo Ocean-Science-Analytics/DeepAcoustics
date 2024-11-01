@@ -38,5 +38,5 @@ detection_metadata = struct(...
     'networkselections', 'N/A; Det Merge');
 spect = handles.data.settings.spect;
 save(fullfile(PathName, FileName),'Calls','allAudio','detection_metadata','spect','-v7.3');
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);
 close(hc);

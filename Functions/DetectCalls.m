@@ -84,5 +84,5 @@ if ~isempty(Calls)
     spect = handles.data.settings.spect;
     save(fname,'Calls','allAudio','detection_metadata','spect','-v7.3','-mat');
 end
-update_folders(hObject, eventdata, handles);
+update_folders(hObject,handles);
 %guidata(hObject, handles);

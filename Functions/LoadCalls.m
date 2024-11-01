@@ -1,6 +1,6 @@
 % --- Executes on button press in LOAD CALLS.
 function LoadCalls(hObject, eventdata, handles, indSt)
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);
 handles = guidata(hObject);
 
 % if "Load Calls" button pressed, check for modifications to current file,
@@ -24,7 +24,7 @@ if nargin < 4
         % Update Settings
         handles.data.settings.detectionfolder = newdetpath;
         handles.data.saveSettings();
-        update_folders(hObject, eventdata, handles);
+        update_folders(hObject, handles);
         handles = guidata(hObject);  % Get newest version of handles
     end
 

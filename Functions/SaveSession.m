@@ -68,6 +68,6 @@ else
         save(fullfile(PathName, FileName), 'Calls','allAudio','detection_metadata','spect','-v7','-mat');
     end
 end
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);
 %guidata(hObject, handles);
 close(h);

@@ -637,7 +637,7 @@ function UnsupClust(app,event)
         switch bUpdate
             case true
                 UpdateCluster(ClusteringData, clustAssign, clusterName, rejected)
-                update_folders(hObject, eventdata, handles);
+                update_folders(hObject, handles);
                 handles = guidata(hObject);  % Get newest version of handles
                 if isfield(handles,'current_detection_file') && ~isempty(handles.current_detection_file)    
                     LoadCalls(hObject, eventdata, handles, handles.data.thisaudst)

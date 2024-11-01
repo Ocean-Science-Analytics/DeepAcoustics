@@ -1,4 +1,4 @@
-function PerfMetrics(handles)
+function PerfMetrics(handles,hObject)
 % Select Det File for testing network
 [detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder);
 PathToDet = fullfile(detpath,detfile);
@@ -31,6 +31,14 @@ end
 
 % Convert frequency inputs to kHz
 Settings(2:3) = Settings(2:3)/1000;
+
+handles.data.settings.detectionSettings = sprintfc('%g',Settings(:,1))';
+
+% Save the new settings
+handles.data.saveSettings();
+
+update_folders(hObject, handles);
+handles = guidata(hObject);  % Get newest version of handles
 
 fig = uifigure;
 d = uiprogressdlg(fig,'Title','Detecting Calls',...

@@ -11,7 +11,7 @@ function ChangePlaybackRate(hObject, eventdata, handles)
     if ~isempty(newrate)
         handles.data.settings.playback_rate = newrate;
         handles.data.saveSettings();
-        update_folders(hObject, eventdata, handles);
+        update_folders(hObject, handles);
         handles = guidata(hObject);  % Get newest version of handles
     end
     guidata(hObject, handles);

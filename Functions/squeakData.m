@@ -44,7 +44,7 @@ classdef squeakData < handle
             obj.defaultSettings.detectionfolder = fullfile(obj.squeakfolder, 'Detections/');
             obj.defaultSettings.networkfolder = fullfile(obj.squeakfolder, 'Networks/');
             obj.defaultSettings.audiofolder = fullfile(obj.squeakfolder, 'Audio/');
-            obj.defaultSettings.detectionSettings = {'0' '100' '18' '0' '1'};
+            obj.defaultSettings.detectionSettings = {'0' '0' '8' '0' '1'};
             obj.defaultSettings.playback_rate = 0.05;
             obj.defaultSettings.LowFreq = 0;
             obj.defaultSettings.HighFreq = 115;

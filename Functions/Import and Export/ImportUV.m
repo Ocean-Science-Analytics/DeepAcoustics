@@ -80,4 +80,4 @@ save(filename,'Calls','allAudio','detection_metadata','spect','-v7.3');
 
 close(h);
 
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);

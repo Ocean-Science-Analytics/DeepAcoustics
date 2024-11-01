@@ -16,7 +16,7 @@ path=uigetdir(handles.data.settings.detectionfolder,'Select Output Folder');
 if isnumeric(path);return;end
 handles.data.settings.detectionfolder = path;
 handles.data.saveSettings();
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);
 handles = guidata(hObject);  % Get newest version of handles
 
 % Prompt for detection settings
@@ -54,7 +54,7 @@ handles.data.settings.detectionSettings = sprintfc('%g',Settings(:,1))';
 % Save the new settings
 handles.data.saveSettings();
 
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);
 handles = guidata(hObject);  % Get newest version of handles
 
 % Load neural network

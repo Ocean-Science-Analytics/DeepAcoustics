@@ -4,7 +4,7 @@ function LoadAudio(hObject, eventdata, handles, audiofn)
 h = waitbar(0,'Loading Audio Please wait...');
 handles.current_detection_file = '';
 handles.current_file_id = '';
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);
 handles = guidata(hObject);
 
 if isempty(handles.audiofiles) && isempty(audiofn)

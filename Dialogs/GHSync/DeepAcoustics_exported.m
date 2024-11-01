@@ -392,7 +392,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             handles.current_file_id = 1;
             handles.current_detection_file = '';
 
-            update_folders(hObject, eventdata, handles);
+            update_folders(hObject, handles);
             handles = guidata(hObject);  % Get newest version of handles
             
             % Set the sliders to the saved values
@@ -515,7 +515,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             if isnumeric(path);return;end
             handles.data.settings.networkfolder = path;
             handles.data.saveSettings();
-            update_folders(hObject, eventdata, handles);
+            update_folders(hObject, handles);
         end
 
         % Menu selected function: menuSelectAudio
@@ -528,7 +528,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             if isnumeric(path);return;end
             handles.data.settings.audiofolder = path;
             handles.data.saveSettings();
-            update_folders(hObject, eventdata, handles);
+            update_folders(hObject, handles);
         end
 
         % Menu selected function: menuLoadDet
@@ -689,7 +689,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function menuPerfMet_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            PerfMetrics(handles);
+            PerfMetrics(handles,hObject);
         end
 
         % Menu selected function: menuAbout
@@ -778,7 +778,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function buttonLoadAudio_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            LoadAudio(hObject, eventdata, handles)
+            LoadAudio(hObject, eventdata, handles, [])
         end
 
         % Button pushed function: buttonAcceptCall

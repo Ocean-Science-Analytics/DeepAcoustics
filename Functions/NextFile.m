@@ -1,5 +1,5 @@
 function NextFile(hObject, eventdata, handles)
-update_folders(hObject, eventdata, handles);
+update_folders(hObject, handles);
 handles = guidata(hObject);  % Get newest version of handles
 if handles.data.thisaudend < height(handles.data.calls)
     % Check for changes to save to current file
