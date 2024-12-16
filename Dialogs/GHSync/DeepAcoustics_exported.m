@@ -41,6 +41,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuRemoveRejects           matlab.ui.container.Menu
         menuSetStaticBoxHeight      matlab.ui.container.Menu
         menuPerfMet                 matlab.ui.container.Menu
+        menuContTrace               matlab.ui.container.Menu
         DenoiseMenu                 matlab.ui.container.Menu
         menuHelp                    matlab.ui.container.Menu
         menuAbout                   matlab.ui.container.Menu
@@ -115,6 +116,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         appDisplay % Display Settings Dialog
         appUnsupClustSave % Save Dialog for Unsupervised Clustering Runs
         appClustering % Clustering Dialog
+        appContTrace % Contour Tracing Dialog
         appTrainImg % Training Image Settings Dialog
     end
     
@@ -173,6 +175,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function RunClusteringDlg(app,clustAssign,ClusteringData)
             app.appClustering = ClusteringDlg(app,clustAssign,ClusteringData);
             waitfor(app.appClustering);
+        end
+        
+        function RunContTraceDlg(app,ClusteringData,spect,EntThresh,AmpThresh)
+            app.appContTrace = ContTraceDlg(app,ClusteringData,spect,EntThresh,AmpThresh);
+            %waitfor(app.appContTrace);
         end
 
         function RunTrainImgDlg(app,spect,metadata)
@@ -649,8 +656,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Menu selected function: menuViewClust
         function menuViewClust_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            ViewClusters(hObject, eventdata, handles);
+            ViewClusters(app,event);
         end
 
         % Menu selected function: menuSyntaxAnalysis
@@ -911,6 +917,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             delete(app.appDisplay)
             delete(app.appUnsupClustSave)
             delete(app.appClustering)
+            delete(app.appContTrace)
             delete(app.appTrainImg)
             delete(app)
         end
@@ -1002,6 +1009,16 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             Denoise(handles);
             update_fig(hObject, handles,true);
+        end
+
+        % Menu selected function: menuContTrace
+        function menuContTrace_Callback(app, event)
+            % Create GUIDE-style callback args - Added by Migration Tool
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            [ClusteringData, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', true);
+            if isempty(ClusteringData); return; end
+
+            app.RunContTraceDlg(ClusteringData,spect,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
         end
     end
 
@@ -1243,6 +1260,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuPerfMet.MenuSelectedFcn = createCallbackFcn(app, @menuPerfMet_Callback, true);
             app.menuPerfMet.Text = 'Performance Metrics';
             app.menuPerfMet.Tag = 'PerfMet';
+
+            % Create menuContTrace
+            app.menuContTrace = uimenu(app.menuTools);
+            app.menuContTrace.MenuSelectedFcn = createCallbackFcn(app, @menuContTrace_Callback, true);
+            app.menuContTrace.Text = 'Contour Tracing';
 
             % Create DenoiseMenu
             app.DenoiseMenu = uimenu(app.menuTools);

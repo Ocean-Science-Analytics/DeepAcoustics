@@ -1,7 +1,14 @@
-function ViewClusters(hObject, eventdata, handles)
+function ViewClusters(app, event)
+[~, ~, handles] = convertToGUIDECallbackArguments(app, event);
+
 [ClusteringData,clustAssign] = CreateClusteringData(handles, 'forClustering', false);
 
-[~, clusterName, rejected, finished, clustAssign] = clusteringGUI(clustAssign, ClusteringData);
+%[~, clusterName, rejected, finished, clustAssign] = clusteringGUI(clustAssign, ClusteringData);
+app.RunClusteringDlg(clustAssign, ClusteringData);
+clusterName = app.clusterName;
+rejected = app.rejected;
+finished = app.finished;
+clustAssign = app.clustAssign;
 
 % Save the clusters
 if finished == 1
