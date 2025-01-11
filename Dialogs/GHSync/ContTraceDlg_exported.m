@@ -2,15 +2,19 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        dlgContTrace     matlab.ui.Figure
-        buttonPrev       matlab.ui.control.Button
-        buttonNext       matlab.ui.control.Button
-        buttonClear      matlab.ui.control.Button
-        buttonGen        matlab.ui.control.Button
-        buttonAdd        matlab.ui.control.Button
-        buttonDel        matlab.ui.control.Button
-        buttonSaveClose  matlab.ui.control.Button
-        winContour       matlab.ui.control.UIAxes
+        dlgContTrace        matlab.ui.Figure
+        CallLabel           matlab.ui.control.Label
+        buttonPrev          matlab.ui.control.Button
+        buttonNext          matlab.ui.control.Button
+        buttonClear         matlab.ui.control.Button
+        buttonGen           matlab.ui.control.Button
+        buttonAdd           matlab.ui.control.Button
+        buttonDel           matlab.ui.control.Button
+        labelCallType       matlab.ui.control.Label
+        editfieldCallIndex  matlab.ui.control.NumericEditField
+        labelTotalCalls     matlab.ui.control.Label
+        buttonSaveClose     matlab.ui.control.Button
+        winContour          matlab.ui.control.UIAxes
     end
 
     
@@ -32,6 +36,10 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
         
         % Call whenever a new call is displayed on screen
         function CTPlotNew(app)
+            % Set call index and label
+            app.labelCallType.Text = ['Call Type: ',char(app.ClusteringData.Type(app.indcall))];
+            app.editfieldCallIndex.Value = app.indcall;
+
             % Default edit containers
             app.xTimeEdit = app.ClusteringData.xTime{app.indcall};
             app.xFreqEdit = app.ClusteringData.xFreq{app.indcall};
@@ -114,6 +122,10 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.EntThresh = EntThresh;
             app.AmpThresh = AmpThresh;
 
+            % Set call index limits
+            app.editfieldCallIndex.Limits = [1,height(app.ClusteringData)];
+            app.labelTotalCalls.Text = ['/',num2str(height(app.ClusteringData)),' Total Calls'];
+
             % Setup function to manually add points
             app.bAddOn = false;
 
@@ -188,20 +200,20 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
 
         % Button pushed function: buttonDel
         function buttonDel_Callback(app, event)
-                    brushLog = logical(get(app.plSc, 'BrushData'));
+            brushLog = logical(get(app.plSc, 'BrushData'));
 
-                    if ~any(brushLog)
-                        if strcmp(app.brushCont.Enable,'off')
-                            app.brushCont.Enable = 'on';
-                        else
-                            app.brushCont.Enable = 'off';
-                        end
-                    else
-                        app.xFreqEdit = app.xFreqEdit(~brushLog);
-                        app.xTimeEdit = app.xTimeEdit(~brushLog);
-    
-                        app.CTPlotRefresh();
-                    end
+            if ~any(brushLog)
+                if strcmp(app.brushCont.Enable,'off')
+                    app.brushCont.Enable = 'on';
+                else
+                    app.brushCont.Enable = 'off';
+                end
+            else
+                app.xFreqEdit = app.xFreqEdit(~brushLog);
+                app.xTimeEdit = app.xTimeEdit(~brushLog);
+
+                app.CTPlotRefresh();
+            end
         end
 
         % Button pushed function: buttonAdd
@@ -226,6 +238,16 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
                 app.CTPlotRefresh();
             end
         end
+
+        % Value changed function: editfieldCallIndex
+        function editfieldCallIndex_Callback(app, event)
+            % Save any changes on this screen
+            app.CTChangeCont();
+
+            % Go to new call index
+            app.indcall = app.editfieldCallIndex.Value;
+            app.CTPlotNew();
+        end
     end
 
     % Component initialization
@@ -236,7 +258,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
 
             % Create dlgContTrace and hide until all components are created
             app.dlgContTrace = uifigure('Visible', 'off');
-            app.dlgContTrace.Position = [100 100 696 648];
+            app.dlgContTrace.Position = [100 100 696 691];
             app.dlgContTrace.Name = 'MATLAB App';
             app.dlgContTrace.CloseRequestFcn = createCallbackFcn(app, @dlgContTraceCloseRequest, true);
             app.dlgContTrace.WindowStyle = 'modal';
@@ -251,49 +273,72 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.winContour.NextPlot = 'add';
             app.winContour.ButtonDownFcn = createCallbackFcn(app, @winContClick_Callback, true);
             app.winContour.Tag = 'contourWindow';
-            app.winContour.Position = [48 182 601 445];
+            app.winContour.Position = [48 183 601 445];
 
             % Create buttonSaveClose
             app.buttonSaveClose = uibutton(app.dlgContTrace, 'push');
             app.buttonSaveClose.ButtonPushedFcn = createCallbackFcn(app, @buttonSaveClose_Callback, true);
-            app.buttonSaveClose.Position = [294 30 109 42];
+            app.buttonSaveClose.Position = [294 31 109 42];
             app.buttonSaveClose.Text = 'Save & Close';
+
+            % Create labelTotalCalls
+            app.labelTotalCalls = uilabel(app.dlgContTrace);
+            app.labelTotalCalls.Position = [146 41 121 22];
+            app.labelTotalCalls.Text = '/ ? Total Calls';
+
+            % Create editfieldCallIndex
+            app.editfieldCallIndex = uieditfield(app.dlgContTrace, 'numeric');
+            app.editfieldCallIndex.ValueDisplayFormat = '%d';
+            app.editfieldCallIndex.ValueChangedFcn = createCallbackFcn(app, @editfieldCallIndex_Callback, true);
+            app.editfieldCallIndex.Position = [95 41 46 22];
+
+            % Create labelCallType
+            app.labelCallType = uilabel(app.dlgContTrace);
+            app.labelCallType.FontSize = 14;
+            app.labelCallType.Position = [67 627 284 22];
+            app.labelCallType.Text = 'Call Type:';
 
             % Create buttonDel
             app.buttonDel = uibutton(app.dlgContTrace, 'push');
             app.buttonDel.ButtonPushedFcn = createCallbackFcn(app, @buttonDel_Callback, true);
-            app.buttonDel.Position = [382 98 100 23];
+            app.buttonDel.Position = [382 99 100 23];
             app.buttonDel.Text = 'Delete Points';
 
             % Create buttonAdd
             app.buttonAdd = uibutton(app.dlgContTrace, 'push');
             app.buttonAdd.ButtonPushedFcn = createCallbackFcn(app, @buttonAdd_Callback, true);
-            app.buttonAdd.Position = [382 138 100 23];
+            app.buttonAdd.Position = [382 139 100 23];
             app.buttonAdd.Text = 'Add Points';
 
             % Create buttonGen
             app.buttonGen = uibutton(app.dlgContTrace, 'push');
             app.buttonGen.ButtonPushedFcn = createCallbackFcn(app, @buttonGen_Callback, true);
-            app.buttonGen.Position = [215 100 109 21];
+            app.buttonGen.Position = [215 101 109 21];
             app.buttonGen.Text = 'Auto Contour';
 
             % Create buttonClear
             app.buttonClear = uibutton(app.dlgContTrace, 'push');
             app.buttonClear.ButtonPushedFcn = createCallbackFcn(app, @buttonClear_Callback, true);
-            app.buttonClear.Position = [215 140 109 21];
+            app.buttonClear.Position = [215 141 109 21];
             app.buttonClear.Text = 'Clear Contour';
 
             % Create buttonNext
             app.buttonNext = uibutton(app.dlgContTrace, 'push');
             app.buttonNext.ButtonPushedFcn = createCallbackFcn(app, @buttonNext_Callback, true);
-            app.buttonNext.Position = [540 119 109 42];
+            app.buttonNext.Position = [540 120 109 42];
             app.buttonNext.Text = 'Next';
 
             % Create buttonPrev
             app.buttonPrev = uibutton(app.dlgContTrace, 'push');
             app.buttonPrev.ButtonPushedFcn = createCallbackFcn(app, @buttonPrev_Callback, true);
-            app.buttonPrev.Position = [48 119 109 42];
+            app.buttonPrev.Position = [48 120 109 42];
             app.buttonPrev.Text = 'Prev';
+
+            % Create CallLabel
+            app.CallLabel = uilabel(app.dlgContTrace);
+            app.CallLabel.HorizontalAlignment = 'right';
+            app.CallLabel.Position = [48 41 39 22];
+            app.CallLabel.Text = 'Call #:';
 
             % Show the figure after all components are created
             app.dlgContTrace.Visible = 'on';
