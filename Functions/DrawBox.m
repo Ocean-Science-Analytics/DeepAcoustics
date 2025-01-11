@@ -1,4 +1,4 @@
-function DrawBox(hObject, eventdata, handles)
+function DrawBox(hObject, ~, handles)
 current_box = drawrectangle( 'Parent',handles.focusWindow,...
                             'FaceAlpha',0,...
                             'LineWidth',1 );
@@ -25,6 +25,9 @@ new_box.Ovlp = 0;
 % Check for Date/Time??
 new_box.StTime = NaT;
 new_box = AddDateTime(new_box,handles.data.audiodata);
+if any(contains(handles.data.calls.Properties.VariableNames,'BoxAdj'))
+    new_box.BoxAdj = new_box.Box;
+end
 handles.data.calls = [handles.data.calls; new_box];
 
 %Now delete the roi and render the figure. The roi will be rendered along
