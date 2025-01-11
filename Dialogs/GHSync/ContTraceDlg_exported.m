@@ -200,6 +200,11 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
 
         % Button pushed function: buttonDel
         function buttonDel_Callback(app, event)
+            % Turn off Add mode if active
+            if app.bAddOn
+                buttonAdd_Callback(app,event);
+            end
+            
             brushLog = logical(get(app.plSc, 'BrushData'));
 
             if ~any(brushLog)
