@@ -17,62 +17,6 @@ end
 %% Unpack the data
 if isfield(data, 'Calls')
     Calls = data.Calls;
-
-    if isfield(data, 'allAudio') && ~isempty(data.allAudio)
-        allAudio = data.allAudio;
-        % This should only come up if the wrong audio folder was assigned
-        % to a detections file during an older version of DA
-        if any(~ismember(unique({Calls.Audiodata.Filename}),unique({allAudio.Filename})))
-            [~, Calls_fns, Calls_exts] = fileparts(unique({Calls.Audiodata.Filename}));
-            Calls_fns = strcat(Calls_fns,Calls_exts);
-            Calls_fns = sprintf('\n%s', Calls_fns{:});
-            warning(['Mismatch b/w previously saved audio folder and detections folder. Folder should contain:',Calls_fns])
-            allAudio = [];
-        end
-    else
-        allAudio = [];
-    end
-    if isempty(allAudio)
-        if nargout < 6
-            bUpdate = questdlg('This is an older detections file that is lacking complete allAudio information - do you want to fix this now (recommended)?','Assign allAudio?','Yes','No','No');
-            switch bUpdate
-            case 'Yes'
-                % Find audio in folder (default to directory of first call in
-                % Calls
-                [audiopath,~,~] = fileparts(Calls.Audiodata(1).Filename);
-                % If Calls directory doesn't exist, open preset audiofolder
-                if exist(audiopath,'file') ~= 7
-                    audiopath = handles.data.settings.audiofolder;
-                end
-                audiopath = uigetdir(audiopath,'Select Folder Containing All Audio Files Used to Generate This Detections File');
-                audiodir = [dir([audiopath '\*.wav']); ...
-                    dir([audiopath '\*.ogg']); ...
-                    dir([audiopath '\*.flac']); ...
-                    dir([audiopath '\*.UVD']); ...
-                    dir([audiopath '\*.au']); ...
-                    dir([audiopath '\*.aiff']); ...
-                    dir([audiopath '\*.aif']); ...
-                    dir([audiopath '\*.aifc']); ...
-                    dir([audiopath '\*.mp3']); ...
-                    dir([audiopath '\*.m4a']); ...
-                    dir([audiopath '\*.mp4'])];
-    
-                for i = 1:length(audiodir)
-                    allAudio = [allAudio; audioinfo(fullfile(audiopath, audiodir(i).name))];
-                end
-                if any(~ismember(unique({Calls.Audiodata.Filename}),unique({allAudio.Filename})))
-                    [~, Calls_fns, Calls_exts] = fileparts(allAudtest);
-                    Calls_fns = strcat(Calls_fns,Calls_exts);
-                    Calls_fns = sprintf('\n%s', Calls_fns{:});
-                    warning(['Mismatch b/w selected audio folder and detections folder. Folder should contain:',Calls_fns])
-                    allAudio = [];
-                end
-                save(filename,'allAudio','-append');
-            case 'No'
-                warning('This is an older detections file that is lacking complete allAudio information')
-            end
-        end
-    end
     
     if isfield(data,'detection_metadata')
         detection_metadata = data.detection_metadata;
@@ -119,6 +63,62 @@ if isfield(data, 'Calls')
                 for j = indrep
                     Calls.Audiodata(j).Filename = fullfile(newpn,[thisfn thisext]);
                 end
+            end
+        end
+    end
+
+    if isfield(data, 'allAudio') && ~isempty(data.allAudio)
+        allAudio = data.allAudio;
+        % This should only come up if the wrong audio folder was assigned
+        % to a detections file during an older version of DA
+        if any(~ismember(unique({Calls.Audiodata.Filename}),unique({allAudio.Filename})))
+            [~, Calls_fns, Calls_exts] = fileparts(unique({Calls.Audiodata.Filename}));
+            Calls_fns = strcat(Calls_fns,Calls_exts);
+            Calls_fns = sprintf('\n%s', Calls_fns{:});
+            warning(['Mismatch b/w previously saved audio folder and detections folder. Folder should contain:',Calls_fns])
+            allAudio = [];
+        end
+    else
+        allAudio = [];
+    end
+    if isempty(allAudio)
+        if nargout < 6
+            bUpdate = questdlg('This is an older detections file that is lacking complete allAudio information - do you want to fix this now (recommended)?','Assign allAudio?','Yes','No','No');
+            switch bUpdate
+            case 'Yes'
+                % Find audio in folder (default to directory of first call in
+                % Calls
+                [audiopath,~,~] = fileparts(Calls.Audiodata(1).Filename);
+                % If Calls directory doesn't exist, open preset audiofolder
+                if exist(audiopath,'file') ~= 7
+                    audiopath = handles.data.settings.audiofolder;
+                end
+                audiopath = uigetdir(audiopath,'Select Folder Containing All Audio Files Used to Generate This Detections File');
+                audiodir = [dir([audiopath '\*.wav']); ...
+                    dir([audiopath '\*.ogg']); ...
+                    dir([audiopath '\*.flac']); ...
+                    dir([audiopath '\*.UVD']); ...
+                    dir([audiopath '\*.au']); ...
+                    dir([audiopath '\*.aiff']); ...
+                    dir([audiopath '\*.aif']); ...
+                    dir([audiopath '\*.aifc']); ...
+                    dir([audiopath '\*.mp3']); ...
+                    dir([audiopath '\*.m4a']); ...
+                    dir([audiopath '\*.mp4'])];
+    
+                for i = 1:length(audiodir)
+                    allAudio = [allAudio; audioinfo(fullfile(audiopath, audiodir(i).name))];
+                end
+                if any(~ismember(unique({Calls.Audiodata.Filename}),unique({allAudio.Filename})))
+                    [~, Calls_fns, Calls_exts] = fileparts(unique({Calls.Audiodata.Filename}));
+                    Calls_fns = strcat(Calls_fns,Calls_exts);
+                    Calls_fns = sprintf('\n%s', Calls_fns{:});
+                    warning(['Mismatch b/w selected audio folder and detections folder. Folder should contain:',Calls_fns])
+                    allAudio = [];
+                end
+                save(filename,'allAudio','-append');
+            case 'No'
+                warning('This is an older detections file that is lacking complete allAudio information')
             end
         end
     end
