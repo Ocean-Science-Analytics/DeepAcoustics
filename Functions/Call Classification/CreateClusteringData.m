@@ -48,6 +48,10 @@ Calls = [];
 spect = [];
 perFileCallID = [];
 for j = 1:length(fileName)
+    if strcmp(char(handles.current_detection_file),fileName{j})
+        uiwait(warndlg('It looks like you might be using the same Detections file that is loaded in the main GUI.  Make sure you have saved any changes (e.g., spectrogram settings) in that main window before proceeding.  Changes are NOT saved automatically.', ...
+            'WARNING','modal'));
+    end
     [Calls_tmp, ~, spect, ~, loaded_ClusteringData] = loadCallfile(fullfile(filePath,fileName{j}),handles,false);
     % If the files is extracted contours, rather than a detection file
     if ~isempty(loaded_ClusteringData)

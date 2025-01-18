@@ -79,6 +79,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         buttonAcceptCall            matlab.ui.control.Button
         buttonRejectCall            matlab.ui.control.Button
         buttonDraw                  matlab.ui.control.Button
+        buttonDrawLabel             matlab.ui.control.Button
+        textDrawType                matlab.ui.control.Label
         buttonPlayCall              matlab.ui.control.Button
         textNavigation              matlab.ui.control.Label
         buttonBackALot              matlab.ui.control.Button
@@ -493,7 +495,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 case 'r'
                     RejectCall(hObject, eventdata, handles);
                 case 'd'
-                    DrawBox(hObject, eventdata, handles);
+                    DrawBox(hObject, eventdata, handles, app);
                 case 127 % Delete key
                     handles.data.calls(handles.data.currentcall,:) = [];
                     SetFocusCall(hObject, handles, handles.data.currentcall-1)
@@ -805,7 +807,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function buttonDraw_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            DrawBox(hObject, eventdata, handles);
+            DrawBox(hObject, eventdata, handles, app);
         end
 
         % Button pushed function: buttonPlayCall
@@ -1019,6 +1021,29 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             if isempty(ClusteringData); return; end
 
             app.RunContTraceDlg(ClusteringData,spect,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
+        end
+
+        % Button pushed function: buttonDrawLabel
+        function buttonDrawLabel_Callback(app, event)
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            if ~isempty(handles.data.calls)
+                list = [cellstr(unique(handles.data.calls.Type));'Add New Call Type'];
+
+                [indx,tf] = listdlg('PromptString',{'Select the call type you will be boxing.',' ',' '},...
+                    'ListString',list,'ListSize',[200,300],'SelectionMode','single');
+                if tf
+                    if indx == length(list)
+                        prompt = {'Enter call type:'};
+                        definput = {''};
+                        dlg_title = 'Set Custom Label';
+                        num_lines=[1,60]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='none';
+                        new_label = inputdlg(prompt,dlg_title,num_lines,definput,options);
+                        app.textDrawType.Text = new_label{1};
+                    else
+                        app.textDrawType.Text = list{indx};
+                    end
+                end
+            end
         end
     end
 
@@ -1623,6 +1648,22 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonPlayCall.FontColor = [1 1 1];
             app.buttonPlayCall.Position = [599 56 90 24];
             app.buttonPlayCall.Text = 'Play Call (p)';
+
+            % Create textDrawType
+            app.textDrawType = uilabel(app.mainfigure);
+            app.textDrawType.FontColor = [1 1 1];
+            app.textDrawType.Position = [599 25 152 22];
+            app.textDrawType.Text = 'Call';
+
+            % Create buttonDrawLabel
+            app.buttonDrawLabel = uibutton(app.mainfigure, 'push');
+            app.buttonDrawLabel.ButtonPushedFcn = createCallbackFcn(app, @buttonDrawLabel_Callback, true);
+            app.buttonDrawLabel.Tag = 'rectangle';
+            app.buttonDrawLabel.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
+            app.buttonDrawLabel.FontWeight = 'bold';
+            app.buttonDrawLabel.FontColor = [1 1 1];
+            app.buttonDrawLabel.Position = [495 24 94 24];
+            app.buttonDrawLabel.Text = 'Draw Label:';
 
             % Create buttonDraw
             app.buttonDraw = uibutton(app.mainfigure, 'push');

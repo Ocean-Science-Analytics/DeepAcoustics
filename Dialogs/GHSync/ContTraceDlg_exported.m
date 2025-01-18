@@ -30,6 +30,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
         plSc            % Scatter plot handle (for manipulating contour)
         brushCont       % Data selection brush
         bAddOn          % Is Add Mode active?
+        %bDelOn          % Is Delete Mode active?
     end
     
     methods (Access = private)
@@ -126,8 +127,9 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.editfieldCallIndex.Limits = [1,height(app.ClusteringData)];
             app.labelTotalCalls.Text = ['/',num2str(height(app.ClusteringData)),' Total Calls'];
 
-            % Setup function to manually add points
+            % Setup function to manually add/delete points
             app.bAddOn = false;
+            %app.bDelOn = false;
 
             % Plot first call, default contour
             app.indcall = 1;
@@ -223,6 +225,11 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
 
         % Button pushed function: buttonAdd
         function buttonAdd_Callback(app, event)
+            % % Turn off Del mode if active
+            % if app.bDelOn
+            %     app.bDelOn = ~app.bDelOn;
+            % end
+
             app.brushCont.Enable = 'off';
             app.bAddOn = ~app.bAddOn;
             if app.bAddOn

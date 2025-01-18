@@ -1,4 +1,4 @@
-function DrawBox(hObject, ~, handles)
+function DrawBox(hObject, ~, handles, app)
 current_box = drawrectangle( 'Parent',handles.focusWindow,...
                             'FaceAlpha',0,...
                             'LineWidth',1 );
@@ -10,7 +10,7 @@ end
 new_box = table();
 new_box.Box = current_box.Position;
 new_box.Score = 1;
-new_box.Type = categorical({'Call'});
+new_box.Type = categorical({app.textDrawType.Text});
 new_box.Audiodata = handles.data.audiodata;
 DetSpect.wind = 0;
 DetSpect.noverlap = 0;
