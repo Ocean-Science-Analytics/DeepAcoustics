@@ -62,4 +62,5 @@ h = waitbar(0,'Loading neural network...');
 networkname = handles.networkfiles(networkselection).name;
 networkpath = handles.networkfiles(networkselection).folder;
 NeuralNetwork=load(fullfile(networkpath,networkname));%get currently selected option from menu
+NeuralNetwork.netfile = networkname;
 close(h);
