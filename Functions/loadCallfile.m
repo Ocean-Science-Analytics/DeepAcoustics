@@ -60,8 +60,8 @@ if isfield(data, 'Calls')
                 end
                 % Replace old path with new, good path
                 indrep = find(strcmp({Calls.Audiodata.Filename},uniqAud{i}));
-                for j = indrep
-                    Calls.Audiodata(j).Filename = fullfile(newpn,[thisfn thisext]);
+                for j = 1:length(indrep)
+                    Calls.Audiodata(indrep(j)).Filename = fullfile(newpn,[thisfn thisext]);
                 end
             end
         end
@@ -75,7 +75,9 @@ if isfield(data, 'Calls')
             [~, Calls_fns, Calls_exts] = fileparts(unique({Calls.Audiodata.Filename}));
             Calls_fns = strcat(Calls_fns,Calls_exts);
             Calls_fns = sprintf('\n%s', Calls_fns{:});
-            warning(['Mismatch b/w previously saved audio folder and detections folder. Folder should contain:',Calls_fns])
+            if nargout < 6
+                warning(['Mismatch b/w previously saved audio folder and detections folder. You are about to be asked to correct this. The folder you select should contain at least:',Calls_fns])
+            end
             allAudio = [];
         end
     else

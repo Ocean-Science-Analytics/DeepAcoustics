@@ -30,9 +30,9 @@ if FileName == 0
     return
 end
 
-if ~isfield(handles,'current_detection_file') || isempty(handles.current_detection_file)
-    handles.current_detection_file = FileName;
-end
+% if ~isfield(handles,'current_detection_file') || isempty(handles.current_detection_file)
+%     handles.current_detection_file = FileName;
+% end
 
 % Only need allAudio and detmetadata if creating new detections file
 allAudio = handles.data.allAudio;
@@ -68,6 +68,10 @@ else
         save(fullfile(PathName, FileName), 'Calls','allAudio','detection_metadata','spect','-v7','-mat');
     end
 end
+handles.current_detection_file = FileName;
+handles.data.settings.detectionfolder = PathName;
+
 update_folders(hObject, handles);
+update_fig(hObject, handles);
 %guidata(hObject, handles);
 close(h);
