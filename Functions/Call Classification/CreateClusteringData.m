@@ -35,7 +35,7 @@ else
     prompt = 'Select detection file(s) for viewing';
 end
 [fileName, filePath] = uigetfile(fullfile(handles.data.settings.detectionfolder,'*.mat'),prompt,'MultiSelect', 'on');
-if isnumeric(fileName); ClusteringData = {}; return;end
+if isnumeric(fileName); ClusteringData = {}; return; end
 
 % If one file is selected, turn it into a cell
 fileName = cellstr(fileName);
