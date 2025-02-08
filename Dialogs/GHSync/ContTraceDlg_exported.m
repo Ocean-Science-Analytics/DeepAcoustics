@@ -32,7 +32,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
         plSc            % Scatter plot handle (for manipulating contour)
         brushCont       % Data selection brush
         bAddOn          % Is Add Mode active?
-        %bDelOn          % Is Delete Mode active?
+        bDelOn          % Is Delete Mode active?
     end
     
     methods (Access = private)
@@ -47,24 +47,6 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.xFreqEdit = app.ClusteringData.xFreq{app.indcall};
 
             CTPlotRefresh(app);
-            % 
-            % % Plot boxed portion of spectrogram
-            % plotspec = flipud(app.ClusteringData.Spectrogram{app.indcall});
-            % specindymin = floor(app.ClusteringData.Box(app.indcall,2)/app.ClusteringData.FreqScale(app.indcall));
-            % specindymax = ceil((app.ClusteringData.Box(app.indcall,2)+app.ClusteringData.Box(app.indcall,4))/app.ClusteringData.FreqScale(app.indcall));
-            % app.winContour.XLim = [1,size(plotspec,2)];
-            % app.winContour.YLim = [specindymin,specindymax];
-            % imagesc([1,size(plotspec,2)],[specindymin,specindymax],plotspec(specindymin:specindymax,:),'Parent',app.winContour);
-            % app.winContour.YDir = "normal";
-            % hold(app.winContour,"on");
-            % 
-            % % Plot contour
-            % plotx = app.xTimeEdit/app.ClusteringData.TimeScale(app.indcall);
-            % ploty = app.xFreqEdit/app.ClusteringData.FreqScale(app.indcall);
-            % app.plSc = scatter(plotx,ploty,25,'MarkerEdgeColor',[0 0 0],...
-            %     'MarkerFaceColor',[1 1 1],'LineWidth',1.5,'Parent',app.winContour);
-            % 
-            % hold(app.winContour,"off");
         end
         
         % Call whenever changes are made to the contour
@@ -88,7 +70,6 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             ploty = app.xFreqEdit/app.ClusteringData.FreqScale(app.indcall);
             app.plSc = scatter(plotx,ploty,25,'MarkerEdgeColor',[0 0 0],...
                 'MarkerFaceColor',[1 1 1],'LineWidth',1.5,'Parent',app.winContour);%,'ButtonDownFcn','winContClick_Callback(app)');
-            app.brushCont = brush(app.winContour);
 
             hold(app.winContour,"off");
             % Necessary for adding points
@@ -113,6 +94,17 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             end
         end
 
+        % Executes when release brush to Delete selected points
+        function ReleaseFocusFromAxes(app)
+            brushLog = logical(get(app.plSc, 'BrushData'));
+            if any(brushLog)
+                app.xFreqEdit = app.xFreqEdit(~brushLog);
+                app.xTimeEdit = app.xTimeEdit(~brushLog);
+    
+                app.CTPlotRefresh();
+            end
+        end
+
     end
     
 
@@ -132,6 +124,12 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.EntThresh = EntThresh;
             app.AmpThresh = AmpThresh;
 
+            % Link Parent to UIAxes
+            app.winContour.Parent = app.dlgContTrace;
+            app.brushCont = brush(app.winContour);
+            set(app.brushCont,'ActionPostCallback',@(ohf,s) ReleaseFocusFromAxes(app));
+            app.winContour.Toolbar.Visible = 'off';
+
             % Sort Types by frequency b/c categorical
             typesort = countcats(app.ClusteringData.Type);
             [~,typesort] = sort(typesort,'descend');
@@ -143,7 +141,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
 
             % Setup function to manually add/delete points
             app.bAddOn = false;
-            %app.bDelOn = false;
+            app.bDelOn = false;
 
             % Plot first call, default contour
             app.indcall = 1;
@@ -221,34 +219,38 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
                 buttonAdd_Callback(app,event);
             end
             
-            brushLog = logical(get(app.plSc, 'BrushData'));
-
-            if ~any(brushLog)
-                if strcmp(app.brushCont.Enable,'off')
-                    app.brushCont.Enable = 'on';
-                else
-                    app.brushCont.Enable = 'off';
-                end
+            % Toggle Delete on/off
+            app.bDelOn = ~app.bDelOn;
+            % If turning on
+            if app.bDelOn
+                % Change button color
+                app.buttonDel.BackgroundColor = [1 0 0];
+                % Enable brush
+                app.brushCont.Enable = 'on';
             else
-                app.xFreqEdit = app.xFreqEdit(~brushLog);
-                app.xTimeEdit = app.xTimeEdit(~brushLog);
-
-                app.CTPlotRefresh();
+                % Change button color
+                app.buttonDel.BackgroundColor = [0.96,0.96,0.96];
+                % Disable brush
+                app.brushCont.Enable = 'off';
             end
         end
 
         % Button pushed function: buttonAdd
         function buttonAdd_Callback(app, event)
             % % Turn off Del mode if active
-            % if app.bDelOn
-            %     app.bDelOn = ~app.bDelOn;
-            % end
+            if app.bDelOn
+                buttonDel_Callback(app,event);
+            end
 
-            app.brushCont.Enable = 'off';
+            %app.brushCont.Enable = 'off';
+            % Toggle Add on/off
             app.bAddOn = ~app.bAddOn;
+            % If turning on
             if app.bAddOn
+                % Change button color
                 app.buttonAdd.BackgroundColor = [1 0 0];
             else
+                % Change button color
                 app.buttonAdd.BackgroundColor = [0.96,0.96,0.96];
             end
         end
@@ -344,7 +346,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.dropdownCallType = uidropdown(app.dlgContTrace);
             app.dropdownCallType.Items = {'Call'};
             app.dropdownCallType.ValueChangedFcn = createCallbackFcn(app, @dropdownCallType_Callback, true);
-            app.dropdownCallType.Position = [502 663 138 22];
+            app.dropdownCallType.Position = [141 693 138 22];
             app.dropdownCallType.Value = 'Call';
 
             % Create buttonDel
@@ -392,7 +394,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             % Create CallTypeDropDownLabel
             app.CallTypeDropDownLabel = uilabel(app.dlgContTrace);
             app.CallTypeDropDownLabel.HorizontalAlignment = 'right';
-            app.CallTypeDropDownLabel.Position = [429 663 58 22];
+            app.CallTypeDropDownLabel.Position = [68 693 58 22];
             app.CallTypeDropDownLabel.Text = 'Call Type:';
 
             % Create buttonReject
