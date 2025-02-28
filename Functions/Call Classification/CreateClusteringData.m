@@ -35,7 +35,7 @@ else
     prompt = 'Select detection file(s) for viewing';
 end
 [fileName, filePath] = uigetfile(fullfile(handles.data.settings.detectionfolder,'*.mat'),prompt,'MultiSelect', 'on');
-if isnumeric(fileName); ClusteringData = {}; return;end
+if isnumeric(fileName); ClusteringData = {}; return; end
 
 % If one file is selected, turn it into a cell
 fileName = cellstr(fileName);
@@ -48,9 +48,18 @@ Calls = [];
 spect = [];
 perFileCallID = [];
 for j = 1:length(fileName)
+    if strcmp(char(handles.current_detection_file),fileName{j})
+        uiwait(warndlg('It looks like you might be using the same Detections file that is loaded in the main GUI.  Make sure you have saved any changes (e.g., spectrogram settings) in that main window before proceeding.  Changes are NOT saved automatically.', ...
+            'WARNING','modal'));
+    end
     [Calls_tmp, ~, spect, ~, loaded_ClusteringData] = loadCallfile(fullfile(filePath,fileName{j}),handles,false);
     % If the files is extracted contours, rather than a detection file
     if ~isempty(loaded_ClusteringData)
+        % Back-compatible load
+        if ~ismember('xFreqAuto',loaded_ClusteringData.Properties.VariableNames)
+            loaded_ClusteringData.xFreqAuto = loaded_ClusteringData.xFreq;
+            loaded_ClusteringData.xTimeAuto = loaded_ClusteringData.xTime;
+        end
         ClusteringData = [ClusteringData; table2cell(loaded_ClusteringData)];
         continue
     else
@@ -140,6 +149,10 @@ for i = 1:height(Calls)
     else
         stats.DeltaTime = box(3);
     end
+    % Preserve automatic contours (xFreq and xTime could be manipulated
+    % later with contour tracing tool)
+    xFreqAuto = xFreq;
+    xTimeAuto = xTime;
     
     ClusteringData = [ClusteringData
         [{uint8(im .* 256)} % Image
@@ -158,12 +171,14 @@ for i = 1:height(Calls)
         {Calls.Type(i)}
         {Calls.CallID(i)}
         {Calls.ClustCat(i)}
+        {xFreqAuto}
+        {xTimeAuto}
         ]'];
     
     clustAssign = [clustAssign; Calls.Type(i)];
 end
 
-ClusteringData = cell2table(ClusteringData(:,1:16), 'VariableNames', {'Spectrogram', 'Box', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign'});
+ClusteringData = cell2table(ClusteringData(:,1:18), 'VariableNames', {'Spectrogram', 'Box', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign','xFreqAuto','xTimeAuto'});
 
 close(h)
 

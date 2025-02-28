@@ -1,6 +1,9 @@
 function PerfMetrics(handles,hObject)
 % Select Det File for testing network
 [detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder);
+if detfile==0 && detpath==0
+    return
+end
 PathToDet = fullfile(detpath,detfile);
 [CallsAnn, allAudio, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
 

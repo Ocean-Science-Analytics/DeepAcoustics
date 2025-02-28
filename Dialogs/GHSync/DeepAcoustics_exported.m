@@ -41,6 +41,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuRemoveRejects           matlab.ui.container.Menu
         menuSetStaticBoxHeight      matlab.ui.container.Menu
         menuPerfMet                 matlab.ui.container.Menu
+        menuContTrace               matlab.ui.container.Menu
         DenoiseMenu                 matlab.ui.container.Menu
         menuHelp                    matlab.ui.container.Menu
         menuAbout                   matlab.ui.container.Menu
@@ -69,6 +70,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         dropdownNeuralNet           matlab.ui.control.DropDown
         textAudioFiles              matlab.ui.control.Label
         dropdownAudioFiles          matlab.ui.control.DropDown
+        buttonSave                  matlab.ui.control.Button
         textDetectLoadRecord        matlab.ui.control.Label
         buttonDetectCalls           matlab.ui.control.Button
         buttonLoadDets              matlab.ui.control.Button
@@ -78,6 +80,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         buttonAcceptCall            matlab.ui.control.Button
         buttonRejectCall            matlab.ui.control.Button
         buttonDraw                  matlab.ui.control.Button
+        buttonDrawLabel             matlab.ui.control.Button
+        textDrawType                matlab.ui.control.Label
         buttonPlayCall              matlab.ui.control.Button
         textNavigation              matlab.ui.control.Label
         buttonBackALot              matlab.ui.control.Button
@@ -115,6 +119,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         appDisplay % Display Settings Dialog
         appUnsupClustSave % Save Dialog for Unsupervised Clustering Runs
         appClustering % Clustering Dialog
+        appContTrace % Contour Tracing Dialog
         appTrainImg % Training Image Settings Dialog
     end
     
@@ -173,6 +178,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function RunClusteringDlg(app,clustAssign,ClusteringData)
             app.appClustering = ClusteringDlg(app,clustAssign,ClusteringData);
             waitfor(app.appClustering);
+        end
+        
+        function RunContTraceDlg(app,ClusteringData,spect,EntThresh,AmpThresh)
+            app.appContTrace = ContTraceDlg(app,ClusteringData,spect,EntThresh,AmpThresh);
+            %waitfor(app.appContTrace);
         end
 
         function RunTrainImgDlg(app,spect,metadata)
@@ -486,7 +496,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 case 'r'
                     RejectCall(hObject, eventdata, handles);
                 case 'd'
-                    DrawBox(hObject, eventdata, handles);
+                    DrawBox(hObject, eventdata, handles, app);
                 case 127 % Delete key
                     handles.data.calls(handles.data.currentcall,:) = [];
                     SetFocusCall(hObject, handles, handles.data.currentcall-1)
@@ -538,7 +548,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             LoadCalls(hObject, eventdata, handles)
         end
 
-        % Menu selected function: menuSaveSess
+        % Callback function: buttonSave, menuSaveSess
         function menuSaveSess_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             SaveSession(hObject, eventdata, handles);
@@ -649,8 +659,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Menu selected function: menuViewClust
         function menuViewClust_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            ViewClusters(hObject, eventdata, handles);
+            ViewClusters(app,event);
         end
 
         % Menu selected function: menuSyntaxAnalysis
@@ -799,7 +808,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function buttonDraw_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            DrawBox(hObject, eventdata, handles);
+            DrawBox(hObject, eventdata, handles, app);
         end
 
         % Button pushed function: buttonPlayCall
@@ -911,6 +920,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             delete(app.appDisplay)
             delete(app.appUnsupClustSave)
             delete(app.appClustering)
+            delete(app.appContTrace)
             delete(app.appTrainImg)
             delete(app)
         end
@@ -1002,6 +1012,39 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             Denoise(handles);
             update_fig(hObject, handles,true);
+        end
+
+        % Menu selected function: menuContTrace
+        function menuContTrace_Callback(app, event)
+            % Create GUIDE-style callback args - Added by Migration Tool
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            [ClusteringData, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', true);
+            if isempty(ClusteringData); return; end
+
+            app.RunContTraceDlg(ClusteringData,spect,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
+        end
+
+        % Button pushed function: buttonDrawLabel
+        function buttonDrawLabel_Callback(app, event)
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            if ~isempty(handles.data.calls)
+                list = [cellstr(unique(handles.data.calls.Type));'Add New Call Type'];
+
+                [indx,tf] = listdlg('PromptString',{'Select the call type you will be boxing.',' ',' '},...
+                    'ListString',list,'ListSize',[200,300],'SelectionMode','single');
+                if tf
+                    if indx == length(list)
+                        prompt = {'Enter call type:'};
+                        definput = {''};
+                        dlg_title = 'Set Custom Label';
+                        num_lines=[1,60]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='none';
+                        new_label = inputdlg(prompt,dlg_title,num_lines,definput,options);
+                        app.textDrawType.Text = new_label{1};
+                    else
+                        app.textDrawType.Text = list{indx};
+                    end
+                end
+            end
         end
     end
 
@@ -1244,6 +1287,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuPerfMet.Text = 'Performance Metrics';
             app.menuPerfMet.Tag = 'PerfMet';
 
+            % Create menuContTrace
+            app.menuContTrace = uimenu(app.menuTools);
+            app.menuContTrace.MenuSelectedFcn = createCallbackFcn(app, @menuContTrace_Callback, true);
+            app.menuContTrace.Text = 'Contour Tracing';
+
             % Create DenoiseMenu
             app.DenoiseMenu = uimenu(app.menuTools);
             app.DenoiseMenu.MenuSelectedFcn = createCallbackFcn(app, @menuDenoise_Callback, true);
@@ -1333,7 +1381,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonLowCLimPlus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.buttonLowCLimPlus.FontSize = 10.6666666666667;
             app.buttonLowCLimPlus.FontColor = [1 1 1];
-            app.buttonLowCLimPlus.Position = [1371 17 30 22];
+            app.buttonLowCLimPlus.Position = [1371 15 30 22];
             app.buttonLowCLimPlus.Text = '+';
 
             % Create buttonLowCLimMinus
@@ -1343,7 +1391,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonLowCLimMinus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.buttonLowCLimMinus.FontSize = 10.6666666666667;
             app.buttonLowCLimMinus.FontColor = [1 1 1];
-            app.buttonLowCLimMinus.Position = [1336 17 30 22];
+            app.buttonLowCLimMinus.Position = [1336 15 30 22];
             app.buttonLowCLimMinus.Text = '-';
 
             % Create textLowCLim
@@ -1356,7 +1404,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textLowCLim.FontSize = 13.3333333333333;
             app.textLowCLim.FontWeight = 'bold';
             app.textLowCLim.FontColor = [1 1 1];
-            app.textLowCLim.Position = [1215 18 106 18];
+            app.textLowCLim.Position = [1215 16 106 18];
             app.textLowCLim.Text = 'Low Color Limit';
 
             % Create buttonHighCLimPlus
@@ -1366,7 +1414,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonHighCLimPlus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.buttonHighCLimPlus.FontSize = 10.6666666666667;
             app.buttonHighCLimPlus.FontColor = [1 1 1];
-            app.buttonHighCLimPlus.Position = [1371 42 30 22];
+            app.buttonHighCLimPlus.Position = [1371 40 30 22];
             app.buttonHighCLimPlus.Text = '+';
 
             % Create buttonHighCLimMinus
@@ -1376,7 +1424,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonHighCLimMinus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.buttonHighCLimMinus.FontSize = 10.6666666666667;
             app.buttonHighCLimMinus.FontColor = [1 1 1];
-            app.buttonHighCLimMinus.Position = [1336 42 30 22];
+            app.buttonHighCLimMinus.Position = [1336 40 30 22];
             app.buttonHighCLimMinus.Text = '-';
 
             % Create textHighCLim
@@ -1389,7 +1437,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textHighCLim.FontSize = 13.3333333333333;
             app.textHighCLim.FontWeight = 'bold';
             app.textHighCLim.FontColor = [1 1 1];
-            app.textHighCLim.Position = [1215 43 108 18];
+            app.textHighCLim.Position = [1215 41 108 18];
             app.textHighCLim.Text = 'High Color Limit';
 
             % Create buttonInvertCmap
@@ -1401,7 +1449,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonInvertCmap.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.buttonInvertCmap.FontSize = 10.6666666666667;
             app.buttonInvertCmap.FontColor = [1 1 1];
-            app.buttonInvertCmap.Position = [1380 72 31 23];
+            app.buttonInvertCmap.Position = [1380 70 31 23];
             app.buttonInvertCmap.Text = '';
 
             % Create dropdownColorMap
@@ -1413,7 +1461,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.dropdownColorMap.FontWeight = 'bold';
             app.dropdownColorMap.FontColor = [1 1 1];
             app.dropdownColorMap.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownColorMap.Position = [1250 70 124 24];
+            app.dropdownColorMap.Position = [1250 68 124 24];
             app.dropdownColorMap.Value = 'inferno';
 
             % Create textColorMap
@@ -1425,7 +1473,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textColorMap.FontSize = 13.3333333333333;
             app.textColorMap.FontWeight = 'bold';
             app.textColorMap.FontColor = [1 1 1];
-            app.textColorMap.Position = [1250 94 124 18];
+            app.textColorMap.Position = [1250 92 124 18];
             app.textColorMap.Text = 'Color Map';
 
             % Create buttonDisplaySettings
@@ -1435,7 +1483,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonDisplaySettings.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
             app.buttonDisplaySettings.FontSize = 10.6666666666667;
             app.buttonDisplaySettings.FontColor = [1 1 1];
-            app.buttonDisplaySettings.Position = [1129 72 99 22];
+            app.buttonDisplaySettings.Position = [1129 70 99 22];
             app.buttonDisplaySettings.Text = 'Display Settings';
 
             % Create textScale
@@ -1447,7 +1495,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textScale.FontSize = 13.3333333333333;
             app.textScale.FontWeight = 'bold';
             app.textScale.FontColor = [1 1 1];
-            app.textScale.Position = [1131 94 74 18];
+            app.textScale.Position = [1131 92 74 18];
             app.textScale.Text = 'Scale';
 
             % Create dropdownPage
@@ -1458,7 +1506,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.dropdownPage.FontSize = 10.6666666666667;
             app.dropdownPage.FontColor = [1 1 1];
             app.dropdownPage.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownPage.Position = [1049 72 70 22];
+            app.dropdownPage.Position = [1049 70 70 22];
             app.dropdownPage.Value = '2s';
 
             % Create textPage
@@ -1470,7 +1518,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textPage.FontSize = 13.3333333333333;
             app.textPage.FontWeight = 'bold';
             app.textPage.FontColor = [1 1 1];
-            app.textPage.Position = [1049 94 70 18];
+            app.textPage.Position = [1049 92 70 18];
             app.textPage.Text = 'Page';
 
             % Create dropdownFocus
@@ -1481,7 +1529,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.dropdownFocus.FontSize = 10.6666666666667;
             app.dropdownFocus.FontColor = [1 1 1];
             app.dropdownFocus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownFocus.Position = [962 72 73 22];
+            app.dropdownFocus.Position = [962 70 73 22];
             app.dropdownFocus.Value = '0.5s';
 
             % Create textFocus
@@ -1493,19 +1541,17 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textFocus.FontSize = 13.3333333333333;
             app.textFocus.FontWeight = 'bold';
             app.textFocus.FontColor = [1 1 1];
-            app.textFocus.Position = [962 94 73 18];
+            app.textFocus.Position = [962 92 73 18];
             app.textFocus.Text = 'Focus';
 
             % Create textSettings
             app.textSettings = uilabel(app.mainfigure);
             app.textSettings.Tag = 'text31';
             app.textSettings.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textSettings.VerticalAlignment = 'top';
             app.textSettings.WordWrap = 'on';
-            app.textSettings.FontSize = 13.3333333333333;
             app.textSettings.FontWeight = 'bold';
             app.textSettings.FontColor = [1 1 1];
-            app.textSettings.Position = [962 116 412 18];
+            app.textSettings.Position = [962 111 412 22];
             app.textSettings.Text = 'Settings ----------------------------------------------------------------------------------------';
 
             % Create buttonFwdALot
@@ -1517,7 +1563,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonFwdALot.FontWeight = 'bold';
             app.buttonFwdALot.FontColor = [1 1 1];
             app.buttonFwdALot.Tooltip = 'Next Page';
-            app.buttonFwdALot.Position = [910 88 40 24];
+            app.buttonFwdALot.Position = [910 86 40 24];
             app.buttonFwdALot.Text = '>>>';
 
             % Create buttonFwdABit
@@ -1529,7 +1575,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonFwdABit.FontWeight = 'bold';
             app.buttonFwdABit.FontColor = [1 1 1];
             app.buttonFwdABit.Tooltip = 'Next Window';
-            app.buttonFwdABit.Position = [875 88 31 24];
+            app.buttonFwdABit.Position = [875 86 31 24];
             app.buttonFwdABit.Text = '>>';
 
             % Create buttonNextCall
@@ -1541,7 +1587,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonNextCall.FontWeight = 'bold';
             app.buttonNextCall.FontColor = [1 1 1];
             app.buttonNextCall.Tooltip = 'Next Call';
-            app.buttonNextCall.Position = [838 88 33.0000000000001 24];
+            app.buttonNextCall.Position = [838 86 33.0000000000001 24];
             app.buttonNextCall.Text = '>';
 
             % Create buttonPrevCall
@@ -1553,7 +1599,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonPrevCall.FontWeight = 'bold';
             app.buttonPrevCall.FontColor = [1 1 1];
             app.buttonPrevCall.Tooltip = 'Previous Call';
-            app.buttonPrevCall.Position = [795 88 31 24];
+            app.buttonPrevCall.Position = [795 86 31 24];
             app.buttonPrevCall.Text = '<';
 
             % Create buttonBackABit
@@ -1565,7 +1611,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonBackABit.FontWeight = 'bold';
             app.buttonBackABit.FontColor = [1 1 1];
             app.buttonBackABit.Tooltip = 'Previous Window';
-            app.buttonBackABit.Position = [754 88 37.0000000000001 24];
+            app.buttonBackABit.Position = [754 86 37.0000000000001 24];
             app.buttonBackABit.Text = '<<';
 
             % Create buttonBackALot
@@ -1577,19 +1623,17 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonBackALot.FontWeight = 'bold';
             app.buttonBackALot.FontColor = [1 1 1];
             app.buttonBackALot.Tooltip = 'Previous Page';
-            app.buttonBackALot.Position = [711 88 40 24];
+            app.buttonBackALot.Position = [711 86 40 24];
             app.buttonBackALot.Text = '<<<';
 
             % Create textNavigation
             app.textNavigation = uilabel(app.mainfigure);
             app.textNavigation.Tag = 'text30';
             app.textNavigation.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textNavigation.VerticalAlignment = 'top';
             app.textNavigation.WordWrap = 'on';
-            app.textNavigation.FontSize = 13.3333333333333;
             app.textNavigation.FontWeight = 'bold';
             app.textNavigation.FontColor = [1 1 1];
-            app.textNavigation.Position = [711 115 239 18];
+            app.textNavigation.Position = [711 111 239 22];
             app.textNavigation.Text = 'Navigation -----------------------------------------';
 
             % Create buttonPlayCall
@@ -1599,8 +1643,24 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonPlayCall.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
             app.buttonPlayCall.FontWeight = 'bold';
             app.buttonPlayCall.FontColor = [1 1 1];
-            app.buttonPlayCall.Position = [599 56 90 24];
+            app.buttonPlayCall.Position = [603 54 90 24];
             app.buttonPlayCall.Text = 'Play Call (p)';
+
+            % Create textDrawType
+            app.textDrawType = uilabel(app.mainfigure);
+            app.textDrawType.FontColor = [1 1 1];
+            app.textDrawType.Position = [603 23 152 22];
+            app.textDrawType.Text = 'Call';
+
+            % Create buttonDrawLabel
+            app.buttonDrawLabel = uibutton(app.mainfigure, 'push');
+            app.buttonDrawLabel.ButtonPushedFcn = createCallbackFcn(app, @buttonDrawLabel_Callback, true);
+            app.buttonDrawLabel.Tag = 'rectangle';
+            app.buttonDrawLabel.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
+            app.buttonDrawLabel.FontWeight = 'bold';
+            app.buttonDrawLabel.FontColor = [1 1 1];
+            app.buttonDrawLabel.Position = [499 22 94 24];
+            app.buttonDrawLabel.Text = 'Draw Label:';
 
             % Create buttonDraw
             app.buttonDraw = uibutton(app.mainfigure, 'push');
@@ -1609,7 +1669,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonDraw.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
             app.buttonDraw.FontWeight = 'bold';
             app.buttonDraw.FontColor = [1 1 1];
-            app.buttonDraw.Position = [495 56 94 24];
+            app.buttonDraw.Position = [499 54 94 24];
             app.buttonDraw.Text = 'Draw (d)';
 
             % Create buttonRejectCall
@@ -1619,7 +1679,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonRejectCall.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
             app.buttonRejectCall.FontWeight = 'bold';
             app.buttonRejectCall.FontColor = [1 1 1];
-            app.buttonRejectCall.Position = [599 88 89 24];
+            app.buttonRejectCall.Position = [603 86 89 24];
             app.buttonRejectCall.Text = 'Reject Call (r)';
 
             % Create buttonAcceptCall
@@ -1631,20 +1691,18 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonAcceptCall.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
             app.buttonAcceptCall.FontWeight = 'bold';
             app.buttonAcceptCall.FontColor = [1 1 1];
-            app.buttonAcceptCall.Position = [495 88 94 24];
+            app.buttonAcceptCall.Position = [499 86 94 24];
             app.buttonAcceptCall.Text = 'Accept Call (a)';
 
             % Create textDetReview
             app.textDetReview = uilabel(app.mainfigure);
             app.textDetReview.Tag = 'text18';
             app.textDetReview.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textDetReview.VerticalAlignment = 'top';
             app.textDetReview.WordWrap = 'on';
-            app.textDetReview.FontSize = 13.3333333333333;
             app.textDetReview.FontWeight = 'bold';
             app.textDetReview.FontColor = [1 1 1];
-            app.textDetReview.Position = [495 112 196 22];
-            app.textDetReview.Text = 'Annotation & Detection ---------';
+            app.textDetReview.Position = [499 111 196 22];
+            app.textDetReview.Text = 'Annotation & Detection -------------';
 
             % Create buttonRecordAudio
             app.buttonRecordAudio = uibutton(app.mainfigure, 'state');
@@ -1663,7 +1721,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonLoadAudio.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
             app.buttonLoadAudio.FontWeight = 'bold';
             app.buttonLoadAudio.FontColor = [1 1 1];
-            app.buttonLoadAudio.Position = [377 56 108 24];
+            app.buttonLoadAudio.Position = [377 55 108 24];
             app.buttonLoadAudio.Text = 'Load Audio';
 
             % Create buttonLoadDets
@@ -1673,7 +1731,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonLoadDets.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
             app.buttonLoadDets.FontWeight = 'bold';
             app.buttonLoadDets.FontColor = [1 1 1];
-            app.buttonLoadDets.Position = [262 56 108 24];
+            app.buttonLoadDets.Position = [262 55 108 24];
             app.buttonLoadDets.Text = 'Load Detections';
 
             % Create buttonDetectCalls
@@ -1690,13 +1748,21 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textDetectLoadRecord = uilabel(app.mainfigure);
             app.textDetectLoadRecord.Tag = 'text29';
             app.textDetectLoadRecord.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textDetectLoadRecord.VerticalAlignment = 'top';
             app.textDetectLoadRecord.WordWrap = 'on';
-            app.textDetectLoadRecord.FontSize = 13.3333333333333;
             app.textDetectLoadRecord.FontWeight = 'bold';
             app.textDetectLoadRecord.FontColor = [1 1 1];
-            app.textDetectLoadRecord.Position = [265 115 218 18];
-            app.textDetectLoadRecord.Text = {'Detect, Load, & Record -------'; '________________________________________'};
+            app.textDetectLoadRecord.Position = [265 111 218 22];
+            app.textDetectLoadRecord.Text = 'Detect, Load, & Record -------------------';
+
+            % Create buttonSave
+            app.buttonSave = uibutton(app.mainfigure, 'push');
+            app.buttonSave.ButtonPushedFcn = createCallbackFcn(app, @menuSaveSess_Callback, true);
+            app.buttonSave.BackgroundColor = [0.0745 0.6235 1];
+            app.buttonSave.FontSize = 14;
+            app.buttonSave.FontWeight = 'bold';
+            app.buttonSave.FontColor = [1 1 1];
+            app.buttonSave.Position = [33 20 192 36];
+            app.buttonSave.Text = 'Save Session';
 
             % Create dropdownAudioFiles
             app.dropdownAudioFiles = uidropdown(app.mainfigure);
@@ -1776,7 +1842,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonNextFile.FontWeight = 'bold';
             app.buttonNextFile.FontColor = [1 1 1];
             app.buttonNextFile.Tooltip = 'Next File';
-            app.buttonNextFile.Position = [838 57 33.0000000000001 24];
+            app.buttonNextFile.Position = [838 55 33.0000000000001 24];
             app.buttonNextFile.Text = '>|';
 
             % Create buttonPrevFile
@@ -1788,7 +1854,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonPrevFile.FontWeight = 'bold';
             app.buttonPrevFile.FontColor = [1 1 1];
             app.buttonPrevFile.Tooltip = 'Prev File';
-            app.buttonPrevFile.Position = [795 57 33.0000000000001 24];
+            app.buttonPrevFile.Position = [794 55 33.0000000000001 24];
             app.buttonPrevFile.Text = '|<';
 
             % Create textContour
