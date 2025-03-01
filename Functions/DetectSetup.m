@@ -1,5 +1,5 @@
 % --- Method for detecting all calls in (an) audio file(s)
-function NeuralNetwork = DetectSetup(hObject,eventdata,handles) 
+function NeuralNetwork = DetectSetup(hObject,~,handles) 
 
 if isempty(handles.networkfiles)
     errordlg('No Network Selected')
@@ -28,23 +28,12 @@ def = handles.data.settings.detectionSettings;
 def(2) = sprintfc('%g',str2double(def{2})*1000);
 def(3) = sprintfc('%g',str2double(def{3})*1000);
 
-% If RT, don't need analysis length
-% if bRT
-%     prompt = prompt(2:end);
-%     def = def(2:end);
-% end
-
 % Execute prompt
 Settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
 
 if isempty(Settings) % Stop if user presses cancel
     return
 end
-
-% if bRT
-%     Settings(2:5) = Settings(1:4);
-%     Settings(1) = 0;
-% end
 
 % Convert freq inputs to kHz
 Settings(2:3) = Settings(2:3)/1000;

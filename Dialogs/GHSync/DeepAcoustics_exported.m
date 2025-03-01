@@ -152,6 +152,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         strSaveDetsFile     % Save filename for audio file for recording
         RecOptsRecLgth      % Recording length (0 = continuous)
         RecOptsSR           % Sampling Rate of recording (Hz)
+        RecOptsMicroph      % Microphone device
         RecOptsNN           % Full path to RT neural network
         RecOptsDetStgs      % Detection settings
         RecOptsOK           % OK or Cancel

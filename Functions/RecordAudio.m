@@ -36,15 +36,8 @@ if eventdata.Source.Value==1
 
     app.RunRecordOptsDlg(handles.data.settings.detectionfolder,handles.data.settings.detectionSettings);
 
-    % prompt = {'Recording Length (Seconds; 0 = Continuous)','Sample Rate (Hz)','Filename'};
-    % dlg_title = 'Recording Settings (Uses Default Microphone)';
-    % num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
-    % detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
-    % def = {'0','44100',strcat(detectiontime,' -Live')};
-    % recSettings=inputdlg(prompt,dlg_title,num_lines,def,options);
-    % if ~isempty(recSettings)
     if app.RecOptsOK
-        deviceReader = audioDeviceReader(app.RecOptsSR);
+        deviceReader = audioDeviceReader(app.RecOptsSR,'Device',app.RecOptsMicroph);
         %rate = deviceReader.SampleRate;
         if app.RecOptsRecLgth <= 0
             recTime = inf;
@@ -53,12 +46,6 @@ if eventdata.Source.Value==1
         end
 
         % Detect Calls in RT recording?
-        % answer = questdlg('Would you like to load a network to detect calls during this recording?', ...
-	    %     'Detect Calls', ...
-	    %     'Yes','No','Yes');
-        % % Handle response
-        % switch answer
-        %     case 'Yes'
         if ~strcmp(app.RecOptsNN,'')
             bDet = true;
 
@@ -74,10 +61,6 @@ if eventdata.Source.Value==1
             [~,NeuralNetwork.netfile,~] = fileparts(app.RecOptsNN);
             NeuralNetwork.netfile = [NeuralNetwork.netfile, '.mat'];
             close(h);
-
-                % %NeuralNetwork = DetectSetup(hObject,eventdata,handles,true);
-                % NeuralNetwork = DetectSetup(app,event,true);
-                % handles = guidata(hObject);
 
             % Set detection variables
             Settings = str2double(handles.data.settings.detectionSettings);
@@ -113,27 +96,21 @@ if eventdata.Source.Value==1
             % Set audio read length to image length for network
             readLen = NeuralNetwork.imLength*deviceReader.SampleRate;
             detBuff = zeros(1,readLen);
-
-                % Output path same as detection output folder
-                %pathout = handles.data.settings.detectionfolder;
-            %case 'No'
         else
             bDet = false;
             NeuralNetwork = [];
             % Set audio read length to focus window display size
             readLen = handles.data.settings.focus_window_size*deviceReader.SampleRate;
             detBuff = [];
-                % pathout = uigetdir(handles.data.settings.detectionfolder,'Select Output Folder');
-                % if isnumeric(pathout);return;end
         end
         
         % lenmove = 20% of buffer (image length)
         lenmove = readLen-floor(readLen*0.8);
 
         % Setup output file
-        %audioffn = fullfile(pathout,[recSettings{3} '.flac']);
         audioffn = app.strSaveAudFile;
-        %audioffn = 'C:\Users\Alongi\OneDrive\Documents\Professional\Organizations\OSA\Projects\240906_RecordTest\WTFF.FLAC';
+        % GA Note: Filename extension MUST be lowercase or Matlab throws a
+        % huge fit - very stupid
         fileWriter = dsp.AudioFileWriter('SampleRate',deviceReader.SampleRate,'Filename',audioffn,'FileFormat',audioffn(strfind(audioffn,'.')+1:end));
 
         loop=1;
@@ -144,7 +121,7 @@ if eventdata.Source.Value==1
             focusSig = zeros(readLen,1);
             fSind = 1;
             release(deviceReader);
-            deviceReader = audioDeviceReader(app.RecOptsSR);
+            deviceReader = audioDeviceReader(app.RecOptsSR,'Device',app.RecOptsMicroph);
             deviceReader.SamplesPerFrame = 1024;
 
             setup(deviceReader);
@@ -154,7 +131,7 @@ if eventdata.Source.Value==1
                 fEind = min(fSind+1024-1,length(focusSig));
                 if deviceReader.SamplesPerFrame ~= fEind-fSind+1
                     release(deviceReader);
-                    deviceReader = audioDeviceReader(app.RecOptsSR);
+                    deviceReader = audioDeviceReader(app.RecOptsSR,'Device',app.RecOptsMicroph);
                     deviceReader.SamplesPerFrame = fEind-fSind+1;
                 end
                 [focusSig(fSind:fEind),noverrun] = deviceReader();
@@ -302,7 +279,7 @@ if eventdata.Source.Value==1
                     'networkselection', {NeuralNetwork.netfile});
                 spect = handles.data.settings.spect;
                 allAudio = audioinfo(audioffn);
-                save(strSaveDetsFile,'Calls','allAudio','detection_metadata','spect','-v7.3','-mat');
+                save(app.strSaveDetsFile,'Calls','allAudio','detection_metadata','spect','-v7.3','-mat');
             end
             % Check to save new det file
             %CheckModified(hObject,eventdata,handles);
