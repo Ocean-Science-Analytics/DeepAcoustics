@@ -115,26 +115,27 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
     
     properties (Access = private)
-        appAbout % About DeepAcoustics Dialog
-        appDisplay % Display Settings Dialog
-        appUnsupClustSave % Save Dialog for Unsupervised Clustering Runs
-        appClustering % Clustering Dialog
-        appContTrace % Contour Tracing Dialog
-        appTrainImg % Training Image Settings Dialog
+        appAbout            % About DeepAcoustics Dialog
+        appDisplay          % Display Settings Dialog
+        appUnsupClustSave   % Save Dialog for Unsupervised Clustering Runs
+        appClustering       % Clustering Dialog
+        appContTrace        % Contour Tracing Dialog
+        appTrainImg         % Training Image Settings Dialog
+        appRecordOpts       % Record Options Dialog
     end
     
     properties (Access = public)
-        % Save Dialog variables
-        strUnsupSaveLoc % Save location for Unsupervised Clustering Products
-        bClustImg % Save clustering images
-        bSilh % Save silhouette plot
-        bClosest % Save closest calls image
-        bContours % Save centroid contours image
-        btSNE % Save tSNE image
-        bModel % Save KMeans Model.mat
-        bEEC % Save Expanded Extracted Contours.mat
-        bECOverwrite % Overwrite existing EC.mat
-        bUpdateDets % Update detections.mat with cluster assignments
+        % UnsupClustSaveDlg variables
+        strUnsupSaveLoc     % Save location for Unsupervised Clustering Products
+        bClustImg           % Save clustering images
+        bSilh               % Save silhouette plot
+        bClosest            % Save closest calls image
+        bContours           % Save centroid contours image
+        btSNE               % Save tSNE image
+        bModel              % Save KMeans Model.mat
+        bEEC                % Save Expanded Extracted Contours.mat
+        bECOverwrite        % Overwrite existing EC.mat
+        bUpdateDets         % Update detections.mat with cluster assignments
 
         % Clustering Dialog variables
         rejected
@@ -145,6 +146,15 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         % Training Image Dialog variables
         TrainImgSettings
         TrainImgbCancel
+
+        % Record Options Dialog variables
+        strSaveAudFile      % Save filename for audio file for recording
+        strSaveDetsFile     % Save filename for audio file for recording
+        RecOptsRecLgth      % Recording length (0 = continuous)
+        RecOptsSR           % Sampling Rate of recording (Hz)
+        RecOptsNN           % Full path to RT neural network
+        RecOptsDetStgs      % Detection settings
+        RecOptsOK           % OK or Cancel
     end
     
     methods (Access = public)
@@ -189,6 +199,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.appTrainImg = TrainImgDlg(app,spect,metadata);
             waitfor(app.appTrainImg);
         end
+
+        function RunRecordOptsDlg(app,saveloc,defSettings)
+            app.appRecordOpts = RecordOptsDlg(app, saveloc, defSettings);
+            waitfor(app.appRecordOpts);
+        end
     end
     
 
@@ -206,7 +221,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             % Ensure that the app appears on screen when run
             movegui(app.mainfigure, 'onscreen');
 
-            % Initialize properties
+            % Initialize properties for UnsupClustSaveDlg
             app.strUnsupSaveLoc = ""; % Save location for Unsupervised Clustering Products
             app.bClustImg = false; % Save clustering images
             app.bSilh = false;  % Save silhouette plot
@@ -773,8 +788,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Button pushed function: buttonDetectCalls
         function buttonDetectCalls_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
-            DetectCalls(hObject, eventdata, handles)
+            %[hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
+            DetectCalls(app,event);
         end
 
         % Button pushed function: buttonLoadDets
@@ -922,6 +937,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             delete(app.appClustering)
             delete(app.appContTrace)
             delete(app.appTrainImg)
+            delete(app.appRecordOpts)
             delete(app)
         end
 
@@ -951,8 +967,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Value changed function: buttonRecordAudio
         function buttonRecordAudio_Callback(app, event)
-            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            RecordAudio(hObject, eventdata, handles);
+            RecordAudio(app,event);
         end
 
         % Button pushed function: buttonDisplaySettings

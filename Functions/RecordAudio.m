@@ -1,5 +1,6 @@
 % --- Executes on button press in recordAudio.
-function RecordAudio(hObject, eventdata, ~)
+function RecordAudio(app,event)
+[hObject, eventdata, ~] = convertToGUIDECallbackArguments(app, event);
 % hObject    handle to recordAudio (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 get(hObject,'Value');
@@ -32,85 +33,108 @@ if eventdata.Source.Value==1
     end
     hObject.String='Stop Recording';
     hObject.BackgroundColor=[0.84,0.08,0.18];
-    prompt = {'Recording Length (Seconds; 0 = Continuous)','Sample Rate (Hz)','Filename'};
-    dlg_title = 'Rercording Settings (Uses Default Microphone)';
-    num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
-    detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
-    def = {'0','44100',strcat(detectiontime,' -Live')};
-    recSettings=inputdlg(prompt,dlg_title,num_lines,def,options);
-    if ~isempty(recSettings)
-        deviceReader = audioDeviceReader(str2double(recSettings{2}));
+
+    app.RunRecordOptsDlg(handles.data.settings.detectionfolder,handles.data.settings.detectionSettings);
+
+    % prompt = {'Recording Length (Seconds; 0 = Continuous)','Sample Rate (Hz)','Filename'};
+    % dlg_title = 'Recording Settings (Uses Default Microphone)';
+    % num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
+    % detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
+    % def = {'0','44100',strcat(detectiontime,' -Live')};
+    % recSettings=inputdlg(prompt,dlg_title,num_lines,def,options);
+    % if ~isempty(recSettings)
+    if app.RecOptsOK
+        deviceReader = audioDeviceReader(app.RecOptsSR);
         %rate = deviceReader.SampleRate;
-        if str2double(recSettings{1})<=0
-            recTime=inf;
+        if app.RecOptsRecLgth <= 0
+            recTime = inf;
         else
-            recTime=str2double(recSettings{1});
+            recTime = app.RecOptsRecLgth;
         end
 
         % Detect Calls in RT recording?
-        answer = questdlg('Would you like to load a network to detect calls during this recording?', ...
-	        'Detect Calls', ...
-	        'Yes','No','Yes');
-        % Handle response
-        switch answer
-            case 'Yes'
-                bDet = true;
-                NeuralNetwork = DetectSetup(hObject,eventdata,handles,true);
-                handles = guidata(hObject);
+        % answer = questdlg('Would you like to load a network to detect calls during this recording?', ...
+	    %     'Detect Calls', ...
+	    %     'Yes','No','Yes');
+        % % Handle response
+        % switch answer
+        %     case 'Yes'
+        if ~strcmp(app.RecOptsNN,'')
+            bDet = true;
 
-                % Set detection variables
-                Settings = str2double(handles.data.settings.detectionSettings);
-                % Switched high- and low-freq cutoff order in dialog, but should be back
-                % compatible
-                % (2) High frequency cutoff (kHz)
-                HighCutoff = max(Settings(2),Settings(3));
-                if deviceReader.SampleRate < (HighCutoff*1000)*2
-                    disp('Warning: Upper frequency is above sampling rate / 2. Lowering it to the Nyquist frequency.');
-                    HighCutoff=floor(deviceReader.SampleRate/2)/1000;
-                end
+            [handles.data.settings.detectionfolder,~,~] = fileparts(app.strSaveDetsFile);
+            handles.data.settings.detectionSettings = app.RecOptsDetStgs;
+            handles.data.saveSettings();
+            update_folders(hObject, handles);
+            handles = guidata(hObject);  % Get newest version of handles
+
+            % Load neural network
+            h = waitbar(0,'Loading neural network...');
+            NeuralNetwork=load(app.RecOptsNN);
+            [~,NeuralNetwork.netfile,~] = fileparts(app.RecOptsNN);
+            NeuralNetwork.netfile = [NeuralNetwork.netfile, '.mat'];
+            close(h);
+
+                % %NeuralNetwork = DetectSetup(hObject,eventdata,handles,true);
+                % NeuralNetwork = DetectSetup(app,event,true);
+                % handles = guidata(hObject);
+
+            % Set detection variables
+            Settings = str2double(handles.data.settings.detectionSettings);
+            % Switched high- and low-freq cutoff order in dialog, but should be back
+            % compatible
+            % (2) High frequency cutoff (kHz)
+            HighCutoff = max(Settings(2),Settings(3));
+            if deviceReader.SampleRate < (HighCutoff*1000)*2
+                disp('Warning: Upper frequency is above sampling rate / 2. Lowering it to the Nyquist frequency.');
+                HighCutoff=floor(deviceReader.SampleRate/2)/1000;
+            end
                 
-                % (3) Low frequency cutoff (kHz)
-                LowCutoff = min(Settings(2),Settings(3));
-                
-                % (4) Score cutoff (kHz) - FOR MERGE BOXES FN
-                score_cutoff=Settings(4);
+            % (3) Low frequency cutoff (kHz)
+            LowCutoff = min(Settings(2),Settings(3));
+            
+            % (4) Score cutoff (kHz) - FOR MERGE BOXES FN
+            score_cutoff=Settings(4);
 
-                DetSpect.wind = NeuralNetwork.wind;
-                DetSpect.noverlap = NeuralNetwork.noverlap;
-                DetSpect.nfft = NeuralNetwork.nfft;
-                
-                % Adjust settings, so spectrograms are the same for different sample rates
-                wind = round(DetSpect.wind * deviceReader.SampleRate);
-                noverlap = round(DetSpect.noverlap * deviceReader.SampleRate);
-                nfft = round(DetSpect.nfft * deviceReader.SampleRate);
+            DetSpect.wind = NeuralNetwork.wind;
+            DetSpect.noverlap = NeuralNetwork.noverlap;
+            DetSpect.nfft = NeuralNetwork.nfft;
+            
+            % Adjust settings, so spectrograms are the same for different sample rates
+            wind = round(DetSpect.wind * deviceReader.SampleRate);
+            noverlap = round(DetSpect.noverlap * deviceReader.SampleRate);
+            nfft = round(DetSpect.nfft * deviceReader.SampleRate);
 
-                % Initialize variables
-                AllBoxes=[];
-                AllScores=[];
-                AllClass=[];
+            % Initialize variables
+            AllBoxes=[];
+            AllScores=[];
+            AllClass=[];
 
-                % Set audio read length to image length for network
-                readLen = NeuralNetwork.imLength*deviceReader.SampleRate;
-                detBuff = zeros(1,readLen);
+            % Set audio read length to image length for network
+            readLen = NeuralNetwork.imLength*deviceReader.SampleRate;
+            detBuff = zeros(1,readLen);
 
                 % Output path same as detection output folder
-                pathout = handles.data.settings.detectionfolder;
-            case 'No'
-                bDet = false;
-                NeuralNetwork = [];
-                % Set audio read length to focus window display size
-                readLen = handles.data.settings.focus_window_size*deviceReader.SampleRate;
-                detBuff = [];
-                pathout = uigetdir(handles.data.settings.detectionfolder,'Select Output Folder');
-                if isnumeric(pathout);return;end
+                %pathout = handles.data.settings.detectionfolder;
+            %case 'No'
+        else
+            bDet = false;
+            NeuralNetwork = [];
+            % Set audio read length to focus window display size
+            readLen = handles.data.settings.focus_window_size*deviceReader.SampleRate;
+            detBuff = [];
+                % pathout = uigetdir(handles.data.settings.detectionfolder,'Select Output Folder');
+                % if isnumeric(pathout);return;end
         end
         
         % lenmove = 20% of buffer (image length)
         lenmove = readLen-floor(readLen*0.8);
 
         % Setup output file
-        audioffn = fullfile(pathout,[recSettings{3} '.flac']);
-        fileWriter = dsp.AudioFileWriter('SampleRate',deviceReader.SampleRate,'Filename',audioffn,'FileFormat','FLAC');
+        %audioffn = fullfile(pathout,[recSettings{3} '.flac']);
+        audioffn = app.strSaveAudFile;
+        %audioffn = 'C:\Users\Alongi\OneDrive\Documents\Professional\Organizations\OSA\Projects\240906_RecordTest\WTFF.FLAC';
+        fileWriter = dsp.AudioFileWriter('SampleRate',deviceReader.SampleRate,'Filename',audioffn,'FileFormat',audioffn(strfind(audioffn,'.')+1:end));
 
         loop=1;
         audDur = 0;
@@ -120,7 +144,7 @@ if eventdata.Source.Value==1
             focusSig = zeros(readLen,1);
             fSind = 1;
             release(deviceReader);
-            deviceReader = audioDeviceReader(str2double(recSettings{2}));
+            deviceReader = audioDeviceReader(app.RecOptsSR);
             deviceReader.SamplesPerFrame = 1024;
 
             setup(deviceReader);
@@ -130,7 +154,7 @@ if eventdata.Source.Value==1
                 fEind = min(fSind+1024-1,length(focusSig));
                 if deviceReader.SamplesPerFrame ~= fEind-fSind+1
                     release(deviceReader);
-                    deviceReader = audioDeviceReader(str2double(recSettings{2}));
+                    deviceReader = audioDeviceReader(app.RecOptsSR);
                     deviceReader.SamplesPerFrame = fEind-fSind+1;
                 end
                 [focusSig(fSind:fEind),noverrun] = deviceReader();
@@ -271,11 +295,22 @@ if eventdata.Source.Value==1
         %drawnow nocallbacks;
 
         if bDet
+            if ~isempty(Calls)
+                detection_metadata = struct(...
+                    'Settings', Settings,...
+                    'detectiontime', datestr(datetime('now'),'yyyy-mm-dd HH_MM PM'),...
+                    'networkselection', {NeuralNetwork.netfile});
+                spect = handles.data.settings.spect;
+                allAudio = audioinfo(audioffn);
+                save(strSaveDetsFile,'Calls','allAudio','detection_metadata','spect','-v7.3','-mat');
+            end
             % Check to save new det file
-            CheckModified(hObject,eventdata,handles);
+            %CheckModified(hObject,eventdata,handles);
             % Update handles with changes in CheckModified
             handles = guidata(hObject);
         end
+    else
+        msgbox('Problem setting Record Options')
     end
 end
 

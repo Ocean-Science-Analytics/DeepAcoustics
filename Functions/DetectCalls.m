@@ -1,26 +1,27 @@
 % --- Method for detecting all calls in (an) audio file(s)
-function DetectCalls(hObject, eventdata, handles)
+function DetectCalls(app,event)
 
-if nargin < 4
-    bRT = false;
+[hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
+% if nargin < 4
+%     bRT = false;
+% end
+
+%if ~bRT
+if isempty(handles.audiofiles)
+    errordlg('No Audio Selected')
+    return
 end
 
-if ~bRT
-    if isempty(handles.audiofiles)
-        errordlg('No Audio Selected')
-        return
-    end
-    
-    % Check if pre-existing detection file has changed to save file before loading a new one.
-    CheckModified(hObject, eventdata, handles);
+% Check if pre-existing detection file has changed to save file before loading a new one.
+CheckModified(hObject, eventdata, handles);
 
-    audioselections = listdlg('PromptString','Select Audio Files:','ListSize',[500 300],'ListString',handles.audiofilesnames);
-    if isempty(audioselections)
-        return
-    end
+audioselections = listdlg('PromptString','Select Audio Files:','ListSize',[500 300],'ListString',handles.audiofilesnames);
+if isempty(audioselections)
+    return
 end
+%end
 
-NeuralNetwork = DetectSetup(hObject, eventdata, handles, bRT);
+NeuralNetwork = DetectSetup(hObject, eventdata, handles);
 handles = guidata(hObject);  % Get newest version of handles
 
 Settings = str2double(handles.data.settings.detectionSettings);

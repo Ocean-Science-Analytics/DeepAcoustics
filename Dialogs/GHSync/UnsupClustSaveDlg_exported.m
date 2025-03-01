@@ -17,7 +17,6 @@ classdef UnsupClustSaveDlg_exported < matlab.apps.AppBase
         checkboxModel              matlab.ui.control.CheckBox
         labelSelectItemstoSave     matlab.ui.control.Label
         buttonBrowse               matlab.ui.control.Button
-        editfieldSaveLocation      matlab.ui.control.EditField
         panelImages                matlab.ui.container.Panel
         imgtSNE                    matlab.ui.control.Image
         checkboxtSNE               matlab.ui.control.CheckBox
@@ -182,12 +181,6 @@ classdef UnsupClustSaveDlg_exported < matlab.apps.AppBase
             app.imgtSNE = uiimage(app.panelImages);
             app.imgtSNE.Position = [490 34 81 70];
             app.imgtSNE.ImageSource = fullfile(pathToMLAPP, 'UnsupClustSaveDlg', 'Ex_tSNE.png');
-
-            % Create editfieldSaveLocation
-            app.editfieldSaveLocation = uieditfield(app.dlgUnsupClustSave, 'text');
-            app.editfieldSaveLocation.Editable = 'off';
-            app.editfieldSaveLocation.Enable = 'off';
-            app.editfieldSaveLocation.Position = [136 689 365 61];
 
             % Create buttonBrowse
             app.buttonBrowse = uibutton(app.dlgUnsupClustSave, 'push');
