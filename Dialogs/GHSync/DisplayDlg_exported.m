@@ -41,8 +41,8 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
             app.Handles = handles;
 
             % Initialize default values
-            app.editFreqLowLim.Value = app.Handles.data.settings.LowFreq;
-            app.editFreqUppLim.Value = app.Handles.data.settings.HighFreq;
+            app.editFreqLowLim.Value = app.Handles.data.settings.LowFreq*1000;
+            app.editFreqUppLim.Value = app.Handles.data.settings.HighFreq*1000;
             if find(strcmp(app.dropdownSpecCUnits.Items,app.Handles.data.settings.spect.type))
                 app.dropdownSpecCUnits.Value = app.Handles.data.settings.spect.type;
             else
@@ -89,8 +89,8 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
                 warning('Audio not loaded yet - need to know sample rate')
             else
                 % Optimize the window size so that the pixels are square
-                yRange(1) = app.editFreqLowLim.Value;
-                yRange(2) = app.editFreqUppLim.Value;
+                yRange(1) = app.editFreqLowLim.Value/1000;
+                yRange(2) = app.editFreqUppLim.Value/1000;
                 yRange(2) = min(yRange(2), app.Handles.data.audiodata.SampleRate / 2000);
                 yRange = yRange(2) - yRange(1);
                 xRange = app.Handles.focusWindow.XLim(2) - app.Handles.focusWindow.XLim(1);
@@ -145,8 +145,8 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
                     app.Handles.data.settings.spect.windowsizesmp = 0;
                     app.Handles.data.settings.spect.nfftsmp = 0;
             end
-            app.Handles.data.settings.LowFreq = app.editFreqLowLim.Value;
-            app.Handles.data.settings.HighFreq = app.editFreqUppLim.Value;
+            app.Handles.data.settings.LowFreq = app.editFreqLowLim.Value/1000;
+            app.Handles.data.settings.HighFreq = app.editFreqUppLim.Value/1000;
             app.Handles.data.settings.spect.type = app.dropdownSpecCUnits.Value;
             app.Handles.data.settings.spect.noverlap = app.editOverlap.Value * app.editWinSize.Value / 100;
             
@@ -202,7 +202,7 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
             app.labelFreqLowLim = uilabel(app.dlgDisplay);
             app.labelFreqLowLim.HorizontalAlignment = 'right';
             app.labelFreqLowLim.Position = [53 444 169 22];
-            app.labelFreqLowLim.Text = 'Frequency Lower Limit (kHz):';
+            app.labelFreqLowLim.Text = 'Frequency Lower Limit (Hz):';
 
             % Create editFreqLowLim
             app.editFreqLowLim = uieditfield(app.dlgDisplay, 'numeric');
@@ -212,7 +212,7 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
             app.labelFreqUppLim = uilabel(app.dlgDisplay);
             app.labelFreqUppLim.HorizontalAlignment = 'right';
             app.labelFreqUppLim.Position = [53 410 169 22];
-            app.labelFreqUppLim.Text = 'Frequency Upper Limit (kHz):';
+            app.labelFreqUppLim.Text = 'Frequency Upper Limit (Hz):';
 
             % Create editFreqUppLim
             app.editFreqUppLim = uieditfield(app.dlgDisplay, 'numeric');
