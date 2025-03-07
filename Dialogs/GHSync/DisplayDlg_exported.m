@@ -206,6 +206,8 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
 
             % Create editFreqLowLim
             app.editFreqLowLim = uieditfield(app.dlgDisplay, 'numeric');
+            app.editFreqLowLim.Limits = [0 Inf];
+            app.editFreqLowLim.ValueDisplayFormat = '%.0f';
             app.editFreqLowLim.Position = [231 444 70 22];
 
             % Create labelFreqUppLim
@@ -216,6 +218,8 @@ classdef DisplayDlg_exported < matlab.apps.AppBase
 
             % Create editFreqUppLim
             app.editFreqUppLim = uieditfield(app.dlgDisplay, 'numeric');
+            app.editFreqUppLim.Limits = [0 Inf];
+            app.editFreqUppLim.ValueDisplayFormat = '%.0f';
             app.editFreqUppLim.Position = [231 410 70 22];
 
             % Create labelWinSize
