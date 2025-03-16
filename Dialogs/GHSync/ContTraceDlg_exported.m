@@ -88,6 +88,14 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
                 % Warn user
                 msgbox('Edited contour is empty; not saving changes')
             else
+                % Fix duplicated time points by adding a teensy weensy bit
+                % to the latter of any duplications
+                bDup = any(diff(app.xTimeEdit)==0);
+                while bDup
+                    indDups = [false,diff(app.xTimeEdit)==0];
+                    app.xTimeEdit(indDups) = app.xTimeEdit(indDups)+0.0001;
+                    bDup = any(diff(app.xTimeEdit));
+                end
                 % If all good, save to ClusteringData
                 app.ClusteringData.xTime{app.indcall} = app.xTimeEdit;
                 app.ClusteringData.xFreq{app.indcall} = app.xFreqEdit;
