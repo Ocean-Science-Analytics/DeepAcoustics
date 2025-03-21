@@ -5,7 +5,7 @@ function BackALot(hObject, eventdata, handles)
 
     % If we reach the beg of the audio file, call prev file
     if handles.data.focusCenter < 0
-        PrevFile(hObject, eventdata, handles);
+        PrevAudFile(hObject, eventdata, handles);
     else
         % Don't go < start of audio file
         handles.data.focusCenter = max(0, handles.data.focusCenter);
@@ -19,7 +19,6 @@ function BackALot(hObject, eventdata, handles)
             if jumps == 0
                 if ~isempty(handles.data.thisaudst)
                     handles.data.currentcall = handles.data.thisaudst;
-                    handles.data.current_call_valid = true;
                 end
             % Otherwise make the first call in the new page window the current call
             % Make sure audio matches (for mult aud per det file)
@@ -27,7 +26,6 @@ function BackALot(hObject, eventdata, handles)
                 calls_within_window = find((handles.data.calls.Box(:,1) > handles.data.windowposition) & strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename), 1);
                 if ~isempty(calls_within_window)
                     handles.data.currentcall = calls_within_window;
-                    handles.data.current_call_valid = true;
                 end
             end
         end

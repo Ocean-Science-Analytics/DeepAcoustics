@@ -65,6 +65,12 @@ if isfield(data, 'Calls')
                     audiopath = handles.data.settings.audiofolder;
                 end
                 audiopath = uigetdir(audiopath,'Select Folder Containing All Audio Files Used to Generate This Detections File');
+                % Update audio folder
+                if ~strcmp(handles.data.settings.audiofolder,audiopath)
+                    handles.data.settings.audiofolder = audiopath;
+                    handles.data.saveSettings();
+                    update_folders(hObject, handles);
+                end
                 audiodir = [dir([audiopath '\*.wav']); ...
                     dir([audiopath '\*.ogg']); ...
                     dir([audiopath '\*.flac']); ...
@@ -136,6 +142,11 @@ if isfield(data, 'Calls')
                     % Double-check that they chose a good path
                     if ~exist(fullfile(newpn,[thisfn thisext]),'file')
                         error([thisfn ' not found in ' newpn])
+                    end
+                    if ~strcmp(handles.data.settings.audiofolder,newpn)
+                        handles.data.settings.audiofolder = newpn;
+                        handles.data.saveSettings();
+                        update_folders(hObject, handles);
                     end
                 end
                 % Replace old path with new, good path

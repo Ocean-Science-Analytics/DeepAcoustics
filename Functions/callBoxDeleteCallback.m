@@ -12,7 +12,19 @@ clicked_tag = str2double(get(rectangle, 'Tag'));
 switch  evt.SelectionType
     case 'right' % delete if right click
         handles.data.calls(clicked_tag,:) = [];
-        SetFocusCall(hObject,handles,clicked_tag-1);
+        % Refresh indices and figure
+        if height(handles.data.calls) > 0
+            handles.data.currentcall = min(clicked_tag,height(handles.data.calls));
+            % Get beginning and end rows for the current audio file
+            handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'first');
+            handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
+        else
+            handles.data.currentcall = 0;
+            handles.data.thisaudst = [];
+            handles.data.thisaudend = [];
+        end
+        % Update figure
+        update_fig(hObject, handles);
     case 'left' % Make it the current call if left clicked
         if clicked_tag ~= handles.data.currentcall
             handles.data.currentcall = clicked_tag;

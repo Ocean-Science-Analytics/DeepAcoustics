@@ -5,7 +5,7 @@ function FwdALot(hObject, eventdata, handles)
 
     % If we reach the end of the audio file, call next file
     if handles.data.focusCenter > handles.data.audiodata.Duration
-        NextFile(hObject, eventdata, handles);
+        NextAudFile(hObject, eventdata, handles);
     else
         % Don't exceed audio file
         handles.data.focusCenter = min(handles.data.focusCenter, handles.data.audiodata.Duration - handles.data.settings.focus_window_size ./ 2);
@@ -19,7 +19,6 @@ function FwdALot(hObject, eventdata, handles)
             if jumps == 0
                 if ~isempty(handles.data.thisaudend)
                     handles.data.currentcall = handles.data.thisaudend;
-                    handles.data.current_call_valid = true;
                 end
             % Otherwise make the first call in the new focus window the current call
             % Make sure audio matches (for mult aud per det file)
@@ -27,7 +26,6 @@ function FwdALot(hObject, eventdata, handles)
                 calls_within_window = find((handles.data.calls.Box(:,1) > handles.data.windowposition) & strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename), 1);
                 if ~isempty(calls_within_window)
                     handles.data.currentcall = calls_within_window;
-                    handles.data.current_call_valid = true;
                 end
             end
         end

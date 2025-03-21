@@ -640,7 +640,7 @@ function UnsupClust(app,event)
                 update_folders(hObject, handles);
                 handles = guidata(hObject);  % Get newest version of handles
                 if isfield(handles,'current_detection_file') && ~isempty(handles.current_detection_file)    
-                    LoadCalls(hObject, eventdata, handles, handles.data.thisaudst)
+                    LoadCalls(hObject, eventdata, handles, 0, handles.data.thisAllAudind);
                 end
             case false
         end

@@ -23,28 +23,32 @@ function ChangeContourThresh(hObject, eventdata, handles)
             EntropyThreshold = handles.data.defaultSettings.EntropyThreshold;
         end
     
-        % Add option to apply to all or just current det
-        answer = questdlg('Would you like to apply these settings to all detections?', ...
-            'Apply to all detections?', ...
-            'All Detections','Only This Detection','Only This Detection');
-        % Handle response
-        switch answer
-            case 'All Detections'
-                handles.data.calls.EntThresh(:) = EntropyThreshold;
-                handles.data.calls.AmpThresh(:) = AmplitudeThreshold;
-                
-                %Save global settings in settings.mat
-                handles.data.settings.EntropyThreshold = EntropyThreshold;
-                handles.data.settings.AmplitudeThreshold = AmplitudeThreshold;
-                handles.data.saveSettings();
-            case 'Only This Detection'
-                handles.data.calls.EntThresh(handles.data.currentcall) = EntropyThreshold;
-                handles.data.calls.AmpThresh(handles.data.currentcall) = AmplitudeThreshold;
-                
-                %Do NOT save global settings in settings.mat
-            % If close (X) or Esc, cancel whole operation
-            case ''
-                return;
+        if ~isempty(handles.data.calls)
+            % Add option to apply to all or just current det
+            answer = questdlg('Would you like to apply these settings to all detections?', ...
+                'Apply to all detections?', ...
+                'All Detections','Only This Detection','Only This Detection');
+            % Handle response
+            switch answer
+                case 'All Detections'
+                    handles.data.calls.EntThresh(:) = EntropyThreshold;
+                    handles.data.calls.AmpThresh(:) = AmplitudeThreshold;
+                    
+                    %Save global settings in settings.mat
+                    handles.data.settings.EntropyThreshold = EntropyThreshold;
+                    handles.data.settings.AmplitudeThreshold = AmplitudeThreshold;
+                    handles.data.saveSettings();
+                case 'Only This Detection'
+                    if handles.data.currentcall > 0
+                        handles.data.calls.EntThresh(handles.data.currentcall) = EntropyThreshold;
+                        handles.data.calls.AmpThresh(handles.data.currentcall) = AmplitudeThreshold;
+                    end
+                    
+                    %Do NOT save global settings in settings.mat
+                % If close (X) or Esc, cancel whole operation
+                case ''
+                    return;
+            end
         end
     
         update_folders(hObject, handles);

@@ -105,203 +105,205 @@ for k = 1:length(trainingdata)
 
     for j = 1:length(allAudio)
         indC = find(strcmp({Calls.Audiodata.Filename},allAudio{j}));
-        subCalls = Calls(strcmp({Calls.Audiodata.Filename},allAudio{j}),:);
-        audioReader.audiodata = subCalls.Audiodata(1);
-        
-        % Correct and retrieve spect settings (need SR to complete)
-        if app.TrainImgSettings.nfft == 0
-            app.TrainImgSettings.nfft = app.TrainImgSettings.nfftsmp/audioReader.audiodata.SampleRate;
-            app.TrainImgSettings.windowsize = app.TrainImgSettings.windowsizesmp/audioReader.audiodata.SampleRate;
-            app.TrainImgSettings.noverlap = app.TrainImgSettings.noverlap/audioReader.audiodata.SampleRate;
-        elseif app.TrainImgSettings.nfftsmp == 0
-            app.TrainImgSettings.nfftsmp = app.TrainImgSettings.nfft*audioReader.audiodata.SampleRate;
-            app.TrainImgSettings.windowsizesmp = app.TrainImgSettings.windowsize*audioReader.audiodata.SampleRate;
-        end
-
-        wind = app.TrainImgSettings.windowsize;
-        noverlap = app.TrainImgSettings.noverlap;
-        nfft = app.TrainImgSettings.nfft;
-
-        bins = SplitBouts(subCalls,imLength,imLength);
-        
-        % Set # of negatives to include and calibrate a random selector
-        % accordingly
-        nBouts = length(unique(bins));
-        nTotPossImgs = floor(audioReader.audiodata.Duration/imLength);
-        % Set # of negative images to same as # of positive images, or
-        % what's available
-        nNumApproxNeg = min(nTotPossImgs-nBouts,nBouts);
-        % Fraction of possible negative images we actually hope to generate
-        nFracNeg = nNumApproxNeg/(nTotPossImgs-nBouts);
-        % Randomly set seed of random number generator
-        rng("shuffle");
-
-        FinishTime = 0;
-        NegInxNum = 1;
-        NegMinDur = quantile(subCalls.Box(:,3),0.05);
-        % Don't let duration exceed imLength
-        NegMaxDur = min(imLength,quantile(subCalls.Box(:,3),0.95));
-        NegMinBW = quantile(subCalls.Box(:,4),0.05);
-        NegMaxBW = quantile(subCalls.Box(:,4),0.95);
-        for bin = 1:length(unique(bins))
-            indSC = find(bins==bin);
-            BoutCalls = subCalls(bins == bin, :);
+        if ~isempty(indC)
+            subCalls = Calls(strcmp({Calls.Audiodata.Filename},allAudio{j}),:);
+            audioReader.audiodata = subCalls.Audiodata(1);
             
-            %Center audio on middle of call bout and extract clip imLength in
-            %length
-            StartTime = max(min(BoutCalls.Box(:,1)), 0);
-            
-            if app.TrainImgSettings.bRandNoise
-                % Check for space to write a negative image
-                while (StartTime-FinishTime) > imLength
-                    NegStTime = FinishTime;
-                    FinishTime = FinishTime+imLength;
-                    
-                    % Random duration based on subCalls range of sizes
-                    NegDur = rand*(NegMaxDur-NegMinDur)+NegMinDur;
-                    NegBW = rand*(NegMaxBW-NegMinBW)+NegMinBW;
-                    NegTSt = rand*(FinishTime-NegDur-NegStTime)+NegStTime;
-                    freqNyq = floor(audioReader.audiodata.SampleRate/2)/1000;
-                    NegFSt = rand*(freqNyq-NegBW);
-                    NegBox = [NegTSt,NegFSt,NegDur,NegBW];
-                    NegAccept = 1;
-                    NegType = categorical({'Noise'});
-                    NegCalls = table(NegBox,NegAccept,NegType,'VariableNames',{'Box','Accept','Type'});
-                    
-                    % Randomly decide to make image or not
-                    if rand <= nFracNeg
-                        bNoiseSuccess = true;
-                        %% Read Audio
-                        audio = audioReader.AudioSamples(NegStTime, FinishTime);
-                        try
-                            for replicatenumber = 1:repeats
-                                IMname = sprintf('%g_%g_%g_%g.png', k, j, nBouts+NegInxNum, replicatenumber);
-                                ffn = fullfile(strImgDir,IMname);
-                                % Insert augmented images folder into filename to separate augs
-                                % from ogs
-                                bAug = false;
-                                if replicatenumber > 1
-                                    ffn = fullfile(strImgDir,'ImgAug',IMname);
-                                    bAug = true;
-                                end
-                                % Do not need any outputs - this is just to
-                                % manipulate and write the image to file
-                                [~,box] = CreateTrainingData(...
-                                    audio,...
-                                    audioReader.audiodata.SampleRate,...
-                                    NegCalls,...
-                                    uniqLabels,...
-                                    noverlap,nfft,...
-                                    imgsize,...
-                                    ffn,...
-                                    replicatenumber);  
-                                TTable = [TTable;[{bAug}, {ffn}, box]];
-                            end
-                            NegInxNum = NegInxNum+1;
-                        catch
-                            disp("Something wrong with calculating bounding box indices - talk to Gabi!");
-                        end
-                    end
-                end
+            % Correct and retrieve spect settings (need SR to complete)
+            if app.TrainImgSettings.nfft == 0
+                app.TrainImgSettings.nfft = app.TrainImgSettings.nfftsmp/audioReader.audiodata.SampleRate;
+                app.TrainImgSettings.windowsize = app.TrainImgSettings.windowsizesmp/audioReader.audiodata.SampleRate;
+                app.TrainImgSettings.noverlap = app.TrainImgSettings.noverlap/audioReader.audiodata.SampleRate;
+            elseif app.TrainImgSettings.nfftsmp == 0
+                app.TrainImgSettings.nfftsmp = app.TrainImgSettings.nfft*audioReader.audiodata.SampleRate;
+                app.TrainImgSettings.windowsizesmp = app.TrainImgSettings.windowsize*audioReader.audiodata.SampleRate;
             end
-
-            FinishTime = max(BoutCalls.Box(:,1) + BoutCalls.Box(:,3));
-            CenterTime = (StartTime+(FinishTime-StartTime)/2);
-
-            % Number of images we have to make to cover this whole bout,
-            % even if we have to split calls to do it
-            nDiv = ceil((FinishTime-StartTime)/imLength);
-
-            % Get overall start of bout when using whole image sizes
-            % centered on entire bout
-            StartTime = CenterTime - (nDiv/2)*imLength;
-            FinishTime = CenterTime + (nDiv/2)*imLength;
-
-            % Get all starts accounting for splitting calls
-            StartTimes = StartTime:imLength:(StartTime+imLength*nDiv);
-            % Last one is bout end
-            StartTimes = StartTimes(1:(end-1));
-
-            BoutCallsBU = BoutCalls;
-
-            % For each subbout in this bout
-            for iSplit = 1:nDiv
-                calcProg = (bin-1)+(iSplit/nDiv);
-                waitbar(calcProg/length(unique(bins)), h, sprintf('Processing Det File %g of %g Aud File %g of %g', k, length(trainingdata), j, length(allAudio)));   
-                % Reset BoutCalls before editing
-                BoutCalls = BoutCallsBU;
-                StartTime = StartTimes(iSplit);
-                FinishTime = StartTime+imLength;
-        
-                %% Read Audio
-                audio = audioReader.AudioSamples(StartTime, FinishTime);
+    
+            wind = app.TrainImgSettings.windowsize;
+            noverlap = app.TrainImgSettings.noverlap;
+            nfft = app.TrainImgSettings.nfft;
+    
+            bins = SplitBouts(subCalls,imLength,imLength);
+            
+            % Set # of negatives to include and calibrate a random selector
+            % accordingly
+            nBouts = length(unique(bins));
+            nTotPossImgs = floor(audioReader.audiodata.Duration/imLength);
+            % Set # of negative images to same as # of positive images, or
+            % what's available
+            nNumApproxNeg = min(nTotPossImgs-nBouts,nBouts);
+            % Fraction of possible negative images we actually hope to generate
+            nFracNeg = nNumApproxNeg/(nTotPossImgs-nBouts);
+            % Randomly set seed of random number generator
+            rng("shuffle");
+    
+            FinishTime = 0;
+            NegInxNum = 1;
+            NegMinDur = quantile(subCalls.Box(:,3),0.05);
+            % Don't let duration exceed imLength
+            NegMaxDur = min(imLength,quantile(subCalls.Box(:,3),0.95));
+            NegMinBW = quantile(subCalls.Box(:,4),0.05);
+            NegMaxBW = quantile(subCalls.Box(:,4),0.95);
+            for bin = 1:length(unique(bins))
+                indSC = find(bins==bin);
+                BoutCalls = subCalls(bins == bin, :);
                 
-                % Subtract the start of the bout from the box times
-                BoutCalls.Box(:,1) = BoutCalls.Box(:,1) - StartTime;
-
-                % Remove calls that are not in image
-                % nRm is to help with indexing (but only needed for calls
-                % that affect indexing i.e. the earlier ones)
-                nRm = 0;
-                if any((BoutCalls.Box(:,1) < 0) & ((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) <= 0))
-                    nRm = nRm+sum((BoutCalls.Box(:,1) < 0) & ((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) <= 0));
-                    BoutCalls((BoutCalls.Box(:,1) < 0) & ((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) <= 0),:) = [];
-                end
-                if any((BoutCalls.Box(:,1) >= imLength))
-                    %nRm = nRm+sum((BoutCalls.Box(:,1) >= imLength));
-                    BoutCalls((BoutCalls.Box(:,1) >= imLength),:) = [];
-                end
+                %Center audio on middle of call bout and extract clip imLength in
+                %length
+                StartTime = max(min(BoutCalls.Box(:,1)), 0);
                 
-                % If imLength < duration of a call, beginning and/or end will clip!
-                % Clip beg of call
-                if any(BoutCalls.Box(:,1) < 0)
-                    warning("Your calls had to be split to fit into the chosen image size")
-                    % Update counts
-                    nCallsWhole(allindst+nRm+(indC(indSC(BoutCalls.Box(:,1) < 0))))= 0;
-                    nCallsSplit(allindst+nRm+(indC(indSC(BoutCalls.Box(:,1) < 0)))) = 1;
-                    % nPieces only updated here because otherwise will
-                    % double-count one end
-                    nPiecesTotal(allindst+nRm+(indC(indSC(BoutCalls.Box(:,1) < 0)))) = nPiecesTotal(allindst+nRm+(indC(indSC(BoutCalls.Box(:,1) < 0))))+1;
-                    % Adjust duration accordingly
-                    BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) = BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) + BoutCalls.Box(BoutCalls.Box(:,1) < 0,1);
-                    BoutCalls.Box(BoutCalls.Box(:,1) < 0,1) = 0;
-                end
-                
-                % Clip end of call
-                if any((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength)
-                    warning("Your calls had to be split to fit into the chosen image size")
-                    % Update counts
-                    nCallsWhole(allindst+nRm+(indC(indSC((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength)))) = 0;
-                    nCallsSplit(allindst+nRm+(indC(indSC((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength)))) = 1;
-                    BoutCalls.Box((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength, 3) = imLength-BoutCalls.Box((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength, 1);
-                end
-                
-                try
-                    for replicatenumber = 1:repeats
-                        IMname = sprintf('%g_%g_%g_%g_%g.png', k, j, bin, iSplit, replicatenumber);
-                        ffn = fullfile(strImgDir,IMname);
-                        % Insert augmented images folder into filename to separate augs
-                        % from ogs
-                        bAug = false;
-                        if replicatenumber > 1
-                            ffn = fullfile(strImgDir,'ImgAug',IMname);
-                            bAug = true;
+                if app.TrainImgSettings.bRandNoise
+                    % Check for space to write a negative image
+                    while (StartTime-FinishTime) > imLength
+                        NegStTime = FinishTime;
+                        FinishTime = FinishTime+imLength;
+                        
+                        % Random duration based on subCalls range of sizes
+                        NegDur = rand*(NegMaxDur-NegMinDur)+NegMinDur;
+                        NegBW = rand*(NegMaxBW-NegMinBW)+NegMinBW;
+                        NegTSt = rand*(FinishTime-NegDur-NegStTime)+NegStTime;
+                        freqNyq = floor(audioReader.audiodata.SampleRate/2)/1000;
+                        NegFSt = rand*(freqNyq-NegBW);
+                        NegBox = [NegTSt,NegFSt,NegDur,NegBW];
+                        NegAccept = 1;
+                        NegType = categorical({'Noise'});
+                        NegCalls = table(NegBox,NegAccept,NegType,'VariableNames',{'Box','Accept','Type'});
+                        
+                        % Randomly decide to make image or not
+                        if rand <= nFracNeg
+                            bNoiseSuccess = true;
+                            %% Read Audio
+                            audio = audioReader.AudioSamples(NegStTime, FinishTime);
+                            try
+                                for replicatenumber = 1:repeats
+                                    IMname = sprintf('%g_%g_%g_%g.png', k, j, nBouts+NegInxNum, replicatenumber);
+                                    ffn = fullfile(strImgDir,IMname);
+                                    % Insert augmented images folder into filename to separate augs
+                                    % from ogs
+                                    bAug = false;
+                                    if replicatenumber > 1
+                                        ffn = fullfile(strImgDir,'ImgAug',IMname);
+                                        bAug = true;
+                                    end
+                                    % Do not need any outputs - this is just to
+                                    % manipulate and write the image to file
+                                    [~,box] = CreateTrainingData(...
+                                        audio,...
+                                        audioReader.audiodata.SampleRate,...
+                                        NegCalls,...
+                                        uniqLabels,...
+                                        noverlap,nfft,...
+                                        imgsize,...
+                                        ffn,...
+                                        replicatenumber);  
+                                    TTable = [TTable;[{bAug}, {ffn}, box]];
+                                end
+                                NegInxNum = NegInxNum+1;
+                            catch
+                                disp("Something wrong with calculating bounding box indices - talk to Gabi!");
+                            end
                         end
-                        [~,box] = CreateTrainingData(...
-                            audio,...
-                            audioReader.audiodata.SampleRate,...
-                            BoutCalls,...
-                            uniqLabels,...
-                            noverlap,nfft,...
-                            imgsize,...
-                            ffn,...
-                            replicatenumber);  
-                        TTable = [TTable;[{bAug}, {ffn}, box]];
                     end
-                catch
-                    disp("Something wrong with calculating bounding box indices - talk to Gabi!");
                 end
-            end      
+    
+                FinishTime = max(BoutCalls.Box(:,1) + BoutCalls.Box(:,3));
+                CenterTime = (StartTime+(FinishTime-StartTime)/2);
+    
+                % Number of images we have to make to cover this whole bout,
+                % even if we have to split calls to do it
+                nDiv = ceil((FinishTime-StartTime)/imLength);
+    
+                % Get overall start of bout when using whole image sizes
+                % centered on entire bout
+                StartTime = CenterTime - (nDiv/2)*imLength;
+                FinishTime = CenterTime + (nDiv/2)*imLength;
+    
+                % Get all starts accounting for splitting calls
+                StartTimes = StartTime:imLength:(StartTime+imLength*nDiv);
+                % Last one is bout end
+                StartTimes = StartTimes(1:(end-1));
+    
+                BoutCallsBU = BoutCalls;
+    
+                % For each subbout in this bout
+                for iSplit = 1:nDiv
+                    calcProg = (bin-1)+(iSplit/nDiv);
+                    waitbar(calcProg/length(unique(bins)), h, sprintf('Processing Det File %g of %g Aud File %g of %g', k, length(trainingdata), j, length(allAudio)));   
+                    % Reset BoutCalls before editing
+                    BoutCalls = BoutCallsBU;
+                    StartTime = StartTimes(iSplit);
+                    FinishTime = StartTime+imLength;
+            
+                    %% Read Audio
+                    audio = audioReader.AudioSamples(StartTime, FinishTime);
+                    
+                    % Subtract the start of the bout from the box times
+                    BoutCalls.Box(:,1) = BoutCalls.Box(:,1) - StartTime;
+    
+                    % Remove calls that are not in image
+                    % nRm is to help with indexing (but only needed for calls
+                    % that affect indexing i.e. the earlier ones)
+                    nRm = 0;
+                    if any((BoutCalls.Box(:,1) < 0) & ((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) <= 0))
+                        nRm = nRm+sum((BoutCalls.Box(:,1) < 0) & ((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) <= 0));
+                        BoutCalls((BoutCalls.Box(:,1) < 0) & ((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) <= 0),:) = [];
+                    end
+                    if any((BoutCalls.Box(:,1) >= imLength))
+                        %nRm = nRm+sum((BoutCalls.Box(:,1) >= imLength));
+                        BoutCalls((BoutCalls.Box(:,1) >= imLength),:) = [];
+                    end
+                    
+                    % If imLength < duration of a call, beginning and/or end will clip!
+                    % Clip beg of call
+                    if any(BoutCalls.Box(:,1) < 0)
+                        warning("Your calls had to be split to fit into the chosen image size")
+                        % Update counts
+                        nCallsWhole(allindst+nRm+(indC(indSC(BoutCalls.Box(:,1) < 0))))= 0;
+                        nCallsSplit(allindst+nRm+(indC(indSC(BoutCalls.Box(:,1) < 0)))) = 1;
+                        % nPieces only updated here because otherwise will
+                        % double-count one end
+                        nPiecesTotal(allindst+nRm+(indC(indSC(BoutCalls.Box(:,1) < 0)))) = nPiecesTotal(allindst+nRm+(indC(indSC(BoutCalls.Box(:,1) < 0))))+1;
+                        % Adjust duration accordingly
+                        BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) = BoutCalls.Box(BoutCalls.Box(:,1) < 0,3) + BoutCalls.Box(BoutCalls.Box(:,1) < 0,1);
+                        BoutCalls.Box(BoutCalls.Box(:,1) < 0,1) = 0;
+                    end
+                    
+                    % Clip end of call
+                    if any((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength)
+                        warning("Your calls had to be split to fit into the chosen image size")
+                        % Update counts
+                        nCallsWhole(allindst+nRm+(indC(indSC((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength)))) = 0;
+                        nCallsSplit(allindst+nRm+(indC(indSC((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength)))) = 1;
+                        BoutCalls.Box((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength, 3) = imLength-BoutCalls.Box((BoutCalls.Box(:,1)+BoutCalls.Box(:,3)) > imLength, 1);
+                    end
+                    
+                    try
+                        for replicatenumber = 1:repeats
+                            IMname = sprintf('%g_%g_%g_%g_%g.png', k, j, bin, iSplit, replicatenumber);
+                            ffn = fullfile(strImgDir,IMname);
+                            % Insert augmented images folder into filename to separate augs
+                            % from ogs
+                            bAug = false;
+                            if replicatenumber > 1
+                                ffn = fullfile(strImgDir,'ImgAug',IMname);
+                                bAug = true;
+                            end
+                            [~,box] = CreateTrainingData(...
+                                audio,...
+                                audioReader.audiodata.SampleRate,...
+                                BoutCalls,...
+                                uniqLabels,...
+                                noverlap,nfft,...
+                                imgsize,...
+                                ffn,...
+                                replicatenumber);  
+                            TTable = [TTable;[{bAug}, {ffn}, box]];
+                        end
+                    catch
+                        disp("Something wrong with calculating bounding box indices - talk to Gabi!");
+                    end
+                end      
+            end
         end
     end
 end

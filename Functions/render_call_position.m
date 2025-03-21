@@ -70,7 +70,7 @@ end
 
 
 calltime = handles.data.focusCenter;
-if ~isempty(subCalls)
+if ~isempty(subCalls) && handles.data.currentcall > 0
     % Should not have to correct indexing here because currentcall indexes
     % into full handles.data.calls table
     calltime = handles.data.calls.Box(handles.data.currentcall, 1);

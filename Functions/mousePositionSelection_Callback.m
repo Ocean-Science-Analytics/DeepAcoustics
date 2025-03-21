@@ -1,5 +1,5 @@
 function  mousePositionSelection_Callback(hObject,eventdata, handles)
-% This fuction runs when the little bar with the green lines  or the page window is clicked or 
+% This function runs when the little bar with the green lines  or the page window is clicked or 
 
 handles.data.focusCenter = eventdata.IntersectionPoint(1);
 % Ensure the new selection is within the range of audio

@@ -32,7 +32,16 @@ handles.data.calls = [handles.data.calls; new_box];
 
 %Now delete the roi and render the figure. The roi will be rendered along
 %with the existing boxes.
-handles.data.current_call_valid = true;
-% Set focus to just-added call and re-sort Calls table
-SetFocusCall(hObject,handles,-1);
+
+% Sort calls and reset current call (new call is at end of table, thus
+% using height of calls to index SortCalls)
+[handles.data.calls,handles.data.currentcall] = SortCalls(handles.data.calls,'time',height(handles.data.calls));
+% Get beginning and end rows for the current audio file
+handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'first');
+handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
+% Move focus to new current call
+handles.data.focusCenter = handles.data.calls.Box(handles.data.currentcall,1) + handles.data.calls.Box(handles.data.currentcall,3)/2;
+% Update figure
+update_fig(hObject, handles);
+
 delete(current_box)

@@ -22,7 +22,6 @@ function MoveFocus(focus_offset, hObject, eventdata, handles, bRT)
                 strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename));
             if ~isempty(calls_within_window)
                 handles.data.currentcall = calls_within_window(1);
-                handles.data.current_call_valid = true;
             end
         end
     

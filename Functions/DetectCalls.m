@@ -2,24 +2,13 @@
 function DetectCalls(app,event)
 
 [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); 
-% if nargin < 4
-%     bRT = false;
-% end
-
-%if ~bRT
-if isempty(handles.audiofiles)
-    errordlg('No Audio Selected')
-    return
-end
 
 % Check if pre-existing detection file has changed to save file before loading a new one.
 CheckModified(hObject, eventdata, handles);
 
-audioselections = listdlg('PromptString','Select Audio Files:','ListSize',[500 300],'ListString',handles.audiofilesnames);
-if isempty(audioselections)
-    return
-end
-%end
+[audfiles,audpn] = uigetfile({'*.wav;*.ogg;*.flac;*.UVD;*.au;*.aiff;*.aif;*.mp3;*.m4a;*.mp4',...
+    'Audio Files (*.wav,*.ogg,*.flac,*.UVD,*.au,*.aiff,*.aif,*.mp3,*.m4a,*.mp4)'},...
+    'Select Audio Files',handles.data.settings.audiofolder,'MultiSelect','on');
 
 NeuralNetwork = DetectSetup(hObject, eventdata, handles);
 handles = guidata(hObject);  % Get newest version of handles
@@ -36,20 +25,18 @@ DetSpect.noverlap = NeuralNetwork.noverlap;
 DetSpect.nfft = NeuralNetwork.nfft;
 
 %% For Each File
-for j = 1:length(audioselections)
-    CurrentAudioFile = audioselections(j);
-
-    AudioFile = fullfile(handles.audiofiles(CurrentAudioFile).folder,handles.audiofiles(CurrentAudioFile).name);
-    Calls_ThisAudio = DetectInFile(AudioFile,NeuralNetwork,Settings,j,length(audioselections));
+for j = 1:length(audfiles)
+    AudioFile = fullfile(audpn,audfiles{j});
+    Calls_ThisAudio = DetectInFile(AudioFile,NeuralNetwork,Settings,j,length(audfiles));
     
     [~,audioname] = fileparts(AudioFile);
 
     % Set file name
     if j==1
         if Settings(5)
-            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audioselections)) 'AudFiles ' detectiontime '_Detections.mat']);
+            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audfiles)) 'AudFiles ' detectiontime '_Detections.mat']);
         else
-            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audioselections)) 'AudFiles_Detections.mat']);
+            fname = fullfile(handles.data.settings.detectionfolder,[audioname '_' num2str(length(audfiles)) 'AudFiles_Detections.mat']);
         end
     end
     
@@ -81,9 +68,7 @@ if ~isempty(Calls)
         'Settings', Settings,...
         'detectiontime', detectiontime,...
         'networkselection', {NeuralNetwork.netfile});
-    %audiodata = audioinfo(AudioFile);
     spect = handles.data.settings.spect;
     save(fname,'Calls','allAudio','detection_metadata','spect','-v7.3','-mat');
 end
 update_folders(hObject,handles);
-%guidata(hObject, handles);
