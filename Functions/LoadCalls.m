@@ -78,8 +78,10 @@ end
 % calls)
 handles.data.focusCenter = handles.data.settings.focus_window_size ./ 2;
 if ~isempty(handles.data.thisaudst)
-    handles.data.focusCenter = handles.data.calls.Box(handles.data.thisaudst,1) + handles.data.calls.Box(handles.data.thisaudst,3)/2;
-    handles.data.currentcall = handles.data.thisaudst;
+    % If indcall selected, this should go to indCall; otherwise set to
+    % first call in file
+    handles.data.currentcall = max(indCall,handles.data.thisaudst);
+    handles.data.focusCenter = handles.data.calls.Box(handles.data.currentcall,1) + handles.data.calls.Box(handles.data.currentcall,3)/2;
 end
 
 % For some unknown reason, if "h" is closed after running

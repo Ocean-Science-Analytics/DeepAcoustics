@@ -20,7 +20,9 @@ classdef squeakData < handle
         squeakfolder
         audiodata
         % Keyboard shortcuts for labelling calls
-        labelShortcuts = {'1','2','3','4','5','6','7','8','9','0','-','=','!','@','#','$','%','^','&','*','(',')','_','+'}
+        % Atm, can't have numbers b/c triggered by Go To Call edit field
+        %labelShortcuts = {'1','2','3','4','5','6','7','8','9','0','-','=','!','@','#','$','%','^','&','*','(',')','_','+'}
+        labelShortcuts = {'-','=','!','@','#','$','%','^','&','*','(',')','_','+'}
         page_spect = struct() % spectrogram of the page view
         focusCenter = 0; % center of the current focus window
         pageSizes = {'2s', '3s', '5s', '10s', '30s', 'Custom'} % List of page size values in the dropdown box

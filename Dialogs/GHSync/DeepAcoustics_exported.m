@@ -47,6 +47,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuAbout                   matlab.ui.container.Menu
         menuViewManual              matlab.ui.container.Menu
         menuKeyboardShortcuts       matlab.ui.container.Menu
+        GoToCallEditFieldLabel      matlab.ui.control.Label
         textFileName                matlab.ui.control.Label
         textCalls                   matlab.ui.control.Label
         textScore                   matlab.ui.control.Label
@@ -90,6 +91,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         buttonPrevAudFile           matlab.ui.control.Button
         buttonNextAudFile           matlab.ui.control.Button
         buttonNextFileWCall         matlab.ui.control.Button
+        editfieldGoToCall           matlab.ui.control.NumericEditField
+        labelGoToCallTotal          matlab.ui.control.Label
         textSettings                matlab.ui.control.Label
         textFocus                   matlab.ui.control.Label
         dropdownFocus               matlab.ui.control.DropDown
@@ -1093,6 +1096,20 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             NextFileWCall(hObject, eventdata, handles);
         end
+
+        % Value changed function: editfieldGoToCall
+        function editfieldGoToCall_Callback(app, event)
+            % Create GUIDE-style callback args - Added by Migration Tool
+            % Absolutely unhinged ValueChanging behavior and idk why
+            if strcmp(event.EventName,'ValueChanged')
+                [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+    
+                app.editfieldGoToCall.Value = max(1,app.editfieldGoToCall.Value);
+                app.editfieldGoToCall.Value = min(app.editfieldGoToCall.Value,height(handles.data.calls));
+                
+                LoadCalls(hObject, eventdata, handles, app.editfieldGoToCall.Value);
+            end
+        end
     end
 
     % Component initialization
@@ -1601,6 +1618,26 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textSettings.Position = [963 111 412 22];
             app.textSettings.Text = 'Settings ----------------------------------------------------------------------------------------';
 
+            % Create labelGoToCallTotal
+            app.labelGoToCallTotal = uilabel(app.mainfigure);
+            app.labelGoToCallTotal.Tag = 'GoToCallTotal';
+            app.labelGoToCallTotal.FontSize = 14;
+            app.labelGoToCallTotal.FontWeight = 'bold';
+            app.labelGoToCallTotal.FontColor = [1 1 1];
+            app.labelGoToCallTotal.Position = [912 22 77 22];
+            app.labelGoToCallTotal.Text = '/ ?';
+
+            % Create editfieldGoToCall
+            app.editfieldGoToCall = uieditfield(app.mainfigure, 'numeric');
+            app.editfieldGoToCall.Limits = [0 Inf];
+            app.editfieldGoToCall.RoundFractionalValues = 'on';
+            app.editfieldGoToCall.ValueDisplayFormat = '%d';
+            app.editfieldGoToCall.ValueChangedFcn = createCallbackFcn(app, @editfieldGoToCall_Callback, true);
+            app.editfieldGoToCall.Tag = 'GoToCall';
+            app.editfieldGoToCall.FontSize = 14;
+            app.editfieldGoToCall.FontWeight = 'bold';
+            app.editfieldGoToCall.Position = [836 22 68 22];
+
             % Create buttonNextFileWCall
             app.buttonNextFileWCall = uibutton(app.mainfigure, 'push');
             app.buttonNextFileWCall.ButtonPushedFcn = createCallbackFcn(app, @buttonNextFileWCall_Callback, true);
@@ -1733,6 +1770,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
             % Create textDrawType
             app.textDrawType = uilabel(app.mainfigure);
+            app.textDrawType.FontSize = 14;
+            app.textDrawType.FontWeight = 'bold';
             app.textDrawType.FontColor = [1 1 1];
             app.textDrawType.Position = [603 23 152 22];
             app.textDrawType.Text = 'Call';
@@ -2080,6 +2119,15 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textFileName.FontColor = [1 1 1];
             app.textFileName.Position = [298 752 1036 39];
             app.textFileName.Text = '';
+
+            % Create GoToCallEditFieldLabel
+            app.GoToCallEditFieldLabel = uilabel(app.mainfigure);
+            app.GoToCallEditFieldLabel.HorizontalAlignment = 'right';
+            app.GoToCallEditFieldLabel.FontSize = 14;
+            app.GoToCallEditFieldLabel.FontWeight = 'bold';
+            app.GoToCallEditFieldLabel.FontColor = [1 1 1];
+            app.GoToCallEditFieldLabel.Position = [740 22 86 22];
+            app.GoToCallEditFieldLabel.Text = 'Go To Call #';
 
             % Show the figure after all components are created
             app.mainfigure.Visible = 'on';

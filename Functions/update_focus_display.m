@@ -79,6 +79,9 @@ handles.ContourLine.XData = [1 size(I,2)];
 handles.ContourLine.YData = [ls(1), ls(1) + ls(2) * size(I,2)];
 
 % Update call statistics text
+set(handles.GoToCall,'Value',handles.data.currentcall);
+set(handles.GoToCallTotal,'String',['/' num2str(height(handles.data.calls))]);
+
 set(handles.Ccalls,'String',['Call: ' num2str(handles.data.currentcall) '/' num2str(height(handles.data.calls))]);
 set(handles.score,'String',['Score: ' num2str(handles.data.calls.Score(handles.data.currentcall))]);
 if any(strcmp('Ovlp', handles.data.calls.Properties.VariableNames))

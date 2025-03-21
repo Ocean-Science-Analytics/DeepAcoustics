@@ -346,6 +346,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
 
             % Create editfieldCallIndex
             app.editfieldCallIndex = uieditfield(app.dlgContTrace, 'numeric');
+            app.editfieldCallIndex.Limits = [0 Inf];
             app.editfieldCallIndex.ValueDisplayFormat = '%d';
             app.editfieldCallIndex.ValueChangedFcn = createCallbackFcn(app, @editfieldCallIndex_Callback, true);
             app.editfieldCallIndex.Position = [114 663 46 22];

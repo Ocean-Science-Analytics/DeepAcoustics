@@ -30,6 +30,14 @@ jumps = floor(handles.data.focusCenter / handles.data.settings.pageSize);
 handles.data.windowposition = jumps*handles.data.settings.pageSize;
 
 
+%% Render the page view if the page changed
+if handles.data.lastWindowPosition ~= handles.data.windowposition || force_render_page
+    handles = renderEpochSpectrogram(handles);
+end
+
+handles = update_focus_display(handles);
+
+
 %% Position of the gray box in the page view
 spectrogram_axes_ylim = ylim(handles.focusWindow);
 handles.currentWindowRectangle.Position = [
@@ -39,13 +47,6 @@ handles.currentWindowRectangle.Position = [
     spectrogram_axes_ylim(2)
     ];
 
-
-%% Render the page view if the page changed
-if handles.data.lastWindowPosition ~= handles.data.windowposition || force_render_page
-    handles = renderEpochSpectrogram(handles);
-end
-
-handles = update_focus_display(handles);
 
 % profile on
 %% Plot Call Position (updates the little bar with the green lines)
