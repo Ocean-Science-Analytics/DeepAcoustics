@@ -64,8 +64,17 @@ if all_calls
     % Initialize the timestamp text and current call line
     handles.CurrentCallLineText = text(0, 20, ' ', 'Color', 'W', 'HorizontalAlignment', 'center', 'Parent', handles.detectionAxes);
     handles.CurrentCallLinePosition = line([0,0],[0 1],'LineWidth',3,'Color','g','Parent', handles.detectionAxes,'PickableParts','none');
-    handles.CurrentCallWindowRectangle = rectangle('Position',[0 0 1 1], 'Parent',handles.detectionAxes,'LineWidth',1,'EdgeColor',[1 1 1 1],'FaceColor',[1 1 1 .15]);
-    
+
+    strVer = version;
+    strVer = regexp(strVer,'R20[0-9]{2}[a-b]','match');
+    strVer = strVer{1};
+    strVer = regexp(strVer,'20[0-9]{2}','match');
+    strVer = str2double(strVer{1});
+    if strVer >= 2024
+        handles.CurrentCallWindowRectangle = rectangle('Position',[0 0 1 1], 'Parent',handles.detectionAxes,'LineWidth',1,'EdgeColor',[1 1 1],'FaceColor',[1 1 1],'FaceAlpha', 0.15);
+    else
+        handles.CurrentCallWindowRectangle = rectangle('Position',[0 0 1 1], 'Parent',handles.detectionAxes,'LineWidth',1,'EdgeColor',[1 1 1],'FaceColor',[1 1 1 .15]);
+    end
 end
 
 
