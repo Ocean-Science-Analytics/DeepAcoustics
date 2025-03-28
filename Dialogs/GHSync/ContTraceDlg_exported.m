@@ -94,7 +94,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
                 while bDup
                     indDups = [false,diff(app.xTimeEdit)==0];
                     app.xTimeEdit(indDups) = app.xTimeEdit(indDups)+0.0001;
-                    bDup = any(diff(app.xTimeEdit));
+                    bDup = any(diff(app.xTimeEdit)==0);
                 end
                 % If all good, save to ClusteringData
                 app.ClusteringData.xTime{app.indcall} = app.xTimeEdit;
