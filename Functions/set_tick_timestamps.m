@@ -12,7 +12,8 @@ if nice > 1
 end
 nice = round(xrange * frac / 10^nice) / frac * 10^nice;
 
-x_tick = floor(x_lim(1)):nice:ceil(x_lim(2));
+%x_tick = floor(x_lim(1)):nice:ceil(x_lim(2));
+x_tick = x_lim(1):nice:x_lim(2);
 x_tick_days = x_tick / (24*60*60);
 if isa(sttime,'datetime')
     if ~use_milliseconds
