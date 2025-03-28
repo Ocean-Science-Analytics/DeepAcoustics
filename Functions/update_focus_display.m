@@ -1,12 +1,20 @@
 function handles = update_focus_display(handles)
 
-[~,audiofn,audioext] = fileparts(handles.data.audiodata.Filename);
-audiofn = [audiofn audioext];
 if ~isempty(handles.current_detection_file)
-    set(handles.displayfile,'String',{char(handles.current_detection_file);char(audiofn)})
+    set(handles.displayfile,'String',char(handles.current_detection_file))
 else
-    set(handles.displayfile,'String',char(audiofn))
+    set(handles.displayfile,'String','')
 end
+
+[~,audiofn,audioext] = fileparts({handles.data.allAudio.Filename});
+audiofn = strcat(audiofn,audioext);
+set(handles.dropdownAudFile,'String',audiofn);
+
+% Set current audio dropdown
+set(handles.dropdownAudFile,'Value',handles.data.thisAllAudind);
+
+set(handles.dropdownAudFile,'Visible','on');
+set(handles.dropdownAudFile,'Enable','on');
 
 % Values for the spectrogram are already calculated in renderEpochSpectrogram
 s_f  = handles.data.page_spect.s_display(:,handles.data.page_spect.t > handles.current_focus_position(1) & handles.data.page_spect.t < sum(handles.current_focus_position([1,3])));
@@ -82,7 +90,6 @@ handles.ContourLine.YData = [ls(1), ls(1) + ls(2) * size(I,2)];
 set(handles.GoToCall,'Value',handles.data.currentcall);
 set(handles.GoToCallTotal,'String',['/' num2str(height(handles.data.calls))]);
 
-set(handles.Ccalls,'String',['Call: ' num2str(handles.data.currentcall) '/' num2str(height(handles.data.calls))]);
 set(handles.score,'String',['Score: ' num2str(handles.data.calls.Score(handles.data.currentcall))]);
 if any(strcmp('Ovlp', handles.data.calls.Properties.VariableNames))
     set(handles.ovlp,'String',['Ovlp: ' num2str(handles.data.calls.Ovlp(handles.data.currentcall))]);

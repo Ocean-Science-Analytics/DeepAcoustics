@@ -47,9 +47,9 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuAbout                   matlab.ui.container.Menu
         menuViewManual              matlab.ui.container.Menu
         menuKeyboardShortcuts       matlab.ui.container.Menu
-        GoToCallEditFieldLabel      matlab.ui.control.Label
+        CallLabel                   matlab.ui.control.Label
         textFileName                matlab.ui.control.Label
-        textCalls                   matlab.ui.control.Label
+        dropdownAudFile             matlab.ui.control.DropDown
         textScore                   matlab.ui.control.Label
         textOvlp                    matlab.ui.control.Label
         textStatus                  matlab.ui.control.Label
@@ -1110,6 +1110,12 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 LoadCalls(hObject, eventdata, handles, app.editfieldGoToCall.Value);
             end
         end
+
+        % Value changed function: dropdownAudFile
+        function dropdownAudFile_Callback(app, event)
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            LoadCalls(hObject, eventdata, handles, 0, app.dropdownAudFile.ValueIndex);
+        end
     end
 
     % Component initialization
@@ -1392,7 +1398,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.axesPage.XColor = [1 1 1];
             app.axesPage.YColor = [1 1 1];
             app.axesPage.GridColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.axesPage.MinorGridColor = [0.1 0.1 0.1];
             app.axesPage.Box = 'on';
             app.axesPage.FontSize = 10.6666666666667;
             app.axesPage.NextPlot = 'replace';
@@ -1402,7 +1407,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             % Create winPage
             app.winPage = uiaxes(app.mainfigure);
             app.winPage.Box = 'on';
-            app.winPage.FontSize = 12;
             app.winPage.NextPlot = 'replace';
             app.winPage.Tag = 'spectrogramWindow';
             app.winPage.Position = [255 188 1125 181];
@@ -1621,10 +1625,10 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             % Create labelGoToCallTotal
             app.labelGoToCallTotal = uilabel(app.mainfigure);
             app.labelGoToCallTotal.Tag = 'GoToCallTotal';
-            app.labelGoToCallTotal.FontSize = 14;
+            app.labelGoToCallTotal.FontSize = 16;
             app.labelGoToCallTotal.FontWeight = 'bold';
             app.labelGoToCallTotal.FontColor = [1 1 1];
-            app.labelGoToCallTotal.Position = [912 22 77 22];
+            app.labelGoToCallTotal.Position = [132 776 77 22];
             app.labelGoToCallTotal.Text = '/ ?';
 
             % Create editfieldGoToCall
@@ -1634,9 +1638,9 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.editfieldGoToCall.ValueDisplayFormat = '%d';
             app.editfieldGoToCall.ValueChangedFcn = createCallbackFcn(app, @editfieldGoToCall_Callback, true);
             app.editfieldGoToCall.Tag = 'GoToCall';
-            app.editfieldGoToCall.FontSize = 14;
+            app.editfieldGoToCall.FontSize = 16;
             app.editfieldGoToCall.FontWeight = 'bold';
-            app.editfieldGoToCall.Position = [836 22 68 22];
+            app.editfieldGoToCall.Position = [48 775 82 24];
 
             % Create buttonNextFileWCall
             app.buttonNextFileWCall = uibutton(app.mainfigure, 'push');
@@ -1927,7 +1931,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.sliderTonality.MajorTicks = [];
             app.sliderTonality.Orientation = 'vertical';
             app.sliderTonality.ValueChangedFcn = createCallbackFcn(app, @sliderTonality_Callback, true);
-            app.sliderTonality.MinorTicks = [];
             app.sliderTonality.FontSize = 10.6666666666667;
             app.sliderTonality.Tag = 'TonalitySlider';
             app.sliderTonality.Position = [223 223 3 118];
@@ -1960,7 +1963,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textTonality = uilabel(app.mainfigure);
             app.textTonality.Tag = 'tonalitytext';
             app.textTonality.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textTonality.VerticalAlignment = 'top';
             app.textTonality.WordWrap = 'on';
             app.textTonality.FontSize = 16;
             app.textTonality.FontWeight = 'bold';
@@ -1972,7 +1974,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textRelPwr = uilabel(app.mainfigure);
             app.textRelPwr.Tag = 'powertext';
             app.textRelPwr.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textRelPwr.VerticalAlignment = 'top';
             app.textRelPwr.WordWrap = 'on';
             app.textRelPwr.FontSize = 16;
             app.textRelPwr.FontWeight = 'bold';
@@ -1984,7 +1985,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textSinuosity = uilabel(app.mainfigure);
             app.textSinuosity.Tag = 'sinuosity';
             app.textSinuosity.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textSinuosity.VerticalAlignment = 'top';
             app.textSinuosity.WordWrap = 'on';
             app.textSinuosity.FontSize = 16;
             app.textSinuosity.FontWeight = 'bold';
@@ -1996,7 +1996,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textSlope = uilabel(app.mainfigure);
             app.textSlope.Tag = 'slope';
             app.textSlope.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textSlope.VerticalAlignment = 'top';
             app.textSlope.WordWrap = 'on';
             app.textSlope.FontSize = 16;
             app.textSlope.FontWeight = 'bold';
@@ -2008,7 +2007,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textDuration = uilabel(app.mainfigure);
             app.textDuration.Tag = 'duration';
             app.textDuration.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textDuration.VerticalAlignment = 'top';
             app.textDuration.WordWrap = 'on';
             app.textDuration.FontSize = 16;
             app.textDuration.FontWeight = 'bold';
@@ -2020,7 +2018,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textFrequency = uilabel(app.mainfigure);
             app.textFrequency.Tag = 'freq';
             app.textFrequency.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textFrequency.VerticalAlignment = 'top';
             app.textFrequency.WordWrap = 'on';
             app.textFrequency.FontSize = 16;
             app.textFrequency.FontWeight = 'bold';
@@ -2032,7 +2029,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textClustAssign = uilabel(app.mainfigure);
             app.textClustAssign.Tag = 'text37';
             app.textClustAssign.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textClustAssign.VerticalAlignment = 'top';
             app.textClustAssign.WordWrap = 'on';
             app.textClustAssign.FontSize = 16;
             app.textClustAssign.FontWeight = 'bold';
@@ -2044,7 +2040,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textLabel = uilabel(app.mainfigure);
             app.textLabel.Tag = 'text36';
             app.textLabel.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textLabel.VerticalAlignment = 'top';
             app.textLabel.WordWrap = 'on';
             app.textLabel.FontSize = 16;
             app.textLabel.FontWeight = 'bold';
@@ -2056,7 +2051,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textUserID = uilabel(app.mainfigure);
             app.textUserID.Tag = 'text19';
             app.textUserID.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textUserID.VerticalAlignment = 'top';
             app.textUserID.WordWrap = 'on';
             app.textUserID.FontSize = 16;
             app.textUserID.FontWeight = 'bold';
@@ -2068,7 +2062,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textStatus = uilabel(app.mainfigure);
             app.textStatus.Tag = 'status';
             app.textStatus.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textStatus.VerticalAlignment = 'top';
             app.textStatus.WordWrap = 'on';
             app.textStatus.FontSize = 16;
             app.textStatus.FontWeight = 'bold';
@@ -2080,7 +2073,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textOvlp = uilabel(app.mainfigure);
             app.textOvlp.Tag = 'ovlp';
             app.textOvlp.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textOvlp.VerticalAlignment = 'top';
             app.textOvlp.WordWrap = 'on';
             app.textOvlp.FontSize = 16;
             app.textOvlp.FontWeight = 'bold';
@@ -2092,7 +2084,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textScore = uilabel(app.mainfigure);
             app.textScore.Tag = 'score';
             app.textScore.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textScore.VerticalAlignment = 'top';
             app.textScore.WordWrap = 'on';
             app.textScore.FontSize = 16;
             app.textScore.FontWeight = 'bold';
@@ -2100,34 +2091,35 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textScore.Position = [9 752 121 24];
             app.textScore.Text = 'Score:';
 
-            % Create textCalls
-            app.textCalls = uilabel(app.mainfigure);
-            app.textCalls.Tag = 'Ccalls';
-            app.textCalls.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.textCalls.VerticalAlignment = 'top';
-            app.textCalls.WordWrap = 'on';
-            app.textCalls.FontSize = 16;
-            app.textCalls.FontWeight = 'bold';
-            app.textCalls.FontColor = [1 1 1];
-            app.textCalls.Position = [9 776 241 24];
-            app.textCalls.Text = 'Calls: 0/0';
+            % Create dropdownAudFile
+            app.dropdownAudFile = uidropdown(app.mainfigure);
+            app.dropdownAudFile.Items = {'Select Audio File'};
+            app.dropdownAudFile.ValueChangedFcn = createCallbackFcn(app, @dropdownAudFile_Callback, true);
+            app.dropdownAudFile.Tag = 'dropdownAudFile';
+            app.dropdownAudFile.Enable = 'off';
+            app.dropdownAudFile.Visible = 'off';
+            app.dropdownAudFile.FontWeight = 'bold';
+            app.dropdownAudFile.FontColor = [1 1 1];
+            app.dropdownAudFile.BackgroundColor = [0 0 0];
+            app.dropdownAudFile.Position = [309 749 356 22];
+            app.dropdownAudFile.Value = 'Select Audio File';
 
             % Create textFileName
             app.textFileName = uilabel(app.mainfigure);
             app.textFileName.Tag = 'displayfile';
             app.textFileName.FontWeight = 'bold';
             app.textFileName.FontColor = [1 1 1];
-            app.textFileName.Position = [298 752 1036 39];
+            app.textFileName.Position = [314 773 1020 24];
             app.textFileName.Text = '';
 
-            % Create GoToCallEditFieldLabel
-            app.GoToCallEditFieldLabel = uilabel(app.mainfigure);
-            app.GoToCallEditFieldLabel.HorizontalAlignment = 'right';
-            app.GoToCallEditFieldLabel.FontSize = 14;
-            app.GoToCallEditFieldLabel.FontWeight = 'bold';
-            app.GoToCallEditFieldLabel.FontColor = [1 1 1];
-            app.GoToCallEditFieldLabel.Position = [740 22 86 22];
-            app.GoToCallEditFieldLabel.Text = 'Go To Call #';
+            % Create CallLabel
+            app.CallLabel = uilabel(app.mainfigure);
+            app.CallLabel.BackgroundColor = [0 0 0];
+            app.CallLabel.FontSize = 16;
+            app.CallLabel.FontWeight = 'bold';
+            app.CallLabel.FontColor = [1 1 1];
+            app.CallLabel.Position = [9 775 40 24];
+            app.CallLabel.Text = 'Call:';
 
             % Show the figure after all components are created
             app.mainfigure.Visible = 'on';

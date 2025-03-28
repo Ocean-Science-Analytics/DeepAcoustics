@@ -10,7 +10,6 @@ cla(handles.waveformWindow);
 % Update call statistics text
 set(handles.GoToCall,'Value',handles.data.currentcall);
 set(handles.GoToCallTotal,'String',['/' num2str(height(handles.data.calls))]);
-set(handles.Ccalls,'String',['Call: ' num2str(handles.data.currentcall) '/' num2str(height(handles.data.calls))]);
 
 handles.data.windowposition = 0;
 handles.data.lastWindowPosition = -1;

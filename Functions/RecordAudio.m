@@ -20,7 +20,8 @@ if eventdata.Source.Value==1
         cla(handles.spectrogramWindow);
         cla(handles.waveformWindow);
         Calls = table(zeros(0,4),[],[],[], 'VariableNames', {'Box', 'Score', 'Type', 'Accept'});
-        set(handles.Ccalls,'String','Call: ');
+        set(handles.GoToCall,'Value',0);
+        set(handles.GoToCallTotal,'String','/?');
         set(handles.score,'String','Score: ');
         set(handles.status,'String','');
         set(handles.text19,'String','Label: ');
