@@ -1,4 +1,4 @@
-function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, handles, make_spectrogram, options)
+function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, options)
 %% Extract call features for CalculateStats and display
 
 if nargin < 3
@@ -18,18 +18,18 @@ if nargin < 4 || isempty(options)
 %     options.overlap = optimalWindow .* noverlap;
 %     options.nfft = optimalWindow;
     options.frequency_padding = 0;
-    if handles.data.settings.spect.nfft == 0
-        handles.data.settings.spect.nfft = handles.data.settings.spect.nfftsmp/rate;
-        handles.data.settings.spect.windowsize = handles.data.settings.spect.windowsizesmp/rate;
-        handles.data.settings.spect.noverlap = handles.data.settings.spect.noverlap/rate;
-    elseif handles.data.settings.spect.nfftsmp == 0
-        handles.data.settings.spect.nfftsmp = handles.data.settings.spect.nfft*rate;
-        handles.data.settings.spect.windowsizesmp = handles.data.settings.spect.windowsize*rate;
+    if DAdata.settings.spect.nfft == 0
+        DAdata.settings.spect.nfft = DAdata.settings.spect.nfftsmp/rate;
+        DAdata.settings.spect.windowsize = DAdata.settings.spect.windowsizesmp/rate;
+        DAdata.settings.spect.noverlap = DAdata.settings.spect.noverlap/rate;
+    elseif DAdata.settings.spect.nfftsmp == 0
+        DAdata.settings.spect.nfftsmp = DAdata.settings.spect.nfft*rate;
+        DAdata.settings.spect.windowsizesmp = DAdata.settings.spect.windowsize*rate;
     end
-    handles.data.saveSettings();
-    options.nfft = handles.data.settings.spect.nfft;
-    options.overlap = handles.data.settings.spect.noverlap;
-    options.windowsize = handles.data.settings.spect.windowsize;
+    DAdata.saveSettings();
+    options.nfft = DAdata.settings.spect.nfft;
+    options.overlap = DAdata.settings.spect.noverlap;
+    options.windowsize = DAdata.settings.spect.windowsize;
     options.freq_range = [];
 end
 
@@ -64,7 +64,7 @@ if make_spectrogram
     [s, fr, ti, p] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
 else
     audio = [];
-    indbox = handles.data.page_spect.t > call.Box(1) & handles.data.page_spect.t < sum(call.Box([1,3]));
+    indbox = DAdata.page_spect.t > call.Box(1) & DAdata.page_spect.t < sum(call.Box([1,3]));
     % if spect resolution issues, warning and adjust box so enough dims to
     % function
     if sum(indbox)==1
@@ -76,9 +76,9 @@ else
         end
         warning('%s\n%s\n','Recommend decreasing FFT size in Display Settings')
     end
-    s  = handles.data.page_spect.s_display(:,indbox);
-    ti = handles.data.page_spect.t(indbox);
-    fr = handles.data.page_spect.f;
+    s  = DAdata.page_spect.s_display(:,indbox);
+    ti = DAdata.page_spect.t(indbox);
+    fr = DAdata.page_spect.f;
     p = (1/(rate*(hamming(nfft)'*hamming(nfft))))*abs(s).^2;
     p(2:end-1,:) = p(2:end-1,:).*2;
 end

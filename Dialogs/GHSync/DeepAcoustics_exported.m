@@ -42,6 +42,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuSetStaticBoxHeight      matlab.ui.container.Menu
         menuPerfMet                 matlab.ui.container.Menu
         menuContTrace               matlab.ui.container.Menu
+        menuCallReview              matlab.ui.container.Menu
         DenoiseMenu                 matlab.ui.container.Menu
         menuHelp                    matlab.ui.container.Menu
         menuAbout                   matlab.ui.container.Menu
@@ -123,11 +124,15 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         appUnsupClustSave   % Save Dialog for Unsupervised Clustering Runs
         appClustering       % Clustering Dialog
         appContTrace        % Contour Tracing Dialog
+        appCallReview       % Call Review Dialog
         appTrainImg         % Training Image Settings Dialog
         appRecordOpts       % Record Options Dialog
     end
     
     properties (Access = public)
+        % Main app variables
+        DAdata              % old handles.data - contains everything in squeakData
+
         % UnsupClustSaveDlg variables
         strUnsupSaveLoc     % Save location for Unsupervised Clustering Products
         bClustImg           % Save clustering images
@@ -177,9 +182,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 %handles.data.clim = prctile(handles.data.page_spect.s_display(20:10:end-20, 1:20:end),[10,90], 'all')';
                 handles.data.clim = prctile(handles.data.page_spect.s_display, [10,90], 'all')';
                 ChangeSpecCLim(hObject,[],handles);
-    
-                handles.focusWindow.Colorbar.Label.String = handles.data.settings.spect.type;
-                handles.spectrogramWindow.Colorbar.Label.String = handles.data.settings.spect.type;
+
+                winFocusCB = colorbar(app.winFocus);
+                winFocusCB.Label.String = handles.data.settings.spect.type;
+                winPageCB = colorbar(app.winPage);
+                winPageCB.Label.String = handles.data.settings.spect.type;
             end
             guidata(hObject, handles);
         end
@@ -197,6 +204,14 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function RunContTraceDlg(app,ClusteringData,spect,EntThresh,AmpThresh)
             app.appContTrace = ContTraceDlg(app,ClusteringData,spect,EntThresh,AmpThresh);
             %waitfor(app.appContTrace);
+        end
+        
+        function RunCallReviewDlg(app, detfilename, handles)
+            % Won't need this line once transition to AppDesigner
+            % finished!!
+            app.DAdata = handles.data;
+            app.appCallReview = CallReviewDlg(app, detfilename, handles);
+            waitfor(app.appCallReview);
         end
 
         function RunTrainImgDlg(app,spect,metadata)
@@ -370,6 +385,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 end
             end
             
+            app.DAdata = squeakData(squeakfolder);
             handles.data = squeakData(squeakfolder);
             
             set ( hFig, 'Color', [.1 .1 .1] );
@@ -420,9 +436,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             
             % Cool Background Image
             imshow(handles.background, 'Parent', handles.focusWindow);
-            set(handles.focusWindow,'Color',[0.1 0.1 0.1],'YColor',[1 1 1],'XColor',[1 1 1]);
-            set(handles.focusWindow,'XTick',[]);
-            set(handles.focusWindow,'YTick',[]);
+            app.winFocus.Color = [0.1 0.1 0.1];
+            app.winFocus.YColor = [1 1 1];
+            app.winFocus.XColor = [1 1 1];
+            app.winFocus.XTick = [];
+            app.winFocus.YTick = [];
 
             handles.current_file_id = 1;
             handles.current_detection_file = '';
@@ -957,6 +975,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             delete(app.appUnsupClustSave)
             delete(app.appClustering)
             delete(app.appContTrace)
+            delete(app.appCallReview)
             delete(app.appTrainImg)
             delete(app.appRecordOpts)
             delete(app)
@@ -1115,6 +1134,13 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function dropdownAudFile_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             LoadCalls(hObject, eventdata, handles, 0, app.dropdownAudFile.ValueIndex);
+        end
+
+        % Menu selected function: menuCallReview
+        function menuCallReview_Callback(app, event)
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file to load');            
+            app.RunCallReviewDlg(fullfile(newdetpath, newdetfile),handles);
         end
     end
 
@@ -1361,6 +1387,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuContTrace = uimenu(app.menuTools);
             app.menuContTrace.MenuSelectedFcn = createCallbackFcn(app, @menuContTrace_Callback, true);
             app.menuContTrace.Text = 'Contour Tracing';
+
+            % Create menuCallReview
+            app.menuCallReview = uimenu(app.menuTools);
+            app.menuCallReview.MenuSelectedFcn = createCallbackFcn(app, @menuCallReview_Callback, true);
+            app.menuCallReview.Text = 'Call Review';
 
             % Create DenoiseMenu
             app.DenoiseMenu = uimenu(app.menuTools);
@@ -1931,6 +1962,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.sliderTonality.MajorTicks = [];
             app.sliderTonality.Orientation = 'vertical';
             app.sliderTonality.ValueChangedFcn = createCallbackFcn(app, @sliderTonality_Callback, true);
+            app.sliderTonality.MinorTicks = [0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1];
             app.sliderTonality.FontSize = 10.6666666666667;
             app.sliderTonality.Tag = 'TonalitySlider';
             app.sliderTonality.Position = [223 223 3 118];

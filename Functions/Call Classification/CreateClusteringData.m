@@ -107,7 +107,7 @@ for i = 1:height(Calls)
     % Change the audio file if needed
     audioReader.audiodata = Calls.Audiodata(i);
         
-    [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles, true, []);
+    [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles.data, true, []);
     
     % If spectrogram settings iffy
     if any(size(pow) < 3)
