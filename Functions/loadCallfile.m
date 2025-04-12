@@ -69,7 +69,7 @@ if isfield(data, 'Calls')
                 if ~strcmp(handles.data.settings.audiofolder,audiopath)
                     handles.data.settings.audiofolder = audiopath;
                     handles.data.saveSettings();
-                    update_folders(hObject, handles);
+                    %update_folders(hObject, handles);
                 end
                 audiodir = [dir([audiopath '\*.wav']); ...
                     dir([audiopath '\*.ogg']); ...
@@ -146,7 +146,7 @@ if isfield(data, 'Calls')
                     if ~strcmp(handles.data.settings.audiofolder,newpn)
                         handles.data.settings.audiofolder = newpn;
                         handles.data.saveSettings();
-                        update_folders(hObject, handles);
+                        %update_folders(hObject, handles);
                     end
                 end
                 % Replace old path with new, good path

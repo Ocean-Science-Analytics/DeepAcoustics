@@ -29,6 +29,9 @@ if nargin < 4
     end
 
     [handles.data.calls, handles.data.allAudio, handles.data.settings.spect, handles.data.detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+    % Removed call from loadCallfile so have to put it here
+    update_folders(hObject, handles);
+    handles = guidata(hObject);  % Get newest version of handles
     
     % If not automatically reloading due to another function (e.g. Next/Prev
     % Call) user needs to pick which audio file to load
