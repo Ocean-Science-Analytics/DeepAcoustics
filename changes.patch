@@ -1,0 +1,142 @@
+diff --git a/DeepAcoustics.mlapp b/DeepAcoustics.mlapp
+index eafa454..69f1a77 100644
+Binary files a/DeepAcoustics.mlapp and b/DeepAcoustics.mlapp differ
+diff --git a/Dialogs/TrainOptsDlg.mlapp b/Dialogs/TrainOptsDlg.mlapp
+new file mode 100644
+index 0000000..2c69481
+Binary files /dev/null and b/Dialogs/TrainOptsDlg.mlapp differ
+diff --git a/Functions/Call Classification/ViewClusters.m b/Functions/Call Classification/ViewClusters.m
+index f357051..7796d6b 100644
+--- a/Functions/Call Classification/ViewClusters.m	
++++ b/Functions/Call Classification/ViewClusters.m	
+@@ -1,7 +1,13 @@
+-function ViewClusters(hObject, eventdata, handles)
++function ViewClusters(app, event)
++[~, ~, handles] = convertToGUIDECallbackArguments(app, event);  
+ [ClusteringData,clustAssign] = CreateClusteringData(handles, 'forClustering', false);
+ 
+-[~, clusterName, rejected, finished, clustAssign] = clusteringGUI(clustAssign, ClusteringData);
++%[~, clusterName, rejected, finished, clustAssign] = clusteringGUI(clustAssign, ClusteringData);
++app.RunClusteringDlg(clustAssign, ClusteringData);
++clusterName = app.clusterName;
++rejected = app.rejected;
++finished = app.finished;
++clustAssign = app.clustAssign;
+ 
+ % Save the clusters
+ if finished == 1
+diff --git a/Functions/Network Training/TrainDetNet.m b/Functions/Network Training/TrainDetNet.m
+index 4618dc6..88cf5a5 100644
+--- a/Functions/Network Training/TrainDetNet.m	
++++ b/Functions/Network Training/TrainDetNet.m	
+@@ -1,4 +1,5 @@
+-function TrainDetNet(hObject, eventdata, handles)
++function TrainDetNet(app, event)
++[hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event);
+ %% Train a new neural network
+ [TrainingTables, AllSettings] = ImportTrainingImgs(handles,true);
+ if isempty(TrainingTables); return; end
+@@ -25,12 +26,12 @@ switch choice
+                     end
+             end
+         end
+-        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables,detector,options,detname);
++        [detector, layers, options, info, detname] = TrainSqueakDetector(app,TrainingTables,detector,options,detname);
+     case 'Yes - TensorFlow'
+         detector = importTensorFlowLayers(uigetdir(pwd,'Please select the folder containing saved TensorFlow 2 model (saved_model.pb & variables subfolder)'));
+-        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables,detector);
++        [detector, layers, options, info, detname] = TrainSqueakDetector(app,TrainingTables,detector);
+     case 'No'
+-        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables);
++        [detector, layers, options, info, detname] = TrainSqueakDetector(app,TrainingTables);
+ end
+ 
+ %% Save the new network
+diff --git a/Functions/Network Training/TrainSqueakDetector.m b/Functions/Network Training/TrainSqueakDetector.m
+index a225485..9cbe30d 100644
+--- a/Functions/Network Training/TrainSqueakDetector.m	
++++ b/Functions/Network Training/TrainSqueakDetector.m	
+@@ -1,4 +1,4 @@
+-function [detector, lgraph, options, info, detname] = TrainSqueakDetector(TrainingTables, layers, sameopts, detname)
++function [detector, lgraph, options, info, detname] = TrainSqueakDetector(app, TrainingTables, layers, sameopts, detname)
+ 
+ % Extract boxes delineations and store as boxLabelDatastore
+ % Convert training and validation data to
+@@ -7,19 +7,22 @@ imdsTrain = imageDatastore(TrainingTables{:,1});
+ bldsTrain = boxLabelDatastore(TrainingTables(:,2:end));
+ dsTrain = combine(imdsTrain,bldsTrain);
+ 
+-list = {'Tiny YOLO v4 COCO','CSP-DarkNet-53','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
+-if nargin == 1 || isempty(detname)
+-    if nargin == 1
+-        strPrompt = 'Choose a base network';
+-    else
+-        strPrompt = 'Which network architecture was used to create this?';
+-    end
+-    [basemodels,tf] = listdlg('PromptString',strPrompt,'ListString',list,'SelectionMode','single','Name','Base Network');
+-    if ~tf
+-        return
+-    end
+-    detname = list{basemodels};
+-elseif nargin == 4
++strPrompt = 'First, choose a base network:';
++basemodels = '';
++
++% list = {'Tiny YOLO v4 COCO','CSP-DarkNet-53','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
++% if nargin == 2 || isempty(detname)
++%     if nargin ~= 2
++%         strPrompt = 'Which network architecture was used to create this?';
++%     end
++%     [basemodels,tf] = listdlg('PromptString',strPrompt,'ListString',list,'SelectionMode','single','Name','Base Network');
++%     if ~tf
++%         return
++%     end
++%     detname = list{basemodels};
++% else
++if nargin == 5
++    strPrompt = 'Network detected:';
+     basemodels = find(strcmp(detname,list));
+ end
+ 
+@@ -33,8 +36,8 @@ else
+ end
+ 
+ % Probably 300 x 300
+-dim1 = size(sampleImg,1);
+-dim2 = size(sampleImg,2);
++imgdim = size(sampleImg,1);
++%dim2 = size(sampleImg,2);
+ 
+ % Set model defaults
+ switch basemodels
+@@ -73,14 +76,15 @@ end
+ % Training image dims need to matchcase 'Tiny YOLO v4 COCO' or
+ % 'CSP-DarkNet-53'
+ inputSize = [dim1 dim2 3];
+-if nargin == 4
++if nargin == 5
+     if size(layers.InputSize,2) ~= 3
+         inputSize = [dim1 dim2];
+     end
+ end
+ dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
+ 
+-if nargin == 1
++if nargin == 2
++    app.CallingApp.RunTrainOptsDlg();
+     %% Set training options
+     bCustomize = questdlg('Would you like to customize your network options or use defaults?','Customize?','Customize','Defaults','Defaults');
+     switch bCustomize
+@@ -308,7 +312,7 @@ if nargin == 1
+     
+             lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers,InputSize=inputSize);
+     end
+-elseif nargin == 4
++elseif nargin == 5
+     %% Validation Data
+     % Used to determine if network is overfitting
+     bValData = questdlg({'Would you like to use a proportion of your training data to validate (recommended to assess overfitting)?';...
+diff --git a/Functions/Call Classification/clusteringGUI.m b/ToDelete/clusteringGUI.m
+similarity index 100%
+rename from Functions/Call Classification/clusteringGUI.m
+rename to ToDelete/clusteringGUI.m
