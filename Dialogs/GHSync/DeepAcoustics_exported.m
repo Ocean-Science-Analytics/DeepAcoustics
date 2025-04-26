@@ -938,20 +938,26 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
 
         % Value changed function: dropdownFocus
         function dropdownFocus_Callback(app, event)
-            if strcmp(event.EventName,'Clicked')
-                return
-            elseif strcmp(event.EventName,'ValueChanged')
-                ChangeFocusWidth(app, event);
-            end
+            % if strcmp(event.EventName,'Clicked')
+            %     return
+            % elseif strcmp(event.EventName,'ValueChanged')
+            %     ChangeFocusWidth(app, event);
+            % end
+            % GA 250425 I think possibly they fixed this issue in the new
+            % version of Matlab...we'll see...
+            ChangeFocusWidth(app, event);
         end
 
         % Value changed function: dropdownPage
         function dropdownPage_Callback(app, event)
-            if strcmp(event.EventName,'Clicked')
-                return
-            elseif strcmp(event.EventName,'ValueChanged')
-                ChangePageWidth(app, event);
-            end
+            % if strcmp(event.EventName,'Clicked')
+            %     return
+            % elseif strcmp(event.EventName,'ValueChanged')
+            %     ChangePageWidth(app, event);
+            % end
+            % GA 250425 I think possibly they fixed this issue in the new
+            % version of Matlab...we'll see...
+            ChangePageWidth(app, event);
         end
 
         % Value changed function: dropdownColorMap

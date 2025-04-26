@@ -98,7 +98,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
                 title(ax1,num2str(i));
                 % Make axes in proper units
                 ax1.XTick = [size(plotspec,2)];
-                ax1.XTickLabel{1} = ax1.XTick(j)*TimeScale;
+                ax1.XTickLabel{1} = ax1.XTick(1)*TimeScale;
                 for j = 1:length(ax1.YTick)
                     ax1.YTickLabel{j} = round(ax1.YTick(j)*FreqScale*1000);
                 end
