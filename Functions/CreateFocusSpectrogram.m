@@ -1,57 +1,39 @@
-function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, options)
+function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad)
 %% Extract call features for CalculateStats and display
 
-if nargin < 3
+if nargin < 4 || ~make_spectrogram
+    nTimePad = 0;
+elseif nargin < 3
     make_spectrogram = true;
+    nTimePad = 0;
 end
 
 rate = call.Audiodata.SampleRate;
 
-if nargin < 4 || isempty(options)
-%     yRange = mean(call.Box(1,4));
-%     xRange = mean(call.Box(1,3));
-%     noverlap = .5;
-%     optimalWindow = sqrt(xRange/(2000*yRange));
-%     optimalWindow = optimalWindow + optimalWindow.*noverlap;
-    options = struct;
-%     options.windowsize = optimalWindow;
-%     options.overlap = optimalWindow .* noverlap;
-%     options.nfft = optimalWindow;
-    options.frequency_padding = 0;
-    if DAdata.settings.spect.nfft == 0
-        DAdata.settings.spect.nfft = DAdata.settings.spect.nfftsmp/rate;
-        DAdata.settings.spect.windowsize = DAdata.settings.spect.windowsizesmp/rate;
-        DAdata.settings.spect.noverlap = DAdata.settings.spect.noverlap/rate;
-    elseif DAdata.settings.spect.nfftsmp == 0
-        DAdata.settings.spect.nfftsmp = DAdata.settings.spect.nfft*rate;
-        DAdata.settings.spect.windowsizesmp = DAdata.settings.spect.windowsize*rate;
-    end
-    DAdata.saveSettings();
-    options.nfft = DAdata.settings.spect.nfft;
-    options.overlap = DAdata.settings.spect.noverlap;
-    options.windowsize = DAdata.settings.spect.windowsize;
-    options.freq_range = [];
+if DAdata.settings.spect.nfft == 0
+    DAdata.settings.spect.nfft = DAdata.settings.spect.nfftsmp/rate;
+    DAdata.settings.spect.windowsize = DAdata.settings.spect.windowsizesmp/rate;
+    DAdata.settings.spect.noverlap = DAdata.settings.spect.noverlap/rate;
+elseif DAdata.settings.spect.nfftsmp == 0
+    DAdata.settings.spect.nfftsmp = DAdata.settings.spect.nfft*rate;
+    DAdata.settings.spect.windowsizesmp = DAdata.settings.spect.windowsize*rate;
 end
+DAdata.saveSettings();
 
 box = call.Box;
 
-if isfield(options, 'freq_range') && ~isempty(options.freq_range)
-    box(2) = options.freq_range(1);
-    box(4) = options.freq_range(2) - options.freq_range(1);
-end
-
-if (1/options.nfft > (box(4)*1000))
+if (1/DAdata.settings.spect.nfft > (box(4)*1000))
     warning('%s\n%s\n','Spectrogram settings may not be ideal for this call - suggest adjusting Display Settings and increasing NFFT')
 end
 
-windowsize = round(rate * options.windowsize);
-noverlap = round(rate * options.overlap);
-nfft = round(rate * options.nfft);
+windowsize = round(rate * DAdata.settings.spect.windowsize);
+noverlap = round(rate * DAdata.settings.spect.noverlap);
+nfft = round(rate * DAdata.settings.spect.nfft);
     
 if make_spectrogram
     audioreader = squeakData([]);
     audioreader.audiodata = call.Audiodata;
-    audio = audioreader.AudioSamples(box(1), box(1) + box(3));
+    audio = audioreader.AudioSamples(box(1)-nTimePad, box(1) + box(3)+nTimePad);
     if (length(audio) < min([windowsize,noverlap,nfft]))
         warning('Call too short to generate spectrogram, returning empty')
         I = [];
@@ -87,10 +69,10 @@ end
 x1 = 1;
 x2 = length(ti);
 
-min_freq = find(fr./1000 >= box(2) - options.frequency_padding,1);
+min_freq = find(fr./1000 >= box(2),1);
 min_freq = max(min_freq-1, 1);
 
-max_freq = find(fr./1000 <= box(4) + box(2) + options.frequency_padding, 1, 'last');
+max_freq = find(fr./1000 <= box(4) + box(2), 1, 'last');
 max_freq = min(round(max_freq)+1, length(fr));
 
 I=abs(s(min_freq:max_freq,x1:x2));

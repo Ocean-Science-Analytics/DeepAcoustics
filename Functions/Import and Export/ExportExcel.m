@@ -17,7 +17,7 @@ function ExportExcel(hObject, eventdata, handles)
                 end
 
                 % Get spectrogram data
-                [I,windowsize,noverlap,nfft,rate,box] = CreateFocusSpectrogram(Calls(i, :),handles.data,true, []);
+                [I,windowsize,noverlap,nfft,rate,box] = CreateFocusSpectrogram(Calls(i, :),handles.data);
                 if isempty(I)
                     stats.BeginTime = [];
                     stats.EndTime = [];

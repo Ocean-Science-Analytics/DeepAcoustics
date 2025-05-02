@@ -72,7 +72,7 @@ end
 % Set the sliders to the saved values
 set(handles.TonalitySlider, 'Value', handles.data.calls.EntThresh(handles.data.currentcall));
 
-[I,windowsize,noverlap,nfft,rate,box,~,~,~] = CreateFocusSpectrogram(handles.data.calls(handles.data.currentcall,:),handles.data,false, []);
+[I,windowsize,noverlap,nfft,rate,box,~,~,~] = CreateFocusSpectrogram(handles.data.calls(handles.data.currentcall,:),handles.data,false);
 
 stats = CalculateStats(I,windowsize,noverlap,nfft,rate,box,handles.data.calls.EntThresh(handles.data.currentcall),handles.data.calls.AmpThresh(handles.data.currentcall));
 

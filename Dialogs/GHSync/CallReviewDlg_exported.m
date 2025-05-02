@@ -73,7 +73,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
                 ax1 = nexttile(montTile);
 
                 % Create spectrogram image
-                [~,wind,noverlap,nfft,~,~,~,~,~,~,pow] = CreateFocusSpectrogram(app.Calls(i,:), app.CallingApp.DAdata, true, []);
+                [~,wind,noverlap,nfft,~,~,~,~,~,~,pow] = CreateFocusSpectrogram(app.Calls(i,:), app.CallingApp.DAdata, true, 0.25);
                 
                 % If spectrogram settings iffy
                 if any(size(pow) < 3)
@@ -107,7 +107,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
                 ax1.YLim = [specindymin,specindymax];
                 imagesc(ax1,[1,size(plotspec,2)],[specindymin,specindymax],plotspec(specindymin:specindymax,:),"HitTest","off");
                 ax1.YDir = "normal";
-                title(ax1,num2str(i));
+                title(ax1,sprintf('%s (%s)',num2str(i),app.Calls.Type(i)));
                 % Make axes in proper units
                 ax1.XTick = [size(plotspec,2)];
                 ax1.XTickLabel{1} = ax1.XTick(1)*TimeScale;
@@ -122,7 +122,8 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         end
 
         function panelImgsClick_Callback(app,event)
-            thisSel = str2double(event.Source.Title.String);
+            thisSel = regexp(event.Source.Title.String,'\d+','match');
+            thisSel = str2double(thisSel{1});
             % If selection was already selected, un-select
             if ismember(thisSel,app.indSel)
                 app.indSel(app.indSel==thisSel) = [];
@@ -152,7 +153,8 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.CallingApp = mainapp;
             app.detfilename = detfilename;
 
-            h = waitbar(0,'Loading Calls Please wait...');
+            h = uiprogressdlg(app.dlgCallReview,'Title','Please Wait',...
+                'Message','Loading Calls','Indeterminate','on');
             [app.Calls, app.allAudio, app.spect, app.detmetadata] = loadCallfile(detfilename, handles, false);
             close(h);
 

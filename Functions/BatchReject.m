@@ -91,7 +91,7 @@ for currentfile = selections % Do this for each file
     for i = 1:height(Calls)
         waitbar(i ./ height(Calls), h, ['Processing file ' num2str(find(selections == currentfile)) ' of ' num2str(length(selections))]);
 
-        [I,wind,noverlap,nfft,rate,box,~,~,~,~,~] = CreateFocusSpectrogram(Calls(i,:), handles.data, true, []);
+        [I,wind,noverlap,nfft,rate,box,~,~,~,~,~] = CreateFocusSpectrogram(Calls(i,:), handles.data);
         % If each call was saved with its own Entropy and Amplitude
         % Threshold, run CalculateStats with those values,
         % otherwise run with global settings
