@@ -2,26 +2,28 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        dlgContTrace           matlab.ui.Figure
-        dropdownCallType       matlab.ui.control.DropDown
-        editfieldCallIndex     matlab.ui.control.NumericEditField
-        labelTotalCalls        matlab.ui.control.Label
-        dropdownConvertFrom    matlab.ui.control.DropDown
-        dropdownConvertTo      matlab.ui.control.DropDown
-        ToLabel                matlab.ui.control.Label
-        ConvertAllLabel        matlab.ui.control.Label
-        buttonConvertApply     matlab.ui.control.Button
-        buttonReject           matlab.ui.control.Button
-        CallTypeDropDownLabel  matlab.ui.control.Label
-        CallLabel              matlab.ui.control.Label
-        buttonPrev             matlab.ui.control.Button
-        buttonNext             matlab.ui.control.Button
-        buttonClear            matlab.ui.control.Button
-        buttonGen              matlab.ui.control.Button
-        buttonAdd              matlab.ui.control.Button
-        buttonDel              matlab.ui.control.Button
-        buttonSaveClose        matlab.ui.control.Button
-        winContour             matlab.ui.control.UIAxes
+        dlgContTrace               matlab.ui.Figure
+        dropdownCallType           matlab.ui.control.DropDown
+        editfieldCallIndex         matlab.ui.control.NumericEditField
+        labelTotalCalls            matlab.ui.control.Label
+        dropdownConvertFrom        matlab.ui.control.DropDown
+        dropdownConvertTo          matlab.ui.control.DropDown
+        ToLabel                    matlab.ui.control.Label
+        ConvertAllLabel            matlab.ui.control.Label
+        buttonConvertApply         matlab.ui.control.Button
+        CallTypeDropDownLabel      matlab.ui.control.Label
+        CallLabel                  matlab.ui.control.Label
+        buttonPrev                 matlab.ui.control.Button
+        buttonNext                 matlab.ui.control.Button
+        buttonClear                matlab.ui.control.Button
+        buttonGen                  matlab.ui.control.Button
+        buttonReject               matlab.ui.control.Button
+        buttonAdd                  matlab.ui.control.Button
+        buttonDel                  matlab.ui.control.Button
+        buttonSaveClose            matlab.ui.control.Button
+        switchDispCont             matlab.ui.control.Switch
+        DisplayContourSwitchLabel  matlab.ui.control.Label
+        winContour                 matlab.ui.control.UIAxes
     end
 
     
@@ -40,6 +42,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
         bDelOn          % Is Delete Mode active?
         strConvFrom     % Call type to convert from
         strConvTo       % Call type to convert to
+        bDispCont           % Switch to display contour
     end
     
     methods (Access = private)
@@ -77,15 +80,17 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.winContour.YDir = "normal";
             hold(app.winContour,"on");
 
-            % Plot contour
-            plotx = app.xTimeEdit/app.ClusteringData.TimeScale(app.indcall);
-            ploty = app.xFreqEdit/app.ClusteringData.FreqScale(app.indcall);
-            app.plSc = scatter(plotx,ploty,25,'MarkerEdgeColor',[0 0 0],...
-                'MarkerFaceColor',[1 1 1],'LineWidth',1.5,'Parent',app.winContour);%,'ButtonDownFcn','winContClick_Callback(app)');
-
-            hold(app.winContour,"off");
-            % Necessary for adding points
-            set(get(app.winContour,'Children'),'HitTest','off');
+            if app.bDispCont
+                % Plot contour
+                plotx = app.xTimeEdit/app.ClusteringData.TimeScale(app.indcall);
+                ploty = app.xFreqEdit/app.ClusteringData.FreqScale(app.indcall);
+                app.plSc = scatter(plotx,ploty,25,'MarkerEdgeColor',[0 0 0],...
+                    'MarkerFaceColor',[1 1 1],'LineWidth',1.5,'Parent',app.winContour);%,'ButtonDownFcn','winContClick_Callback(app)');
+    
+                hold(app.winContour,"off");
+                % Necessary for adding points
+                set(get(app.winContour,'Children'),'HitTest','off');
+            end
         end
 
         function CTInterpolate(app)
@@ -166,6 +171,9 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             % Default strings
             app.strConvFrom = 'Select...';
             app.strConvTo = 'Select...';
+
+            % Misc defaults
+            app.bDispCont = strcmp(app.switchDispCont.Value,'On');
 
             % Plot first call, default contour
             app.indcall = 1;
@@ -362,6 +370,25 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.dropdownConvertTo.Enable = "off";
             app.CTPlotRefresh();
         end
+
+        % Value changed function: switchDispCont
+        function switchDispCont_Callback(app, event)
+            app.bDispCont = strcmp(app.switchDispCont.Value,'On');
+            if app.bDispCont
+                app.buttonClear.Enable = "on";
+                app.buttonGen.Enable = "on";
+                app.buttonReject.Enable = "on";
+                app.buttonAdd.Enable = "on";
+                app.buttonDel.Enable = "on";
+            else
+                app.buttonClear.Enable = "off";
+                app.buttonGen.Enable = "off";
+                app.buttonReject.Enable = "off";
+                app.buttonAdd.Enable = "off";
+                app.buttonDel.Enable = "off";
+            end
+            CTPlotRefresh(app);
+        end
     end
 
     % Component initialization
@@ -389,6 +416,18 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.winContour.Tag = 'contourWindow';
             app.winContour.Position = [48 219 601 445];
 
+            % Create DisplayContourSwitchLabel
+            app.DisplayContourSwitchLabel = uilabel(app.dlgContTrace);
+            app.DisplayContourSwitchLabel.HorizontalAlignment = 'center';
+            app.DisplayContourSwitchLabel.Position = [58 86 90 22];
+            app.DisplayContourSwitchLabel.Text = 'Display Contour';
+
+            % Create switchDispCont
+            app.switchDispCont = uiswitch(app.dlgContTrace, 'slider');
+            app.switchDispCont.ValueChangedFcn = createCallbackFcn(app, @switchDispCont_Callback, true);
+            app.switchDispCont.Position = [80 116 45 20];
+            app.switchDispCont.Value = 'On';
+
             % Create buttonSaveClose
             app.buttonSaveClose = uibutton(app.dlgContTrace, 'push');
             app.buttonSaveClose.ButtonPushedFcn = createCallbackFcn(app, @buttonSaveClose_Callback, true);
@@ -406,6 +445,12 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.buttonAdd.ButtonPushedFcn = createCallbackFcn(app, @buttonAdd_Callback, true);
             app.buttonAdd.Position = [382 156 100 23];
             app.buttonAdd.Text = 'Add Points';
+
+            % Create buttonReject
+            app.buttonReject = uibutton(app.dlgContTrace, 'push');
+            app.buttonReject.ButtonPushedFcn = createCallbackFcn(app, @buttonReject_Callback, true);
+            app.buttonReject.Position = [215 96 109 23];
+            app.buttonReject.Text = 'Reject';
 
             % Create buttonGen
             app.buttonGen = uibutton(app.dlgContTrace, 'push');
@@ -442,12 +487,6 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.CallTypeDropDownLabel.HorizontalAlignment = 'right';
             app.CallTypeDropDownLabel.Position = [61 693 58 22];
             app.CallTypeDropDownLabel.Text = 'Call Type:';
-
-            % Create buttonReject
-            app.buttonReject = uibutton(app.dlgContTrace, 'push');
-            app.buttonReject.ButtonPushedFcn = createCallbackFcn(app, @buttonReject_Callback, true);
-            app.buttonReject.Position = [215 96 109 23];
-            app.buttonReject.Text = 'Reject';
 
             % Create buttonConvertApply
             app.buttonConvertApply = uibutton(app.dlgContTrace, 'push');
