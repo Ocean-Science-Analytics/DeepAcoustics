@@ -3,6 +3,14 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         dlgContTrace           matlab.ui.Figure
+        dropdownCallType       matlab.ui.control.DropDown
+        editfieldCallIndex     matlab.ui.control.NumericEditField
+        labelTotalCalls        matlab.ui.control.Label
+        dropdownConvertFrom    matlab.ui.control.DropDown
+        dropdownConvertTo      matlab.ui.control.DropDown
+        ToLabel                matlab.ui.control.Label
+        ConvertAllLabel        matlab.ui.control.Label
+        buttonConvertApply     matlab.ui.control.Button
         buttonReject           matlab.ui.control.Button
         CallTypeDropDownLabel  matlab.ui.control.Label
         CallLabel              matlab.ui.control.Label
@@ -12,9 +20,6 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
         buttonGen              matlab.ui.control.Button
         buttonAdd              matlab.ui.control.Button
         buttonDel              matlab.ui.control.Button
-        dropdownCallType       matlab.ui.control.DropDown
-        editfieldCallIndex     matlab.ui.control.NumericEditField
-        labelTotalCalls        matlab.ui.control.Label
         buttonSaveClose        matlab.ui.control.Button
         winContour             matlab.ui.control.UIAxes
     end
@@ -33,6 +38,8 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
         brushCont       % Data selection brush
         bAddOn          % Is Add Mode active?
         bDelOn          % Is Delete Mode active?
+        strConvFrom     % Call type to convert from
+        strConvTo       % Call type to convert to
     end
     
     methods (Access = private)
@@ -54,6 +61,11 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             % (Re)set dropdown calltype list
             app.dropdownCallType.Items = [cellstr(unique(app.ClusteringData.Type)); 'Add New Call Type'];
             app.dropdownCallType.Value = char(app.ClusteringData.Type(app.indcall));
+
+            app.dropdownConvertFrom.Items = ['Select...'; cellstr(unique(app.ClusteringData.Type))];
+            app.dropdownConvertTo.Items = ['Select...'; cellstr(unique(app.ClusteringData.Type)); 'Add New Call Type'];
+            app.dropdownConvertFrom.Value = 'Select...';
+            app.dropdownConvertTo.Value = 'Select...';
 
             % Plot boxed portion of spectrogram
             plotspec = flipud(app.ClusteringData.Spectrogram{app.indcall});
@@ -150,6 +162,10 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             % Setup function to manually add/delete points
             app.bAddOn = false;
             app.bDelOn = false;
+
+            % Default strings
+            app.strConvFrom = 'Select...';
+            app.strConvTo = 'Select...';
 
             % Plot first call, default contour
             app.indcall = 1;
@@ -306,6 +322,46 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.ClusteringData.Type(app.indcall) = categorical(cellstr(newcalltype));
             app.CTPlotRefresh();
         end
+
+        % Value changed function: dropdownConvertFrom
+        function dropdownConvertFrom_Callback(app, event)
+            app.strConvFrom = app.dropdownConvertFrom.Value;
+            if ~strcmp(app.strConvFrom,'Select...')
+                app.dropdownConvertTo.Enable = "on";
+            else
+                app.dropdownConvertTo.Enable = "off";
+                app.buttonConvertApply.Enable = "off";
+            end
+        end
+
+        % Value changed function: dropdownConvertTo
+        function dropdownConvertTo_Callback(app, event)
+            app.strConvTo = app.dropdownConvertTo.Value;
+            if ~strcmp(app.strConvTo,'Select...')
+                if strcmp(app.strConvTo,'Add New Call Type')
+                    prompt = {'Enter call type:'};
+                    definput = {''};
+                    dlg_title = 'Set Custom Label';
+                    num_lines=[1,60]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='none';
+                    new_label = inputdlg(prompt,dlg_title,num_lines,definput,options);
+                    app.strConvTo = new_label{1};
+                    app.dropdownConvertTo.Items = ['Select...'; cellstr(unique(app.ClusteringData.Type)); app.strConvTo; 'Add New Call Type'];
+                    app.dropdownConvertTo.Value = app.strConvTo;
+                end
+                app.buttonConvertApply.Enable = "on";
+            else
+                app.buttonConvertApply.Enable = "off";
+            end
+        end
+
+        % Button pushed function: buttonConvertApply
+        function buttonConvertApply_Callback(app, event)
+            indSel = find(app.ClusteringData.Type==app.strConvFrom);
+            app.ClusteringData.Type(indSel) = categorical(cellstr(app.strConvTo));
+            app.buttonConvertApply.Enable = "off";
+            app.dropdownConvertTo.Enable = "off";
+            app.CTPlotRefresh();
+        end
     end
 
     % Component initialization
@@ -338,25 +394,6 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.buttonSaveClose.ButtonPushedFcn = createCallbackFcn(app, @buttonSaveClose_Callback, true);
             app.buttonSaveClose.Position = [295 30 109 42];
             app.buttonSaveClose.Text = 'Save & Close';
-
-            % Create labelTotalCalls
-            app.labelTotalCalls = uilabel(app.dlgContTrace);
-            app.labelTotalCalls.Position = [165 663 121 22];
-            app.labelTotalCalls.Text = '/ ? Total Calls';
-
-            % Create editfieldCallIndex
-            app.editfieldCallIndex = uieditfield(app.dlgContTrace, 'numeric');
-            app.editfieldCallIndex.Limits = [0 Inf];
-            app.editfieldCallIndex.ValueDisplayFormat = '%d';
-            app.editfieldCallIndex.ValueChangedFcn = createCallbackFcn(app, @editfieldCallIndex_Callback, true);
-            app.editfieldCallIndex.Position = [114 663 46 22];
-
-            % Create dropdownCallType
-            app.dropdownCallType = uidropdown(app.dlgContTrace);
-            app.dropdownCallType.Items = {'Call'};
-            app.dropdownCallType.ValueChangedFcn = createCallbackFcn(app, @dropdownCallType_Callback, true);
-            app.dropdownCallType.Position = [141 693 138 22];
-            app.dropdownCallType.Value = 'Call';
 
             % Create buttonDel
             app.buttonDel = uibutton(app.dlgContTrace, 'push');
@@ -397,13 +434,13 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             % Create CallLabel
             app.CallLabel = uilabel(app.dlgContTrace);
             app.CallLabel.HorizontalAlignment = 'right';
-            app.CallLabel.Position = [67 663 39 22];
+            app.CallLabel.Position = [61 663 39 22];
             app.CallLabel.Text = 'Call #:';
 
             % Create CallTypeDropDownLabel
             app.CallTypeDropDownLabel = uilabel(app.dlgContTrace);
             app.CallTypeDropDownLabel.HorizontalAlignment = 'right';
-            app.CallTypeDropDownLabel.Position = [68 693 58 22];
+            app.CallTypeDropDownLabel.Position = [61 693 58 22];
             app.CallTypeDropDownLabel.Text = 'Call Type:';
 
             % Create buttonReject
@@ -411,6 +448,59 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
             app.buttonReject.ButtonPushedFcn = createCallbackFcn(app, @buttonReject_Callback, true);
             app.buttonReject.Position = [215 96 109 23];
             app.buttonReject.Text = 'Reject';
+
+            % Create buttonConvertApply
+            app.buttonConvertApply = uibutton(app.dlgContTrace, 'push');
+            app.buttonConvertApply.ButtonPushedFcn = createCallbackFcn(app, @buttonConvertApply_Callback, true);
+            app.buttonConvertApply.Enable = 'off';
+            app.buttonConvertApply.Position = [591 679 53 23];
+            app.buttonConvertApply.Text = 'Apply';
+
+            % Create ConvertAllLabel
+            app.ConvertAllLabel = uilabel(app.dlgContTrace);
+            app.ConvertAllLabel.HorizontalAlignment = 'right';
+            app.ConvertAllLabel.Position = [301 679 66 22];
+            app.ConvertAllLabel.Text = 'Convert All:';
+
+            % Create ToLabel
+            app.ToLabel = uilabel(app.dlgContTrace);
+            app.ToLabel.HorizontalAlignment = 'right';
+            app.ToLabel.Position = [471 679 16 22];
+            app.ToLabel.Text = 'To:';
+
+            % Create dropdownConvertTo
+            app.dropdownConvertTo = uidropdown(app.dlgContTrace);
+            app.dropdownConvertTo.Items = {'Select...'};
+            app.dropdownConvertTo.ValueChangedFcn = createCallbackFcn(app, @dropdownConvertTo_Callback, true);
+            app.dropdownConvertTo.Enable = 'off';
+            app.dropdownConvertTo.Position = [489 679 95 22];
+            app.dropdownConvertTo.Value = 'Select...';
+
+            % Create dropdownConvertFrom
+            app.dropdownConvertFrom = uidropdown(app.dlgContTrace);
+            app.dropdownConvertFrom.Items = {'Select...'};
+            app.dropdownConvertFrom.ValueChangedFcn = createCallbackFcn(app, @dropdownConvertFrom_Callback, true);
+            app.dropdownConvertFrom.Position = [371 679 95 22];
+            app.dropdownConvertFrom.Value = 'Select...';
+
+            % Create labelTotalCalls
+            app.labelTotalCalls = uilabel(app.dlgContTrace);
+            app.labelTotalCalls.Position = [159 663 121 22];
+            app.labelTotalCalls.Text = '/ ? Total Calls';
+
+            % Create editfieldCallIndex
+            app.editfieldCallIndex = uieditfield(app.dlgContTrace, 'numeric');
+            app.editfieldCallIndex.Limits = [0 Inf];
+            app.editfieldCallIndex.ValueDisplayFormat = '%d';
+            app.editfieldCallIndex.ValueChangedFcn = createCallbackFcn(app, @editfieldCallIndex_Callback, true);
+            app.editfieldCallIndex.Position = [108 663 46 22];
+
+            % Create dropdownCallType
+            app.dropdownCallType = uidropdown(app.dlgContTrace);
+            app.dropdownCallType.Items = {'Call'};
+            app.dropdownCallType.ValueChangedFcn = createCallbackFcn(app, @dropdownCallType_Callback, true);
+            app.dropdownCallType.Position = [134 693 138 22];
+            app.dropdownCallType.Value = 'Call';
 
             % Show the figure after all components are created
             app.dlgContTrace.Visible = 'on';

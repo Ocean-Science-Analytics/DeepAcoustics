@@ -10,8 +10,13 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         buttonReject           matlab.ui.control.Button
         buttonSaveClose        matlab.ui.control.Button
         panelTop               matlab.ui.container.Panel
+        ConvertAllLabel        matlab.ui.control.Label
+        ToLabel                matlab.ui.control.Label
         dropdownCallType       matlab.ui.control.DropDown
-        CallTypeDropDownLabel  matlab.ui.control.Label
+        AssignCallTypeLabel    matlab.ui.control.Label
+        dropdownConvertFrom    matlab.ui.control.DropDown
+        dropdownConvertTo      matlab.ui.control.DropDown
+        buttonConvertApply     matlab.ui.control.Button
         editfieldCallIndex     matlab.ui.control.NumericEditField
         labelTotalCalls        matlab.ui.control.Label
         CallLabel              matlab.ui.control.Label
@@ -31,6 +36,8 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         indSt           % Call index start
         indEnd          % Call index end
         indSel          % Call index/indices selected
+        strConvFrom     % Call type to convert from
+        strConvTo       % Call type to convert to
     end
     
     methods (Access = private)
@@ -46,10 +53,15 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         
         % Call whenever changes are made to the contour
         function RevPlotRefresh(app)
-            % (Re)set dropdown calltype list
+            % (Re)set dropdowns calltype list
             app.dropdownCallType.Items = [cellstr(unique(app.Calls.Type)); 'Add New Call Type'];
             app.indSel = [];
             app.dropdownCallType.Value = char(app.Calls.Type(min(app.indSt)));
+
+            app.dropdownConvertFrom.Items = ['Select...'; cellstr(unique(app.Calls.Type))];
+            app.dropdownConvertTo.Items = ['Select...'; cellstr(unique(app.Calls.Type)); 'Add New Call Type'];
+            app.dropdownConvertFrom.Value = 'Select...';
+            app.dropdownConvertTo.Value = 'Select...';
 
             %% For each call on display, create spectrogram image
             d = uiprogressdlg(app.dlgCallReview,'Title','Please Wait',...
@@ -140,7 +152,9 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.CallingApp = mainapp;
             app.detfilename = detfilename;
 
+            h = waitbar(0,'Loading Calls Please wait...');
             [app.Calls, app.allAudio, app.spect, app.detmetadata] = loadCallfile(detfilename, handles, false);
+            close(h);
 
             % Link Parent to UIAxes
             app.panelImgs.Parent = app.dlgCallReview;
@@ -153,6 +167,10 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             % Set call index limits
             app.editfieldCallIndex.Limits = [1,height(app.Calls)];
             app.labelTotalCalls.Text = ['/',num2str(height(app.Calls)),' Total Calls'];
+
+            % Default strings
+            app.strConvFrom = 'Select...';
+            app.strConvTo = 'Select...';
 
             % Plot first call, default contour
             app.indNumDisp = 9;
@@ -236,7 +254,8 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         function buttonReject_Callback(app, event)
             newcalltype = 'Noise';
             if isempty(app.indSel)
-                app.Calls.Type(app.indSt:app.indEnd) = categorical(cellstr(newcalltype));
+                %app.Calls.Type(app.indSt:app.indEnd) = categorical(cellstr(newcalltype));
+                msgbox('No calls selected')
             else
                 app.Calls.Type(app.indSel) = categorical(cellstr(newcalltype));
             end
@@ -248,6 +267,46 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.indNumDisp = app.editfieldNum2Disp.Value;
             app.RevPlotNew();
         end
+
+        % Value changed function: dropdownConvertFrom
+        function dropdownConvertFrom_Callback(app, event)
+            app.strConvFrom = app.dropdownConvertFrom.Value;
+            if ~strcmp(app.strConvFrom,'Select...')
+                app.dropdownConvertTo.Enable = "on";
+            else
+                app.dropdownConvertTo.Enable = "off";
+                app.buttonConvertApply.Enable = "off";
+            end
+        end
+
+        % Value changed function: dropdownConvertTo
+        function dropdownConvertTo_Callback(app, event)
+            app.strConvTo = app.dropdownConvertTo.Value;
+            if ~strcmp(app.strConvTo,'Select...')
+                if strcmp(app.strConvTo,'Add New Call Type')
+                    prompt = {'Enter call type:'};
+                    definput = {''};
+                    dlg_title = 'Set Custom Label';
+                    num_lines=[1,60]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='none';
+                    new_label = inputdlg(prompt,dlg_title,num_lines,definput,options);
+                    app.strConvTo = new_label{1};
+                    app.dropdownConvertTo.Items = ['Select...'; cellstr(unique(app.Calls.Type)); app.strConvTo; 'Add New Call Type'];
+                    app.dropdownConvertTo.Value = app.strConvTo;
+                end
+                app.buttonConvertApply.Enable = "on";
+            else
+                app.buttonConvertApply.Enable = "off";
+            end
+        end
+
+        % Button pushed function: buttonConvertApply
+        function buttonConvertApply_Callback(app, event)
+            app.indSel = find(app.Calls.Type==app.strConvFrom);
+            app.Calls.Type(app.indSel) = categorical(cellstr(app.strConvTo));
+            app.buttonConvertApply.Enable = "off";
+            app.dropdownConvertTo.Enable = "off";
+            app.RevPlotRefresh();
+        end
     end
 
     % Component initialization
@@ -258,7 +317,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
 
             % Create dlgCallReview and hide until all components are created
             app.dlgCallReview = uifigure('Visible', 'off');
-            app.dlgCallReview.Position = [100 100 696 656];
+            app.dlgCallReview.Position = [100 100 696 690];
             app.dlgCallReview.Name = 'Call Review Dialog';
             app.dlgCallReview.CloseRequestFcn = createCallbackFcn(app, @dlgCallReviewCloseRequest, true);
             app.dlgCallReview.WindowStyle = 'modal';
@@ -268,30 +327,30 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.panelTop.AutoResizeChildren = 'off';
             app.panelTop.BorderColor = [0.9412 0.9412 0.9412];
             app.panelTop.HighlightColor = [0.9412 0.9412 0.9412];
-            app.panelTop.Position = [35 580 617 77];
+            app.panelTop.Position = [35 579 617 87];
 
             % Create editfieldNum2Disp
             app.editfieldNum2Disp = uieditfield(app.panelTop, 'numeric');
             app.editfieldNum2Disp.Limits = [0 Inf];
             app.editfieldNum2Disp.ValueDisplayFormat = '%d';
             app.editfieldNum2Disp.ValueChangedFcn = createCallbackFcn(app, @editfieldNum2Disp_Callback, true);
-            app.editfieldNum2Disp.Position = [539 12 62 22];
+            app.editfieldNum2Disp.Position = [552 15 62 22];
 
             % Create ofCallstoDisplayLabel
             app.ofCallstoDisplayLabel = uilabel(app.panelTop);
             app.ofCallstoDisplayLabel.HorizontalAlignment = 'right';
-            app.ofCallstoDisplayLabel.Position = [416 12 114 22];
+            app.ofCallstoDisplayLabel.Position = [429 15 114 22];
             app.ofCallstoDisplayLabel.Text = '# of Calls to Display:';
 
             % Create CallLabel
             app.CallLabel = uilabel(app.panelTop);
             app.CallLabel.HorizontalAlignment = 'right';
-            app.CallLabel.Position = [10 12 39 22];
+            app.CallLabel.Position = [8 15 39 22];
             app.CallLabel.Text = 'Call #:';
 
             % Create labelTotalCalls
             app.labelTotalCalls = uilabel(app.panelTop);
-            app.labelTotalCalls.Position = [108 12 121 22];
+            app.labelTotalCalls.Position = [108 15 121 22];
             app.labelTotalCalls.Text = '/ ? Total Calls';
 
             % Create editfieldCallIndex
@@ -299,28 +358,62 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.editfieldCallIndex.Limits = [0 Inf];
             app.editfieldCallIndex.ValueDisplayFormat = '%d';
             app.editfieldCallIndex.ValueChangedFcn = createCallbackFcn(app, @editfieldCallIndex_Callback, true);
-            app.editfieldCallIndex.Position = [57 12 46 22];
+            app.editfieldCallIndex.Position = [55 15 46 22];
 
-            % Create CallTypeDropDownLabel
-            app.CallTypeDropDownLabel = uilabel(app.panelTop);
-            app.CallTypeDropDownLabel.HorizontalAlignment = 'right';
-            app.CallTypeDropDownLabel.Position = [10 42 58 22];
-            app.CallTypeDropDownLabel.Text = 'Call Type:';
+            % Create buttonConvertApply
+            app.buttonConvertApply = uibutton(app.panelTop, 'push');
+            app.buttonConvertApply.ButtonPushedFcn = createCallbackFcn(app, @buttonConvertApply_Callback, true);
+            app.buttonConvertApply.Enable = 'off';
+            app.buttonConvertApply.Position = [561 51 53 23];
+            app.buttonConvertApply.Text = 'Apply';
+
+            % Create dropdownConvertTo
+            app.dropdownConvertTo = uidropdown(app.panelTop);
+            app.dropdownConvertTo.Items = {'Select...'};
+            app.dropdownConvertTo.ValueChangedFcn = createCallbackFcn(app, @dropdownConvertTo_Callback, true);
+            app.dropdownConvertTo.Enable = 'off';
+            app.dropdownConvertTo.Position = [459 51 95 22];
+            app.dropdownConvertTo.Value = 'Select...';
+
+            % Create dropdownConvertFrom
+            app.dropdownConvertFrom = uidropdown(app.panelTop);
+            app.dropdownConvertFrom.Items = {'Select...'};
+            app.dropdownConvertFrom.ValueChangedFcn = createCallbackFcn(app, @dropdownConvertFrom_Callback, true);
+            app.dropdownConvertFrom.Position = [341 51 95 22];
+            app.dropdownConvertFrom.Value = 'Select...';
+
+            % Create AssignCallTypeLabel
+            app.AssignCallTypeLabel = uilabel(app.panelTop);
+            app.AssignCallTypeLabel.HorizontalAlignment = 'right';
+            app.AssignCallTypeLabel.Position = [8 51 110 22];
+            app.AssignCallTypeLabel.Text = 'Assign to Selection:';
 
             % Create dropdownCallType
             app.dropdownCallType = uidropdown(app.panelTop);
             app.dropdownCallType.Items = {'Call'};
             app.dropdownCallType.ValueChangedFcn = createCallbackFcn(app, @dropdownCallType_Callback, true);
             app.dropdownCallType.Enable = 'off';
-            app.dropdownCallType.Position = [83 42 138 22];
+            app.dropdownCallType.Position = [122 51 138 22];
             app.dropdownCallType.Value = 'Call';
+
+            % Create ToLabel
+            app.ToLabel = uilabel(app.panelTop);
+            app.ToLabel.HorizontalAlignment = 'right';
+            app.ToLabel.Position = [441 51 16 22];
+            app.ToLabel.Text = 'To:';
+
+            % Create ConvertAllLabel
+            app.ConvertAllLabel = uilabel(app.panelTop);
+            app.ConvertAllLabel.HorizontalAlignment = 'right';
+            app.ConvertAllLabel.Position = [271 51 66 22];
+            app.ConvertAllLabel.Text = 'Convert All:';
 
             % Create panelButtons
             app.panelButtons = uipanel(app.dlgCallReview);
             app.panelButtons.AutoResizeChildren = 'off';
             app.panelButtons.BorderColor = [0.9412 0.9412 0.9412];
             app.panelButtons.HighlightColor = [0.9412 0.9412 0.9412];
-            app.panelButtons.Position = [35 8 628 131];
+            app.panelButtons.Position = [35 7 628 131];
 
             % Create buttonSaveClose
             app.buttonSaveClose = uibutton(app.panelButtons, 'push');
@@ -348,7 +441,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
 
             % Create panelImgs
             app.panelImgs = uipanel(app.dlgCallReview);
-            app.panelImgs.Position = [48 147 601 434];
+            app.panelImgs.Position = [48 146 601 434];
 
             % Show the figure after all components are created
             app.dlgCallReview.Visible = 'on';
