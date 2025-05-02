@@ -180,6 +180,17 @@ end
 
 ClusteringData = cell2table(ClusteringData(:,1:18), 'VariableNames', {'Spectrogram', 'Box', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign','xFreqAuto','xTimeAuto'});
 
+% Fix duplicated time points by adding a teensy weensy bit
+% to the latter of any duplications
+for i = 1:height(ClusteringData)
+    bDup = any(diff(ClusteringData.xTime{i})==0);
+    while bDup
+        indDups = [false,diff(ClusteringData.xTime{i})==0];
+        ClusteringData.xTime{i}(indDups) = ClusteringData.xTime{i}(indDups)+0.0001;
+        bDup = any(diff(ClusteringData.xTime{i})==0);
+    end
+end
+
 close(h)
 
 if p.Results.save_data && ~all(cellfun(@(x) isempty(fields(x)), audiodata)) % If audiodata has no fields, then only extracted contours were used, so don't ask to save them again
