@@ -74,6 +74,10 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
 
                 % Create spectrogram image
                 [~,wind,noverlap,nfft,~,~,~,~,~,~,pow] = CreateFocusSpectrogram(app.Calls(i,:), app.CallingApp.DAdata, true, 0.25);
+
+                if (1/app.CallingApp.DAdata.settings.spect.nfft > (app.Calls.Box(i,4)*1000))
+                    error('%s\n%s\n','Spectrogram settings bad - recommend loading Calls in DA, adjusting Display Settings, save, and try again')
+                end
                 
                 % If spectrogram settings iffy
                 if any(size(pow) < 3)

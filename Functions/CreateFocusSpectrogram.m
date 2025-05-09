@@ -1,7 +1,7 @@
 function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad)
 %% Extract call features for CalculateStats and display
 
-if nargin < 4 || ~make_spectrogram
+if nargin == 3 || ~make_spectrogram
     nTimePad = 0;
 elseif nargin < 3
     make_spectrogram = true;
@@ -23,7 +23,7 @@ DAdata.saveSettings();
 box = call.Box;
 
 if (1/DAdata.settings.spect.nfft > (box(4)*1000))
-    warning('%s\n%s\n','Spectrogram settings may not be ideal for this call - suggest adjusting Display Settings and increasing NFFT')
+    warning('%s\n%s\n','Spectrogram settings may not be ideal for this call - suggest adjusting Display Settings')
 end
 
 windowsize = round(rate * DAdata.settings.spect.windowsize);
