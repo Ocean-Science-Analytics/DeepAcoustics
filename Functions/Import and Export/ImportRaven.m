@@ -202,6 +202,7 @@ for i = 1:length(ravenname)
         ravenTable.BeginTime_s_ = ravenTable.FileOffset_s_;
     end
     % For every audio file contained within this Raven selection table
+    hc = waitbar(0,'Importing Calls from Raven Log');
     for j = 1:length(audioname{i})
         nAudCt = nAudCt+1;
         % subTable = only the dets that belong to this audio file
@@ -215,7 +216,7 @@ for i = 1:length(ravenname)
         if audiodata.NumChannels > 1
             warning('\n%s\n','Audio file contains more than one channel. Use channel 1...')
         end
-        hc = waitbar(0,'Importing Calls from Raven Log');
+        waitbar(j/length(audioname{i}),hc,'Importing Calls from Raven Log');
 
         % fix some compatibility issues with Raven's naming
         if ~ismember('DeltaTime_s_', subTable.Properties.VariableNames)
@@ -251,8 +252,8 @@ for i = 1:length(ravenname)
         %% Put all the variables into a table
         Calls_tmp = table(Box,Score,Accept,Type,Audiodata,'VariableNames',{'Box','Score','Accept','Type','Audiodata'});
         Calls = [Calls; Calls_tmp];
-        close(hc);
     end
+    close(hc);
 end
 % Sort Calls
 Calls = SortCalls(Calls,'time');

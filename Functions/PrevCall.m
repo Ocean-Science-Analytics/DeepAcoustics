@@ -9,7 +9,11 @@ function PrevCall(hObject, eventdata, handles)
             PrevFileWCall(hObject, eventdata, handles);
         end
     else
-        % Load previous audio with call
-        PrevFileWCall(hObject, eventdata, handles);
+        if isempty(handles.data.calls)
+            error('No Calls Loaded')
+        else
+            % Load previous audio with call
+            PrevFileWCall(hObject, eventdata, handles);
+        end
     end
 end

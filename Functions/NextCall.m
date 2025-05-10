@@ -9,7 +9,11 @@ function NextCall(hObject, eventdata, handles)
             NextFileWCall(hObject, eventdata, handles);
         end
     else
-        % Load next audio with call
-        NextFileWCall(hObject, eventdata, handles);
+        if isempty(handles.data.calls)
+            error('No Calls Loaded')
+        else
+            % Load next audio with call
+            NextFileWCall(hObject, eventdata, handles);
+        end
     end
 end
