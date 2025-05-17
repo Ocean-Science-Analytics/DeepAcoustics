@@ -90,6 +90,23 @@ if app.TrainImgSettings.bValData
     [valdata, valpath] = uigetfile([char(handles.data.settings.detectionfolder) '/*.mat'],'Select Detection File(s) for Validation ','MultiSelect', 'on');
     if isnumeric(valdata); return; end
     valdata = cellstr(valdata);
+
+    % Make a folder for the training images
+    % Default open location
+    strVImgDir = fullfile(handles.data.squeakfolder,'Validation');
+    % User-specified
+    strVImgDir = uigetdir(strVImgDir,'Select Folder to Output Validation Images - DIFFERENT from Training Images');
+    if strcmp(strImgDir,strVImgDir)
+        error('Training and Validation Images must be in different directories')
+    end
+    % If augmented duplicates, create a directory to separate out augmented
+    % images
+    if repeats > 1
+        status = mkdir(fullfile(strVImgDir,'ImgAug'));
+        if ~status
+            warning('Problem making default Augmented Images directory')
+        end
+    end
 end
 
 nTCallsTotal = 0;
@@ -124,6 +141,8 @@ for k = 1:length(concatdata)
         nTCallsTotal = nTCallsTotal + height(Calls);
     else
         nVCallsTotal = nVCallsTotal + height(Calls);
+        % Switch to Validation directory!
+        strImgDir = strVImgDir;
     end
     nCallsWhole = [nCallsWhole,ones(1,height(Calls))];
     nCallsSplit = [nCallsSplit,zeros(1,height(Calls))];
