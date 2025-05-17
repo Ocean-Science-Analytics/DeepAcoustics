@@ -1,4 +1,4 @@
-function [detector, lgraph, options, info, detname] = TrainSqueakDetector(TrainingTables, layers, sameopts, detname)
+function [detector, lgraph, options, info, detname] = TrainSqueakDetector(TrainingTables, ValTables, layers, sameopts, detname)
 
 % Extract boxes delineations and store as boxLabelDatastore
 % Convert training and validation data to
@@ -10,8 +10,8 @@ bldsTrain = boxLabelDatastore(TrainingTables(:,indClass:end));
 dsTrain = combine(imdsTrain,bldsTrain);
 
 list = {'Tiny YOLO (pre-trained)','CSP-DarkNet-53 (pre-trained)','ResNet-50 (pre-trained)','ResNet-50 (blank)'};
-if nargin == 1 || isempty(detname)
-    if nargin == 1
+if nargin == 2 || isempty(detname)
+    if nargin == 2
         strPrompt = 'Choose a base network';
     else
         strPrompt = 'Which network architecture was used to create this?';
@@ -21,7 +21,7 @@ if nargin == 1 || isempty(detname)
         return
     end
     detname = list{basemodels};
-elseif nargin == 4
+elseif nargin == 5
     basemodels = find(strcmp(detname,list));
 end
 
@@ -76,14 +76,26 @@ end
 % Training image dims need to matchcase 'Tiny YOLO v4 COCO' or
 % 'CSP-DarkNet-53'
 inputSize = [dim1 dim2 3];
-if nargin == 4
+if nargin == 5
     if size(layers.InputSize,2) ~= 3
         inputSize = [dim1 dim2];
     end
 end
 dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
 
-if nargin == 1
+if ~isempty(ValTables)
+    warning("WARNING: Due to data type restrictions and unclear Matlab documentation, using validation data may prevent data shuffling between epochs, possibly (ironically) leading to overfitting.")
+    imdsVal = imageDatastore(ValTables{:,'imageFilename'});
+    % Depends on certain column order in TrainingTables!!
+    indClass = find(strcmp('imageFilename', ValTables.Properties.VariableNames))+1;
+    bldsVal = boxLabelDatastore(ValTables(:,indClass:end));
+    dsVal = combine(imdsVal,bldsVal);
+    dsValReSize = transform(dsVal,@(data)preprocessData(data,inputSize)); 
+else
+    dsValReSize = [];
+end
+
+if nargin == 2
     %% Set training options
     bCustomize = questdlg('Would you like to customize your network options or use defaults?','Customize?','Customize','Defaults','Defaults');
     switch bCustomize
@@ -222,23 +234,25 @@ if nargin == 1
             num_lines = [1 length(dlg_title)+30];
             nNumEpochs = str2double(inputdlg('Max # of Epochs (default = 30)?:',...
                 dlg_title,num_lines));
-                     
+            
             %% Validation Data
+            if isempty(dsValReSize)
                 % Used to determine if network is overfitting
-            bValData = questdlg({'Would you like to use a proportion of your training data to validate (recommended to assess overfitting)?';...
-                "WARNING: Due to data type restrictions and unclear Matlab documentation, using validation data may prevent data shuffling between epochs, possibly (ironically) leading to overfitting."},...
-                'Validation Data?','Yes','No','No');
-            switch bValData
-                % Select validation data - gets complicated with multiple
-                % labels, so may need to give up (may need to
-                % replace/supplement with a user-selected set of data)
-                case 'Yes'
-                    [dsTrainReSize, dsValReSize] = splitValData(TrainingTables,inputSize);
-                case 'No'
-                    dsValReSize = [];
-                    %Not sure why this is here so commenting until I'm forced
-                    %to remember why
-                    %dsTrain = TrainingTables;
+                bValData = questdlg({'Would you like to use a proportion of your training data to validate (recommended to assess overfitting)?';...
+                    "WARNING: Due to data type restrictions and unclear Matlab documentation, using validation data may prevent data shuffling between epochs, possibly (ironically) leading to overfitting."},...
+                    'Validation Data?','Yes','No','No');
+                switch bValData
+                    % Select validation data - gets complicated with multiple
+                    % labels, so may need to give up (may need to
+                    % replace/supplement with a user-selected set of data)
+                    case 'Yes'
+                        [dsTrainReSize, dsValReSize] = splitValData(TrainingTables,inputSize);
+                    case 'No'
+                        dsValReSize = [];
+                        %Not sure why this is here so commenting until I'm forced
+                        %to remember why
+                        %dsTrain = TrainingTables;
+                end
             end
             
             % Set training options
@@ -317,23 +331,25 @@ if nargin == 1
     
             lgraph = yolov4ObjectDetector(dlnet,classes,anchorBoxes,DetectionNetworkSource=featureExtractionLayers,InputSize=inputSize);
     end
-elseif nargin == 4
+elseif nargin == 5
     %% Validation Data
-    % Used to determine if network is overfitting
-    bValData = questdlg({'Would you like to use a proportion of your training data to validate (recommended to assess overfitting)?';...
-        "WARNING: Due to data type restrictions and unclear Matlab documentation, using validation data may prevent data shuffling between epochs, possibly (ironically) leading to overfitting."},...
-        'Validation Data?','Yes','No','No');
-    switch bValData
-        % Select validation data - gets complicated with multiple
-        % labels, so may need to give up (may need to
-        % replace/supplement with a user-selected set of data)
-        case 'Yes'
-            [dsTrainReSize, dsValReSize] = splitValData(TrainingTables,inputSize);
-        case 'No'
-            dsValReSize = [];
-            %Not sure why this is here so commenting until I'm forced
-            %to remember why
-            %dsTrain = TrainingTables;
+    if isempty(dsValReSize)
+        % Used to determine if network is overfitting
+        bValData = questdlg({'Would you like to use a proportion of your training data to validate (recommended to assess overfitting)?';...
+            "WARNING: Due to data type restrictions and unclear Matlab documentation, using validation data may prevent data shuffling between epochs, possibly (ironically) leading to overfitting."},...
+            'Validation Data?','Yes','No','No');
+        switch bValData
+            % Select validation data - gets complicated with multiple
+            % labels, so may need to give up (may need to
+            % replace/supplement with a user-selected set of data)
+            case 'Yes'
+                [dsTrainReSize, dsValReSize] = splitValData(TrainingTables,inputSize);
+            case 'No'
+                dsValReSize = [];
+                %Not sure why this is here so commenting until I'm forced
+                %to remember why
+                %dsTrain = TrainingTables;
+        end
     end
     warn_msg = ['If you get the following error:\n',...
         'Error using images.dltrain.internal.dltrain>iValidateSupportedTrainingOptions\n',...

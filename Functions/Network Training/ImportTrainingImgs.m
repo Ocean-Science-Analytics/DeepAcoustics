@@ -1,7 +1,6 @@
 %function [TrainingTables, AllSettings] = ImportTrainingImgs(handles, bTraining)
-function [TrainingTables, AllSettings, PathToITs] = ImportTrainingImgs(handles, bTraining)
+function [TrainingTables, AllSettings, PathToITs] = ImportTrainingImgs(tablepath)%, bTraining)
 %% Train a new neural network
-cd(handles.data.squeakfolder);
 
 TrainingTables = [];
 AllSettings = [];
@@ -9,27 +8,11 @@ PathToITs = {};
 % Apparently, "wind" is a function name, so initialize it as empty
 wind = [];
 
-%% Select the tables that contains the training data
-if bTraining
-    waitfor(msgbox('Select Image Tables for TRAINING the network (creating a network from scratch or building on an existing network)'))
-    [trainingdata, trainingpath] = uigetfile('Training/*.mat','Select File(s) for Training','MultiSelect', 'on');
-else
-    waitfor(msgbox('Select Ground-Truthed Image Tables for EVALUATING the network (do NOT choose the images used to train the network)'))
-    [trainingdata, trainingpath] = uigetfile('Training/*.mat','Select File(s) for Evaluation','MultiSelect', 'on');
-end
-%Return if cancel
-if isa(trainingdata,'double') && trainingdata == 0
-    return
-end
-if isa(trainingdata,'char')
-    trainingdata = cellstr(trainingdata);
-end
-
 %% Load the data into a single table
-for i = 1:length(trainingdata)
+for i = 1:length(tablepath)
     orig_state = warning;
     warning('off','all')
-    load([trainingpath trainingdata{i}],'TTable','wind','noverlap','nfft','imLength','pathtodet');
+    load(tablepath{i},'TTable','wind','noverlap','nfft','imLength','pathtodet');
     warning(orig_state)
     % If bAug field doesn't exist, add and default to 0 and print a warning
     if ~any(strcmp('bAug', TTable.Properties.VariableNames))
@@ -68,7 +51,7 @@ for i = 1:length(trainingdata)
 %     if exist('pathtodet','var')
 %         PathToDet{i} = pathtodet;
 %     end
-    PathToITs{i} = [trainingpath trainingdata{i}];
+    PathToITs{i} = tablepath{i};
 end
 if ~all([isfile(TrainingTables.imageFilename)])
     error('Images Could Not Be Found On Path Specified in Images.mat')

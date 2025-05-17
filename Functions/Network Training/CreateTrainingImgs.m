@@ -82,26 +82,52 @@ end
 TTable = array2table(zeros(0,2+length(uniqLabels)));
 TTable.Properties.VariableNames = ['bAug','imageFilename',uniqLabels];
 
-nCallsTotal = height(Calls);
-nCallsWhole = ones(1,nCallsTotal);
-nCallsSplit = zeros(1,nCallsTotal);
-nPiecesTotal = ones(1,nCallsTotal);
+valdata = [];
+valpath = [];
+VTable = TTable;
+if app.TrainImgSettings.bValData
+    % Select the files to make validation images from
+    [valdata, valpath] = uigetfile([char(handles.data.settings.detectionfolder) '/*.mat'],'Select Detection File(s) for Validation ','MultiSelect', 'on');
+    if isnumeric(valdata); return; end
+    valdata = cellstr(valdata);
+end
+
+nTCallsTotal = 0;
+nVCallsTotal = 0;
+nCallsWhole = [];
+nCallsSplit = [];
+nPiecesTotal = [];
 allindst = 0;
-for k = 1:length(trainingdata)
+
+concatdata = [trainingdata; valdata];
+concatpath = [trainingpath; valpath];
+nLenTData = length(trainingdata);
+nLenVData = length(valdata);
+for k = 1:length(concatdata)
     % Load the detection and audio files
     audioReader = squeakData();
     % Only need to re-load from the beginning if multiple Call files,
     % otherwise already loaded!
-    if length(trainingdata) > 1
+    if length(concatdata) > 1
         if k > 1
             allindst = allindst+height(Calls);
         end
-        [Calls] = loadCallfile([trainingpath trainingdata{k}],handles,false);
+        [Calls] = loadCallfile([concatpath concatdata{k}],handles,false);
     end
     allAudio = unique({Calls.Audiodata.Filename},'stable');
     
     % Remove Rejects
     Calls = Calls(Calls.Accept == 1, :);
+
+    % Count total training and validation calls
+    if k <= nLenTData
+        nTCallsTotal = nTCallsTotal + height(Calls);
+    else
+        nVCallsTotal = nVCallsTotal + height(Calls);
+    end
+    nCallsWhole = [nCallsWhole,ones(1,height(Calls))];
+    nCallsSplit = [nCallsSplit,zeros(1,height(Calls))];
+    nPiecesTotal = [nPiecesTotal,ones(1,height(Calls))];
 
     for j = 1:length(allAudio)
         indC = find(strcmp({Calls.Audiodata.Filename},allAudio{j}));
@@ -195,8 +221,12 @@ for k = 1:length(trainingdata)
                                         noverlap,nfft,...
                                         imgsize,...
                                         ffn,...
-                                        replicatenumber);  
-                                    TTable = [TTable;[{bAug}, {ffn}, box]];
+                                        replicatenumber);
+                                    if k <= nLenTData
+                                        TTable = [TTable;[{bAug}, {ffn}, box]];
+                                    else
+                                        VTable = [VTable;[{bAug}, {ffn}, box]];
+                                    end
                                 end
                                 NegInxNum = NegInxNum+1;
                             catch
@@ -228,7 +258,7 @@ for k = 1:length(trainingdata)
                 % For each subbout in this bout
                 for iSplit = 1:nDiv
                     calcProg = (bin-1)+(iSplit/nDiv);
-                    waitbar(calcProg/length(unique(bins)), h, sprintf('Processing Det File %g of %g Aud File %g of %g', k, length(trainingdata), j, length(allAudio)));   
+                    waitbar(calcProg/length(unique(bins)), h, sprintf('Processing Det File %g of %g Aud File %g of %g', k, length(concatdata), j, length(allAudio)));   
                     % Reset BoutCalls before editing
                     BoutCalls = BoutCallsBU;
                     StartTime = StartTimes(iSplit);
@@ -296,8 +326,12 @@ for k = 1:length(trainingdata)
                                 noverlap,nfft,...
                                 imgsize,...
                                 ffn,...
-                                replicatenumber);  
-                            TTable = [TTable;[{bAug}, {ffn}, box]];
+                                replicatenumber);
+                                if k <= nLenTData
+                                    TTable = [TTable;[{bAug}, {ffn}, box]];
+                                else
+                                    VTable = [VTable;[{bAug}, {ffn}, box]];
+                                end
                         end
                     catch
                         disp("Something wrong with calculating bounding box indices - talk to Gabi!");
@@ -312,35 +346,52 @@ close(h)
 if app.TrainImgSettings.bRandNoise && ~bNoiseSuccess
     warning('There was not enough room between Calls to generate Noise')
     TTable.Noise =[];
+    VTable.Noise =[];
 end
 
-nNoise = 0;
+nNoiseT = 0;
 if ismember('Noise',TTable.Properties.VariableNames)
-     nNoise = height(cell2mat([TTable.Noise]));
+     nNoiseT = height(cell2mat([TTable.Noise]));
 end
-
+nNoiseV = 0;
+if ismember('Noise',VTable.Properties.VariableNames)
+     nNoiseV = height(cell2mat([VTable.Noise]));
+end
 
 if ismember('Call',TTable.Properties.VariableNames)
-    if sum(nPiecesTotal)~=height(cell2mat([TTable.Call(~TTable.bAug)]))
+    if sum(nPiecesTotal(1:nTCallsTotal))~=height(cell2mat([TTable.Call(~TTable.bAug)]))   
+        error('Call counts not adding up; talk to Gabi')
+    end
+end
+
+if ismember('Call',VTable.Properties.VariableNames)
+    if sum(nPiecesTotal(nTCallsTotal+1:end))~=height(cell2mat([VTable.Call(~VTable.bAug)]))    
         error('Call counts not adding up; talk to Gabi')
     end
 end
 
 msgbox({'Final Call Information:'; ...
-    sprintf('# Total Calls in Det Files: %u',nCallsTotal); ...
-    sprintf('# Whole Calls in Images File: %u', sum(nCallsWhole));...
-    sprintf('# Split Calls in Images File: %u', sum(nCallsSplit));...
-    sprintf('# Total Call Pieces in Images File: %u', sum(nPiecesTotal));...
-    sprintf('# Noise in Images File: %u', nNoise);...
+    sprintf('# Total Calls in Det Files: %u',nTCallsTotal); ...
+    sprintf('# Whole Calls in Images File: %u', sum(nCallsWhole(1:nTCallsTotal)));...
+    sprintf('# Split Calls in Images File: %u', sum(nCallsSplit(1:nTCallsTotal)));...
+    sprintf('# Total Call Pieces in Images File: %u', sum(nPiecesTotal(1:nTCallsTotal)));...
+    sprintf('# Noise in Images File: %u', nNoiseT);...
+    sprintf('# Total Calls in Det Files (Val): %u',nVCallsTotal); ...
+    sprintf('# Whole Calls in Images File (Val): %u', sum(nCallsWhole(nTCallsTotal+1:end)));...
+    sprintf('# Split Calls in Images File (Val): %u', sum(nCallsSplit(nTCallsTotal+1:end)));...
+    sprintf('# Total Call Pieces in Images File (Val): %u', sum(nPiecesTotal(nTCallsTotal+1:end)));...
+    sprintf('# Noise in Images File (Val): %u', nNoiseV);...
     },'Images Output');
 
-%matpath = uigetdir(fullfile(handles.data.squeakfolder,'Training'),'Select Directory to Save Images.mat');
-%pathtodet = fullfile(trainingpath,trainingdata{k});
-%save(fullfile(matpath,[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength','pathtodet');
 [filename,matpath] = uiputfile(fullfile(handles.data.squeakfolder,'Training',[filename,'_Images.mat']));
 save(fullfile(matpath,filename),'TTable','wind','noverlap','nfft','imLength');
-%save(fullfile(handles.data.squeakfolder,'Training',[filename '_Images.mat']),'TTable','wind','noverlap','nfft','imLength');
 disp(['Created ' num2str(height(TTable)) ' Training Images']);
+
+if nVCallsTotal > 0
+    [filename,matpath] = uiputfile(fullfile(handles.data.squeakfolder,'Validation',[filename,'_ValImages.mat']));
+    save(fullfile(matpath,filename),'VTable','wind','noverlap','nfft','imLength');
+    disp(['Created ' num2str(height(VTable)) ' Validation Images']);
+end
 end
 
 
