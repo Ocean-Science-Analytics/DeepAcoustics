@@ -1,4 +1,4 @@
-function [ClusteringData, clustAssign, freqRange, maxDuration, spectrogramOptions] = CreateClusteringData(handles, varargin)
+function [ClusteringData, clustAssign, freqRange, maxDuration, spectrogramOptions, spect] = CreateClusteringData(handles, varargin)
 %% This function prepares data for clustering
 % For each file selected, create a cell array with the image, and contour
 % of calls where Calls.Accept == 1
@@ -53,6 +53,11 @@ for j = 1:length(fileName)
             'WARNING','modal'));
     end
     [Calls_tmp, ~, spect, ~, loaded_ClusteringData] = loadCallfile(fullfile(filePath,fileName{j}),handles,false);
+    if isempty(spect)
+        spect = handles.data.settings.spect;
+    else
+        handles.data.settings.spect = spect;
+    end
     % If the files is extracted contours, rather than a detection file
     if ~isempty(loaded_ClusteringData)
         % Back-compatible load

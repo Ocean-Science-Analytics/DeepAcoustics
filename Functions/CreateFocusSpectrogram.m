@@ -1,10 +1,10 @@
 function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad)
 %% Extract call features for CalculateStats and display
 
-if nargin == 3 || ~make_spectrogram
-    nTimePad = 0;
-elseif nargin < 3
+if nargin < 3
     make_spectrogram = true;
+    nTimePad = 0;
+elseif nargin == 3 || ~make_spectrogram
     nTimePad = 0;
 end
 

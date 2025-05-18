@@ -84,6 +84,12 @@ rules(:,1) = num2cell(contains(rules(:,1),'Accept'));
 h = waitbar(0,'Initializing');
 for currentfile = selections % Do this for each file
     [Calls, ~, spect] = loadCallfile(fullfile(handles.detectionfiles(currentfile).folder, handles.detectionfiles(currentfile).name),handles,false);
+    if isempty(spect)
+        spect = handles.data.settings.spect;
+    else
+        handles.data.settings.spect = spect;
+        guidata(hObject, handles);
+    end
 
     reject = false(height(Calls),1);
     accept = false(height(Calls),1);
@@ -150,9 +156,6 @@ for currentfile = selections % Do this for each file
     Calls.Accept(reject) = false;
     Calls.Type(reject) = categorical({'Noise'});
     Calls.Accept(accept) = true;
-    if isempty(spect)
-        spect = handles.data.settings.spect;
-    end
     save(fullfile(handles.detectionfiles(currentfile).folder,handles.detectionfiles(currentfile).name),'Calls','spect','-v7.3','-append');
 
 end

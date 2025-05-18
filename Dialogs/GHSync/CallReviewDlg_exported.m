@@ -173,6 +173,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             h = uiprogressdlg(app.dlgCallReview,'Title','Please Wait',...
                 'Message','Loading Calls','Indeterminate','on');
             [app.Calls, app.allAudio, app.spect, app.detmetadata] = loadCallfile(detfilename, handles, false);
+            app.CallingApp.DAdata.settings.spect = app.spect;
             close(h);
 
             % Link Parent to UIAxes

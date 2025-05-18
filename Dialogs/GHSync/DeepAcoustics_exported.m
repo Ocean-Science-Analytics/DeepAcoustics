@@ -1079,10 +1079,25 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function menuContTrace_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            [ClusteringData, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', true);
-            if isempty(ClusteringData); return; end
-
-            app.RunContTraceDlg(ClusteringData,spect,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
+            bGAOnly = false;
+            if bGAOnly
+                [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false);            %Save Extracted Contours
+                pind = regexp(char(ClusteringData{1,'Filename'}),'\');
+                pind = pind(end);
+                pname = char(ClusteringData{1,'Filename'});
+                pname = pname(1:pind);
+                [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save edited contour data');
+                if FileName ~= 0
+                    ClusteringData = ClusteringData;
+                    spect = spect;
+                    save(fullfile(PathName,FileName),'ClusteringData','spect','-v7.3');
+                end
+            else
+                [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', true);
+                if isempty(ClusteringData); return; end
+    
+                app.RunContTraceDlg(ClusteringData,spect,handles.data.settings.EntropyThreshold,handles.data.settings.AmplitudeThreshold);
+            end
         end
 
         % Button pushed function: buttonDrawLabel

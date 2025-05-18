@@ -217,12 +217,17 @@ if isfield(data, 'Calls')
         end
     else
         if data.spect.nfft == 0
-            data.spect.nfft = data.spect.nfftsmp/audiodata.SampleRate;
-            data.spect.windowsize = data.spect.windowsizesmp/audiodata.SampleRate;
-            data.spect.noverlap = data.spect.noverlap/audiodata.SampleRate;
+            data.spect.nfft = data.spect.nfftsmp/Calls.Audiodata(1).SampleRate;
+            data.spect.windowsize = data.spect.windowsizesmp/Calls.Audiodata(1).SampleRate;
+            data.spect.noverlap = data.spect.noverlap/Calls.Audiodata(1).SampleRate;
         elseif data.spect.nfftsmp == 0
-            data.spect.nfftsmp = data.spect.nfft*audiodata.SampleRate;
-            data.spect.windowsizesmp = data.spect.windowsize*audiodata.SampleRate;
+            data.spect.nfftsmp = data.spect.nfft*Calls.Audiodata(1).SampleRate;
+            data.spect.windowsizesmp = data.spect.windowsize*Calls.Audiodata(1).SampleRate;
+        elseif data.spect.nfft ~= data.spect.nfftsmp/Calls.Audiodata(1).SampleRate || ...
+                data.spect.windowsize ~= data.spect.windowsizesmp/Calls.Audiodata(1).SampleRate
+            if nargout < 6
+                waitfor(msgbox('Something is weird about the spectrogram settings saved with this file.  Highly recommend loading, opening Display Settings, and resaving in the general DA GUI.'))
+            end
         end
         spect = data.spect;
     end
