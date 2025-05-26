@@ -121,7 +121,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
                     app.MainApp.TrainImgSettings.nfftsmp = 0;
             end
 
-            app.MainApp.bValData = strcmp(app.switchValData.Value,'Yes');
+            app.MainApp.TrainImgSettings.bValData = strcmp(app.switchValData.Value,'Yes');
 
             app.MainApp.TrainImgSettings.noverlap = app.editOverlap.Value * app.editWinSize.Value / 100;
             app.MainApp.TrainImgSettings.imLength = app.editImgLength.Value;
