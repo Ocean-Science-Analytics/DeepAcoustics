@@ -117,9 +117,8 @@ nPiecesTotal = [];
 allindst = 0;
 
 concatdata = [trainingdata; valdata];
-concatpath = [trainingpath; valpath];
+loadpath = trainingpath;
 nLenTData = length(trainingdata);
-nLenVData = length(valdata);
 for k = 1:length(concatdata)
     % Load the detection and audio files
     audioReader = squeakData();
@@ -129,7 +128,7 @@ for k = 1:length(concatdata)
         if k > 1
             allindst = allindst+height(Calls);
         end
-        [Calls] = loadCallfile([concatpath concatdata{k}],handles,false);
+        [Calls] = loadCallfile([loadpath concatdata{k}],handles,false);
     end
     allAudio = unique({Calls.Audiodata.Filename},'stable');
     
@@ -139,6 +138,10 @@ for k = 1:length(concatdata)
     % Count total training and validation calls
     if k <= nLenTData
         nTCallsTotal = nTCallsTotal + height(Calls);
+        % Next round we're loading validation data
+        if k == nLenTData
+            loadpath = valpath;
+        end
     else
         nVCallsTotal = nVCallsTotal + height(Calls);
         % Switch to Validation directory!
