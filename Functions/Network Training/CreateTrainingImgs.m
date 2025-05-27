@@ -116,7 +116,7 @@ nCallsSplit = [];
 nPiecesTotal = [];
 allindst = 0;
 
-concatdata = [trainingdata; valdata];
+concatdata = [trainingdata, valdata];
 loadpath = trainingpath;
 nLenTData = length(trainingdata);
 for k = 1:length(concatdata)
