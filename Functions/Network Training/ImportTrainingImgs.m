@@ -12,7 +12,11 @@ wind = [];
 for i = 1:length(tablepath)
     orig_state = warning;
     warning('off','all')
-    load(tablepath{i},'TTable','wind','noverlap','nfft','imLength','pathtodet');
+    load(tablepath{i},'*Table','wind','noverlap','nfft','imLength','pathtodet');
+    % Oops, saved val tables as VTable, so need to accommodate
+    if exist('VTable','var')
+        TTable = VTable;
+    end
     warning(orig_state)
     % If bAug field doesn't exist, add and default to 0 and print a warning
     if ~any(strcmp('bAug', TTable.Properties.VariableNames))
