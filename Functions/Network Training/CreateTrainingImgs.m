@@ -26,7 +26,7 @@ h = waitbar(0,'Loading Call File(s)');
 Calls = [];
 for k = 1:length(trainingdata)
     % Load the detection and audio files
-    Calls = [Calls;loadCallfile([trainingpath trainingdata{k}],handles,false)];
+    Calls = [Calls;loadCallfile(fullfile(trainingpath, trainingdata{k}),handles,false)];
     waitbar(k/length(trainingdata), h, sprintf('Loading File %g of %g', k, length(trainingdata))); 
 end
 close(h)
@@ -128,7 +128,7 @@ for k = 1:length(concatdata)
         if k > 1
             allindst = allindst+height(Calls);
         end
-        [Calls] = loadCallfile([loadpath concatdata{k}],handles,false);
+        [Calls] = loadCallfile(fullfile(loadpath, concatdata{k}),handles,false);
     end
     allAudio = unique({Calls.Audiodata.Filename},'stable');
     
