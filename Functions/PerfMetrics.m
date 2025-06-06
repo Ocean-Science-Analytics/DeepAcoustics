@@ -110,7 +110,7 @@ if strVer >= 2023
         avgprec(i) = odMetrics.ClassMetrics.AP{uniqClass(i)};
         recallvec{i} = odMetrics.ClassMetrics.Recall{uniqClass(i)};
         precvec{i} = odMetrics.ClassMetrics.Precision{uniqClass(i)};
-        mAP(i) = odMetricsmAP.ClassMetrics.mAP(uniqClass(i));
+        mAP(i) = odMetricsmAP.ClassMetrics.APOverlapAvg(uniqClass(i));
 
         % Retrieve only the precision and recall values if accept all scores
         prec(i) = precvec{i}(end);
