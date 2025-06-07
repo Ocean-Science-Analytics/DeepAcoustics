@@ -130,7 +130,7 @@ for k = 1:length(concatdata)
         end
         [Calls] = loadCallfile(fullfile(loadpath, concatdata{k}),handles,false);
     end
-    allAudio = unique({Calls.Audiodata.Filename},'stable');
+    allAudio = unique({allAudio.Filename},'stable');
     
     % Remove Rejects
     Calls = Calls(Calls.Accept == 1, :);
