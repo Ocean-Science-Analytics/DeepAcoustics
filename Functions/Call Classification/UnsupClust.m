@@ -58,7 +58,7 @@ function UnsupClust(app,event)
                                         num_lines=[1 length(dlg_title)+30];
                                         clusterParameters= inputdlg({'Number of Contour Pts','Delta8 Weight','Slope Weight','Concavity Weight','Frequency Weight', ...
                                             'Relative Frequency Weight','Duration Weight','Infl Pt Weight','Parsons Weight','Parsons Resolution'}, ...%,'Parsons2 weight'},
-                                            dlg_title,num_lines,{'20','0','0','0','0','1','0','0','0','4'});%,'0'});
+                                            dlg_title,num_lines,{'20','0','5','4','0','10','0','0','0','4'});%,'0'});
                                         if isempty(clusterParameters); return; end
                                         num_pts = str2double(clusterParameters{1});
                                         delta8_weight = str2double(clusterParameters{2});
@@ -1061,13 +1061,14 @@ function C = get_kmeans_centroids(data,varargin)
                 %plot(xvals, meanAbv_zero, 'Color', 'magenta');
                 plot(xvals, propCAbMean1, '-m');
                 plot(xvals, propCAbMean2, '-c');
-                plot(xvals, propsing,'-k');
+                %plot(xvals, propsing,'-k');
                 ylabel('Silhouette Value');
                 yyaxis right
                 plot(xvals, ctsing, '--k');
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
-                legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', 'Prop Singletons', '# of Singletons',...
+                %legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', 'Prop Singletons', '# of Singletons',...
+                legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', '# of Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
