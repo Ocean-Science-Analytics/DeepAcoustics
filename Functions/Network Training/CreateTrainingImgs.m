@@ -24,9 +24,12 @@ metadata.maxSR = 0;
 uniqLabels = [];
 h = waitbar(0,'Loading Call File(s)');
 Calls = [];
+allAudio = [];
 for k = 1:length(trainingdata)
     % Load the detection and audio files
-    Calls = [Calls;loadCallfile(fullfile(trainingpath, trainingdata{k}),handles,false)];
+    [Calls2Add,allAud2Add] = loadCallfile(fullfile(trainingpath, trainingdata{k}),handles,false);
+    Calls = [Calls;Calls2Add];
+    allAudio = [allAudio;allAudio2Add];
     waitbar(k/length(trainingdata), h, sprintf('Loading File %g of %g', k, length(trainingdata))); 
 end
 close(h)
@@ -128,7 +131,7 @@ for k = 1:length(concatdata)
         if k > 1
             allindst = allindst+height(Calls);
         end
-        [Calls] = loadCallfile(fullfile(loadpath, concatdata{k}),handles,false);
+        [Calls,allAudio] = loadCallfile(fullfile(loadpath, concatdata{k}),handles,false);
     end
     allAudio = unique({allAudio.Filename},'stable');
     
