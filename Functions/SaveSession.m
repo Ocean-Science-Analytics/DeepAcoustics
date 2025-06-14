@@ -56,17 +56,17 @@ szdetmd = whos('detection_metadata');
 szspect = whos('spect');
 szTotal = szCalls.bytes + szspect.bytes + szdetmd.bytes + szallAudio.bytes;
 if szTotal >= 2000000000
-    if exist(fullfile(PathName, FileName),'file')
-        save(fullfile(PathName, FileName), 'Calls','spect', '-v7.3','-append');
-    else
-        save(fullfile(PathName, FileName), 'Calls','allAudio','detection_metadata','spect', '-v7.3');
-    end
+    % if exist(fullfile(PathName, FileName),'file')
+    %     save(fullfile(PathName, FileName), 'Calls','spect', '-v7.3','-append');
+    % else
+    save(fullfile(PathName, FileName), 'Calls','allAudio','detection_metadata','spect', '-v7.3');
+    % end
 else
-    if exist(fullfile(PathName, FileName),'file')
-        save(fullfile(PathName, FileName), 'Calls','spect', '-v7','-append');
-    else
-        save(fullfile(PathName, FileName), 'Calls','allAudio','detection_metadata','spect','-v7','-mat');
-    end
+    % if exist(fullfile(PathName, FileName),'file')
+    %     save(fullfile(PathName, FileName), 'Calls','spect', '-v7','-append');
+    % else
+    save(fullfile(PathName, FileName), 'Calls','allAudio','detection_metadata','spect','-v7','-mat');
+    % end
 end
 handles.current_detection_file = FileName;
 handles.data.settings.detectionfolder = PathName;

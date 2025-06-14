@@ -3,25 +3,37 @@ function [Calls,allAudio,spect,detection_metadata,ClusteringData,modcheck] = loa
 modcheck = struct();
 data = load(filename);
 
-Calls = table();
-allAudio = [];
-audiodata = struct();
-spect = [];
-detection_metadata = [];
-ClusteringData = table();
-
+% Initialize variables so can re-save without using the "append" flag which
+% makes file sizes blow up
+if isfield(data, 'Calls')
+    Calls = data.Calls;
+else
+    Calls = table();
+end
+if isfield(data, 'allAudio')
+    allAudio = data.allAudio;
+else
+    allAudio = [];
+end
+if isfield(data, 'spect')
+    spect = data.spect;
+else
+    spect = [];
+end
+if isfield(data,'detection_metadata')
+    detection_metadata = data.detection_metadata;
+else
+    detection_metadata = [];
+end
 if isfield(data, 'audiodata')
     audiodata = data.audiodata;
+else
+    audiodata = struct();
 end
+ClusteringData = table();
 
 %% Unpack the data
 if isfield(data, 'Calls')
-    Calls = data.Calls;
-    
-    if isfield(data,'detection_metadata')
-        detection_metadata = data.detection_metadata;
-    end
-    
     % Deal with potentially weird data type issues
     Calls.Box = double(Calls.Box);
     Calls.Score = double(Calls.Score);
@@ -35,8 +47,7 @@ if isfield(data, 'Calls')
 
     % Make sure audio exists in linked locations
     uniqAud = unique({Calls.Audiodata.Filename},'stable');
-    if isfield(data, 'allAudio') && ~isempty(data.allAudio)
-        allAudio = data.allAudio;
+    if ~isempty(allAudio)
         % This should only come up if the wrong audio folder was assigned
         % to a detections file during an older version of DA
         if any(~ismember(uniqAud,unique({allAudio.Filename})))
@@ -48,8 +59,6 @@ if isfield(data, 'Calls')
             end
             allAudio = [];
         end
-    else
-        allAudio = [];
     end
 
     if isempty(allAudio)
@@ -95,7 +104,8 @@ if isfield(data, 'Calls')
                     warning(['Mismatch b/w selected audio folder and detections folder. Folder should contain:',Calls_fns])
                     allAudio = [];
                 end
-                save(filename,'allAudio','-append');
+                %save(filename,'allAudio','-append');
+                save(filename,'Calls','allAudio','detection_metadata','spect');
 
                 % This should only come up if the wrong audio folder was assigned
                 % to a detections file during an older version of DA
@@ -204,32 +214,31 @@ if isfield(data, 'Calls')
             end
             Calls.StTime = NaT(height(Calls),1);
         end
-        save(filename,'Calls','-append');
+        %save(filename,'Calls','-append');
+        save(filename,'Calls','allAudio','detection_metadata','spect');
     end
 
-    if ~isfield(data,'spect')
+    if isempty(spect)
         if ~isempty(handles)
             warning('Spect settings not previously saved; appending to detections.mat now.')
             spect = handles.data.settings.spect;
-            save(filename,'spect','-append');
-        else
-            spect = [];
+            %save(filename,'spect','-append');
+            save(filename,'Calls','allAudio','detection_metadata','spect');
         end
     else
-        if data.spect.nfft == 0
-            data.spect.nfft = data.spect.nfftsmp/Calls.Audiodata(1).SampleRate;
-            data.spect.windowsize = data.spect.windowsizesmp/Calls.Audiodata(1).SampleRate;
-            data.spect.noverlap = data.spect.noverlap/Calls.Audiodata(1).SampleRate;
-        elseif data.spect.nfftsmp == 0
-            data.spect.nfftsmp = data.spect.nfft*Calls.Audiodata(1).SampleRate;
-            data.spect.windowsizesmp = data.spect.windowsize*Calls.Audiodata(1).SampleRate;
-        elseif data.spect.nfft ~= data.spect.nfftsmp/Calls.Audiodata(1).SampleRate || ...
-                data.spect.windowsize ~= data.spect.windowsizesmp/Calls.Audiodata(1).SampleRate
+        if spect.nfft == 0
+            spect.nfft = spect.nfftsmp/Calls.Audiodata(1).SampleRate;
+            spect.windowsize = spect.windowsizesmp/Calls.Audiodata(1).SampleRate;
+            spect.noverlap = spect.noverlap/Calls.Audiodata(1).SampleRate;
+        elseif spect.nfftsmp == 0
+            spect.nfftsmp = spect.nfft*Calls.Audiodata(1).SampleRate;
+            spect.windowsizesmp = spect.windowsize*Calls.Audiodata(1).SampleRate;
+        elseif spect.nfft ~= spect.nfftsmp/Calls.Audiodata(1).SampleRate || ...
+                spect.windowsize ~= spect.windowsizesmp/Calls.Audiodata(1).SampleRate
             if nargout < 6
                 waitfor(msgbox('Something is weird about the spectrogram settings saved with this file.  Highly recommend loading, opening Display Settings, and resaving in the general DA GUI.'))
             end
         end
-        spect = data.spect;
     end
     
     if nargout > 0 && nargout < 6 && length(unique(Calls.Type)) > 1
@@ -260,8 +269,8 @@ end
 
 if isfield(data, 'ClusteringData')
     ClusteringData = data.ClusteringData;
-    if isfield(data, 'spect')
-        handles.data.settings.spect = data.spect;
+    if ~isempty(spect)
+        handles.data.settings.spect = spect;
     else
         if ~isempty(handles)
             warning('Spect settings not previously saved; appending to detections.mat now.')

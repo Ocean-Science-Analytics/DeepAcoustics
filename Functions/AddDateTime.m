@@ -24,7 +24,32 @@ for i = 1:height(Calls)
                 % If failure, then try YYMMDD.*HHMM
                 if size(thisdt,2) < 2
                     [thisdt,~] = regexp(audioname,'([0-9]{6}).*([0-9]{4})','tokens','match');
-                    if ~isempty(thisdt)
+                    if isempty(thisdt)
+                        % Look for YYYY-MM-DD.HH-MM-SS OR
+                        % YYYY_MM_DD.HH_MM_SS (specifically targeting
+                        % BioDCASE YYYY-MM-DDTHH-MM-SS_SSS format (ignoring
+                        % milliseconds for now...)
+                        [thisdt,~] = regexp(audioname,'([0-9]{4})[\-_]([0-9]{2})[\-_]([0-9]{2}).([0-9]{2})[\-_]([0-9]{2})[\-_]([0-9]{2})','tokens','match');
+                        if ~isempty(thisdt)
+                            % Unnest (assume last array contains date/time) (ST)
+                            thisdt = thisdt{end};
+                            if ~strcmp(thisdt{1}(1:2),'20')
+                                if strcmp(thisdt{1}(1:2),'19')
+                                    warning('Ask Gabi about integrating data from the 90s')
+                                    break
+                                else
+                                    warning('Date/time format not recognizable - please use YYMMDD.*HHMMSS in your audio file or talk to Gabi about your particular D/T format')
+                                    break
+                                end
+                            end
+                            % Get rid of lead year and concat date and time
+                            % and repack thisdt
+                            thisdt{1} = [thisdt{1}(end-1:end) thisdt{2} thisdt{3}];
+                            thisdt{2} = [thisdt{4} thisdt{5} thisdt{6}];
+                            thisdt = thisdt(1:2);
+                            thissec = str2double(thisdt{2}(5:6));
+                        end
+                    else
                         % Unnest (assume last array contains date/time) (ST)
                         thisdt = thisdt{end};
                         thissec = 0;
