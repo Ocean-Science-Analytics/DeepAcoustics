@@ -29,7 +29,7 @@ for k = 1:length(trainingdata)
     % Load the detection and audio files
     [Calls2Add,allAud2Add] = loadCallfile(fullfile(trainingpath, trainingdata{k}),handles,false);
     Calls = [Calls;Calls2Add];
-    allAudio = [allAudio;allAudio2Add];
+    allAudio = [allAudio;allAud2Add];
     waitbar(k/length(trainingdata), h, sprintf('Loading File %g of %g', k, length(trainingdata))); 
 end
 close(h)
