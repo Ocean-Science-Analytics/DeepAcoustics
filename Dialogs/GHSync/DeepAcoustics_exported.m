@@ -35,6 +35,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuFileMgmt                matlab.ui.container.Menu
         menuMergeDetFiles           matlab.ui.container.Menu
         menuAddDateTime             matlab.ui.container.Menu
+        menuAddRandNoise            matlab.ui.container.Menu
         menuDecimation              matlab.ui.container.Menu
         menuAutoPruning             matlab.ui.container.Menu
         menuBatchReject             matlab.ui.container.Menu
@@ -1163,6 +1164,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             [newdetfile,newdetpath] = uigetfile('*.mat','Select detections.mat file to load');            
             app.RunCallReviewDlg(fullfile(newdetpath, newdetfile),handles);
         end
+
+        % Menu selected function: menuAddRandNoise
+        function menuAddRandNoise_Callback(app, event)
+            AddRandNoise(app,event);
+        end
     end
 
     % Component initialization
@@ -1369,6 +1375,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuAddDateTime.MenuSelectedFcn = createCallbackFcn(app, @menuAddDateTime_Callback, true);
             app.menuAddDateTime.Text = 'Add Date/Time';
             app.menuAddDateTime.Tag = 'AddDateTime';
+
+            % Create menuAddRandNoise
+            app.menuAddRandNoise = uimenu(app.menuFileMgmt);
+            app.menuAddRandNoise.MenuSelectedFcn = createCallbackFcn(app, @menuAddRandNoise_Callback, true);
+            app.menuAddRandNoise.Text = 'Add Random Noise';
 
             % Create menuDecimation
             app.menuDecimation = uimenu(app.menuFileMgmt);

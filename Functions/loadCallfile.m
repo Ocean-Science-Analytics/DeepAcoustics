@@ -30,7 +30,33 @@ if isfield(data, 'audiodata')
 else
     audiodata = struct();
 end
-ClusteringData = table();
+if isfield(data, 'ClusteringData')
+    ClusteringData = data.ClusteringData;
+    if ~isempty(spect)
+        handles.data.settings.spect = spect;
+    else
+        if ~isempty(handles)
+            warning('Spect settings not previously saved; appending to detections.mat now.')
+            spect = handles.data.settings.spect;
+            save(filename,'spect','-append');
+        end
+    end
+    
+    if length(unique(ClusteringData.Type)) > 1
+        list = cellstr(unique(ClusteringData.Type));
+        [indx,tf] = listdlg('PromptString',{'Select the call types you would like to load.',...
+            'WARNING: Saving after this point','without modifying the file name will','overwrite your existing detections file',...
+            'with only the selected call types.',' ',' '},...
+            'ListString',list,'ListSize',[200,300]);
+        if tf
+            ClusteringData = ClusteringData(ismember(ClusteringData.Type,list(indx)),:);
+        else
+            error('You chose to cancel')
+        end
+    end
+else
+    ClusteringData = table();
+end
 
 %% Unpack the data
 if isfield(data, 'Calls')
@@ -265,32 +291,6 @@ if isfield(data, 'Calls')
     end
 elseif nargout < 5 % If ClusteringData is requested, we don't need Calls
     error('This doesn''t appear to be a detection file!')
-end
-
-if isfield(data, 'ClusteringData')
-    ClusteringData = data.ClusteringData;
-    if ~isempty(spect)
-        handles.data.settings.spect = spect;
-    else
-        if ~isempty(handles)
-            warning('Spect settings not previously saved; appending to detections.mat now.')
-            spect = handles.data.settings.spect;
-            save(filename,'spect','-append');
-        end
-    end
-    
-    if length(unique(ClusteringData.Type)) > 1
-        list = cellstr(unique(ClusteringData.Type));
-        [indx,tf] = listdlg('PromptString',{'Select the call types you would like to load.',...
-            'WARNING: Saving after this point','without modifying the file name will','overwrite your existing detections file',...
-            'with only the selected call types.',' ',' '},...
-            'ListString',list,'ListSize',[200,300]);
-        if tf
-            ClusteringData = ClusteringData(ismember(ClusteringData.Type,list(indx)),:);
-        else
-            error('You chose to cancel')
-        end
-    end
 end
 
 if nargout < 5

@@ -2,38 +2,38 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        dlgTrainImg                  matlab.ui.Figure
+        dlgTrainImg              matlab.ui.Figure
         ManuallySelectValidationDataLabel  matlab.ui.control.Label
-        labelFreqLowLim_2            matlab.ui.control.Label
-        labelTitle                   matlab.ui.control.Label
-        labelAnnotationMetadata      matlab.ui.control.Label
-        labelMinDur                  matlab.ui.control.Label
-        labelMaxDur                  matlab.ui.control.Label
-        labelMedDur                  matlab.ui.control.Label
-        labelQuan90Dur               matlab.ui.control.Label
-        labelMinFreq                 matlab.ui.control.Label
-        labelMaxFreq                 matlab.ui.control.Label
-        labelMinSR                   matlab.ui.control.Label
-        labelMaxSR                   matlab.ui.control.Label
-        buttongroupSpecUnits         matlab.ui.container.ButtonGroup
-        buttonSeconds                matlab.ui.control.RadioButton
-        buttonSamples                matlab.ui.control.RadioButton
-        editWinSize                  matlab.ui.control.NumericEditField
-        editOverlap                  matlab.ui.control.NumericEditField
-        editNFFT                     matlab.ui.control.NumericEditField
-        editImgLength                matlab.ui.control.NumericEditField
-        editImgSize                  matlab.ui.control.NumericEditField
-        editNumAugDup                matlab.ui.control.NumericEditField
-        switchRandomNoise            matlab.ui.control.Switch
-        switchValData                matlab.ui.control.Switch
-        buttonOK                     matlab.ui.control.Button
-        buttonCancel                 matlab.ui.control.Button
-        RandomlyAddNoiseSwitchLabel  matlab.ui.control.Label
-        labelNFFT                    matlab.ui.control.Label
-        labelOverlap                 matlab.ui.control.Label
-        labelWinSize                 matlab.ui.control.Label
-        labelFreqUppLim              matlab.ui.control.Label
-        labelFreqLowLim              matlab.ui.control.Label
+        labelFreqLowLim_2        matlab.ui.control.Label
+        labelTitle               matlab.ui.control.Label
+        labelAnnotationMetadata  matlab.ui.control.Label
+        labelMinDur              matlab.ui.control.Label
+        labelMaxDur              matlab.ui.control.Label
+        labelMedDur              matlab.ui.control.Label
+        labelQuan90Dur           matlab.ui.control.Label
+        labelMinFreq             matlab.ui.control.Label
+        labelMaxFreq             matlab.ui.control.Label
+        labelMinSR               matlab.ui.control.Label
+        labelMaxSR               matlab.ui.control.Label
+        buttongroupSpecUnits     matlab.ui.container.ButtonGroup
+        buttonSeconds            matlab.ui.control.RadioButton
+        buttonSamples            matlab.ui.control.RadioButton
+        editWinSize              matlab.ui.control.NumericEditField
+        editOverlap              matlab.ui.control.NumericEditField
+        editNFFT                 matlab.ui.control.NumericEditField
+        editImgLength            matlab.ui.control.NumericEditField
+        editImgSize              matlab.ui.control.NumericEditField
+        editNumAugDup            matlab.ui.control.NumericEditField
+        switchRandomNoise        matlab.ui.control.Switch
+        switchValData            matlab.ui.control.Switch
+        buttonOK                 matlab.ui.control.Button
+        buttonCancel             matlab.ui.control.Button
+        RandomlyAddNoiseWARNINGWilloverwriteexistingDetsfilesLabel  matlab.ui.control.Label
+        labelNFFT                matlab.ui.control.Label
+        labelOverlap             matlab.ui.control.Label
+        labelWinSize             matlab.ui.control.Label
+        labelFreqUppLim          matlab.ui.control.Label
+        labelFreqLowLim          matlab.ui.control.Label
     end
 
     
@@ -183,11 +183,12 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.labelNFFT.Position = [287 193 119 22];
             app.labelNFFT.Text = 'NFFT (# of samples):';
 
-            % Create RandomlyAddNoiseSwitchLabel
-            app.RandomlyAddNoiseSwitchLabel = uilabel(app.dlgTrainImg);
-            app.RandomlyAddNoiseSwitchLabel.HorizontalAlignment = 'center';
-            app.RandomlyAddNoiseSwitchLabel.Position = [73 208 117 22];
-            app.RandomlyAddNoiseSwitchLabel.Text = 'Randomly Add Noise';
+            % Create RandomlyAddNoiseWARNINGWilloverwriteexistingDetsfilesLabel
+            app.RandomlyAddNoiseWARNINGWilloverwriteexistingDetsfilesLabel = uilabel(app.dlgTrainImg);
+            app.RandomlyAddNoiseWARNINGWilloverwriteexistingDetsfilesLabel.HorizontalAlignment = 'center';
+            app.RandomlyAddNoiseWARNINGWilloverwriteexistingDetsfilesLabel.WordWrap = 'on';
+            app.RandomlyAddNoiseWARNINGWilloverwriteexistingDetsfilesLabel.Position = [53 175 159 59];
+            app.RandomlyAddNoiseWARNINGWilloverwriteexistingDetsfilesLabel.Text = {'Randomly Add Noise'; 'WARNING: Will overwrite existing Dets files'};
 
             % Create buttonCancel
             app.buttonCancel = uibutton(app.dlgTrainImg, 'push');
