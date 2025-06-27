@@ -269,8 +269,10 @@ spect = handles.data.settings.spect;
 if spect.nfft ~= spect.nfftsmp/Calls.Audiodata(1).SampleRate || ...
     spect.windowsize ~= spect.windowsizesmp/Calls.Audiodata(1).SampleRate
     warning('Current DA spect settings not a match for the sample rate.  Defaulting to the FFT sample setting (as opposed to that in seconds).  To change this, load the resulting Detections file in the main GUI, adjust Display Settings, and resave.')
+    percovlp = spect.noverlap/spect.nfft;
     spect.nfft = spect.nfftsmp/Calls.Audiodata(1).SampleRate;
     spect.windowsize = spect.windowsizesmp/Calls.Audiodata(1).SampleRate;
+    spect.noverlap = spect.nfft*percovlp;
 end
 % Save Detections.mat
 save(fullfile(outpath,[FileName '_Detections.mat']),'Calls','allAudio','detection_metadata','spect','-v7.3');
