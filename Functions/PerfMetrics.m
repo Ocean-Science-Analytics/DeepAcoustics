@@ -129,11 +129,15 @@ else
 end
 
 numTrueDets = zeros(nTypes,1);
+numDets = zeros(nTypes,1);
+[resCnt,resCat,~] = groupcounts(results.Label{1});
 for i = 1:nTypes
     numTrueDets(i) = sum(CallsAnn.Type==uniqClass(i));
+    if ismember(uniqClass(i),resCat)
+        numDets(i) = resCnt(ismember(resCat,uniqClass(i)));
+    end
 end
 numTP = recall.*numTrueDets;
-numDets = numTP./prec;
 numFP = numDets-numTP;
 numFN = numTrueDets - numTP;
 fscore = 2.*((prec.*recall)./(prec+recall));
