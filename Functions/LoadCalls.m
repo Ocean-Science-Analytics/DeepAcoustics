@@ -29,7 +29,11 @@ if nargin < 4
     end
 
     [handles.data.calls, handles.data.allAudio, handles.data.settings.spect, handles.data.detmetadata] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+    
     % Removed call from loadCallfile so have to put it here
+    % Gotta save settings before update_folders call, bc that loads saved
+    % settings grrr
+    handles.data.saveSettings();
     update_folders(hObject, handles);
     handles = guidata(hObject);  % Get newest version of handles
     
