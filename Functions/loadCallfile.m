@@ -202,7 +202,7 @@ if isfield(data, 'Calls')
         end
     end
 
-    if ~any(strcmp('DetSpect', Calls.Properties.VariableNames)) || isempty(fieldnames(Calls.DetSpect(1)))
+    if ~any(strcmp('DetSpect', Calls.Properties.VariableNames)) || ~isstruct(Calls.DetSpect) || isempty(fieldnames(Calls.DetSpect(1)))
         DetSpect.wind = 0;
         DetSpect.noverlap = 0;
         DetSpect.nfft = 0;
