@@ -1,4 +1,4 @@
-function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad)
+function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad, bClipSpect)
 %% Extract call features for CalculateStats and display
 
 if nargin < 3
@@ -49,7 +49,15 @@ else
     indbox = DAdata.page_spect.t > call.Box(1) & DAdata.page_spect.t < sum(call.Box([1,3]));
     % if spect resolution issues, warning and adjust box so enough dims to
     % function
-    if sum(indbox)==1
+    if sum(indbox)<=1
+        % Really bad spect settings - find the closest time slice to start
+        % of box to claim one time slice for the call
+        if sum(indbox) == 0
+            [~,indflag] = min(abs(DAdata.page_spect.t-call.Box(1)));
+            indbox(indflag) = true;
+        end
+        % Once only one time slice claimed for call, expand to 2 for display and warn
+        % user
         % If last index is 1, make index before it also 1
         if indbox(end)
             indbox(end-1) = 1;
@@ -82,5 +90,6 @@ if isempty(I)
 end
 
 %Save for later - update that saves only boxed call
-%p=p(min_freq:max_freq,x1:x2);
+if nargin == 5 && bClipSpect
+    p=p(min_freq:max_freq,x1:x2);
 end
