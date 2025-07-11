@@ -24,6 +24,9 @@ DetSpect.wind = NeuralNetwork.wind;
 DetSpect.noverlap = NeuralNetwork.noverlap;
 DetSpect.nfft = NeuralNetwork.nfft;
 
+if ~iscell(audfiles)
+    audfiles = {audfiles};
+end
 %% For Each File
 for j = 1:length(audfiles)
     AudioFile = fullfile(audpn,audfiles{j});
