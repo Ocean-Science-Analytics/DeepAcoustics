@@ -57,8 +57,50 @@ for i = 1:length(tablepath)
 %     end
     PathToITs{i} = tablepath{i};
 end
-if ~all([isfile(TrainingTables.imageFilename)])
-    error('Images Could Not Be Found On Path Specified in Images.mat')
+
+% Check that image path still good, and have user replace if not
+[trypath,~,~] = fileparts(tablepath);
+indRePath = ~isfile(TrainingTables.imageFilename);
+while any(indRePath)
+    [thispath,thisfn,thisext] = fileparts(TrainingTables.imageFilename{find(indRePath,1,"first")});
+    % Print previous location to terminal window (long paths not
+    % visible in uigetdir)
+    warning(['Previous location: ',thispath])
+    newpn = uigetdir(trypath,['Select folder containing ',[thisfn thisext],' (see terminal window for previous location)']);
+    % Double-check that they chose a good path
+    if ~exist(fullfile(newpn,[thisfn thisext]),'file')
+        error([thisfn ' not found in ' newpn])
+    end
+    [~,fn2rep,ext2rep] = fileparts(TrainingTables.imageFilename(indRePath));
+    repiFn = fullfile(newpn,strcat(fn2rep,ext2rep));
+    TrainingTables.imageFilename(indRePath) = repiFn;
+
+    % Reset indices we still need to fix
+    indRePath = ~isfile(TrainingTables.imageFilename);
+    if any(indRePath)
+        [~,thisfn,thisext] = fileparts(TrainingTables.imageFilename{find(indRePath,1,"first")});
+        % Check for default ImgAug path adjustment
+        lastslash = regexp(newpn,filesep);
+        lastslash = lastslash(end);
+        testaug = newpn(lastslash+1:end);
+        % If new selected path is not an ImgAug folder, try adding an
+        % ImgAug folder, otherwise, try adding the parent folder
+        if ~strcmp(testaug,'ImgAug')
+            newpn = fullfile(newpn,'ImgAug');
+        else
+            newpn = newpn(1:lastslash-1);
+        end
+        % If default ImgAug folder adjustment worked, try replacing
+        % remaining stragglers with that path
+        if exist(fullfile(newpn,[thisfn thisext]),'file')
+            [~,fn2rep,ext2rep] = fileparts(TrainingTables.imageFilename(indRePath));
+            repiFn = fullfile(newpn,strcat(fn2rep,ext2rep));
+            TrainingTables.imageFilename(indRePath) = repiFn;
+
+            % Reset indices we still need to fix
+            indRePath = ~isfile(TrainingTables.imageFilename);
+        end
+    end
 end
 
 %% Create a warning if training files were created with different parameters
