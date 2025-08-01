@@ -1,11 +1,23 @@
 function PerfMetrics(handles,hObject)
 % Select Det File for testing network
-[detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder);
-if all(detfile==0) && all(detpath==0)
-    return
-end
+[detfile,detpath] = uigetfile('*.mat','Select ground-truthed detections.mat file',handles.data.settings.detectionfolder,'MultiSelect', 'on');
+if isnumeric(detfile); return; end
 PathToDet = fullfile(detpath,detfile);
-[CallsAnn, allAudio, ~, detmetadata] = loadCallfile(PathToDet,handles,false);
+detfile = cellstr(detfile);
+
+h = waitbar(0,'Loading Call File(s)');
+CallsAnn = [];
+allAudio = [];
+detmetadata = [];
+for k = 1:length(detfile)
+    % Load the detection and audio files
+    [Calls2Add,allAud2Add, ~, dmd2Add] = loadCallfile(PathToDet{k},handles,false);
+    CallsAnn = [CallsAnn;Calls2Add];
+    allAudio = [allAudio;allAud2Add];
+    detmetadata = [detmetadata;dmd2Add];
+    waitbar(k/length(PathToDet), h, sprintf('Loading File %g of %g', k, length(PathToDet))); 
+end
+close(h)
 
 [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Network to Evaluate');
 lastwarn('');
@@ -15,8 +27,13 @@ if ~isempty(warnMsg)
     error('Problem pathing to ValidationData - Talk to Gabi')
 end
 
-if ~isempty(detmetadata) && isa(detmetadata.Settings,'double')
-    Settings = detmetadata.Settings;
+% Eventually this should be replaced with the Settings attached to the
+% network, not the detections
+if ~isempty(detmetadata) && isa(detmetadata(1).Settings,'double')
+    if ~isequal(detmetadata.Settings) || length(detmetadata) ~= length(detfile)
+        error('Something odd about incoming detmetadata for ground-truthed files - double-check files or talk to GA')
+    end
+    Settings = detmetadata(1).Settings;
 else
     prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (Hz)','High Frequency Cutoff (Hz)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
     dlg_title = 'Settings for This Network';
