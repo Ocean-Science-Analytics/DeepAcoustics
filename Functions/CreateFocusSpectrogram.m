@@ -1,11 +1,15 @@
-function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad, bClipSpect)
+function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad, nFreqPad, bClipSpect)
 %% Extract call features for CalculateStats and display
 
 if nargin < 3
     make_spectrogram = true;
     nTimePad = 0;
+    nFreqPad = 0;
 elseif nargin == 3 || ~make_spectrogram
     nTimePad = 0;
+    nFreqPad = 0;
+elseif nargin == 4
+    nFreqPad = 0;
 end
 
 rate = call.Audiodata.SampleRate;
@@ -33,7 +37,22 @@ nfft = round(rate * DAdata.settings.spect.nfft);
 if make_spectrogram
     audioreader = squeakData([]);
     audioreader.audiodata = call.Audiodata;
-    audio = audioreader.AudioSamples(box(1)-nTimePad, box(1) + box(3)+nTimePad);
+    nTimePadL = nTimePad;
+    nTimePadR = nTimePad;
+    nSampGoal = box(3)+nTimePad*2;
+    maxDur = audioreader.audiodata.Duration;
+    if box(1)-nTimePad < 0
+        nTimePadL = box(1);
+        nTimePadR = nTimePadR - (box(1)-nTimePad);
+    elseif (box(1) + box(3) + nTimePad) > maxDur
+        nTimePadR = maxDur-(box(1) + box(3));
+        nTimePadL = nTimePadL + ((box(1) + box(3) + nTimePad) - maxDur);
+    end
+
+    audio = audioreader.AudioSamples(box(1)-nTimePadL, box(1) + box(3)+nTimePadR);
+    if (abs(length(audio)-(nSampGoal*audioreader.audiodata.SampleRate)) > 1)
+        error('Oops')
+    end
     if (length(audio) < min([windowsize,noverlap,nfft]))
         warning('Call too short to generate spectrogram, returning empty')
         I = [];
@@ -77,11 +96,27 @@ end
 x1 = 1;
 x2 = length(ti);
 
-min_freq = find(fr./1000 >= box(2),1);
+nFreqPadL = nFreqPad;
+nFreqPadR = nFreqPad;
+nSampGoal = box(4)+nFreqPad*2;
+maxBW = audioreader.audiodata.SampleRate/2000;
+if box(2)-nFreqPad < 0
+    nFreqPadL = box(2);
+    nFreqPadR = nFreqPadR - (box(2)-nFreqPad);
+elseif (box(2) + box(4) + nFreqPad) > maxBW
+    nFreqPadR = maxBW-(box(2) + box(4));
+    nFreqPadL = nFreqPadL + ((box(2) + box(4) + nFreqPad) - maxBW);
+end
+
+min_freq = find(fr./1000 >= (box(2)-nFreqPadL),1);
 min_freq = max(min_freq-1, 1);
 
-max_freq = find(fr./1000 <= box(4) + box(2), 1, 'last');
+max_freq = find(fr./1000 <= (box(4) + box(2) + nFreqPadR), 1, 'last');
 max_freq = min(round(max_freq)+1, length(fr));
+
+if (abs((fr(2)*(max_freq-min_freq))-nSampGoal*1000) > fr(3))
+    error('Oops')
+end
 
 I=abs(s(min_freq:max_freq,x1:x2));
 
@@ -90,6 +125,6 @@ if isempty(I)
 end
 
 %Save for later - update that saves only boxed call
-if nargin == 5 && bClipSpect
+if nargin == 6 && bClipSpect
     p=p(min_freq:max_freq,x1:x2);
 end

@@ -1082,7 +1082,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             bGAOnly = false;
             if bGAOnly
-                [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false);            %Save Extracted Contours
+                [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false,'for_denoise',true);            %Save Extracted Contours
                 pind = regexp(char(ClusteringData{1,'Filename'}),'\');
                 pind = pind(end);
                 pname = char(ClusteringData{1,'Filename'});

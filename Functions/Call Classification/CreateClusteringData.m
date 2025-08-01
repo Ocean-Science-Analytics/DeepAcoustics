@@ -106,12 +106,19 @@ if ~isempty(Calls)
     end
 end
 %% for each call in the file, calculate stats for clustering
+maxDur = max(Calls.Box(:,3));
+maxBW = max(Calls.Box(:,4));
 for i = 1:height(Calls)
     waitbar(i/height(Calls),h, sprintf('Loading File %u of %u', perFileCallID(i), length(fileName)));
     
     % Change the audio file if needed
     audioReader.audiodata = Calls.Audiodata(i);
-    [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles.data, true, 0, p.Results.for_denoise);
+    % If for anomaly test, standardize box size
+    if p.Results.for_denoise
+        fTimePad = (maxDur-Calls.Box(i,3))/2;
+        fFreqPad = (maxBW-Calls.Box(i,4))/2;
+    end
+    [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles.data, true, fTimePad, fFreqPad, p.Results.for_denoise);
     
     % If spectrogram settings iffy
     if any(size(pow) < 3)
