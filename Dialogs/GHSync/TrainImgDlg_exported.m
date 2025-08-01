@@ -277,42 +277,42 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
             % Create labelMaxSR
             app.labelMaxSR = uilabel(app.dlgTrainImg);
-            app.labelMaxSR.Position = [278 389 138 22];
+            app.labelMaxSR.Position = [278 389 187 22];
             app.labelMaxSR.Text = 'Max SR (Hz):';
 
             % Create labelMinSR
             app.labelMinSR = uilabel(app.dlgTrainImg);
-            app.labelMinSR.Position = [94 389 138 22];
+            app.labelMinSR.Position = [94 389 165 22];
             app.labelMinSR.Text = 'Min SR (Hz):';
 
             % Create labelMaxFreq
             app.labelMaxFreq = uilabel(app.dlgTrainImg);
-            app.labelMaxFreq.Position = [278 427 138 22];
+            app.labelMaxFreq.Position = [278 427 187 22];
             app.labelMaxFreq.Text = 'Max Freq (Hz):';
 
             % Create labelMinFreq
             app.labelMinFreq = uilabel(app.dlgTrainImg);
-            app.labelMinFreq.Position = [94 427 138 22];
+            app.labelMinFreq.Position = [94 427 165 22];
             app.labelMinFreq.Text = 'Min Freq (Hz):';
 
             % Create labelQuan90Dur
             app.labelQuan90Dur = uilabel(app.dlgTrainImg);
-            app.labelQuan90Dur.Position = [278 466 138 22];
-            app.labelQuan90Dur.Text = '90% Quantile Dur (s):';
+            app.labelQuan90Dur.Position = [278 466 187 22];
+            app.labelQuan90Dur.Text = '90% Quant Dur (s):';
 
             % Create labelMedDur
             app.labelMedDur = uilabel(app.dlgTrainImg);
-            app.labelMedDur.Position = [95 466 138 22];
+            app.labelMedDur.Position = [95 466 164 22];
             app.labelMedDur.Text = 'Median Dur (s):';
 
             % Create labelMaxDur
             app.labelMaxDur = uilabel(app.dlgTrainImg);
-            app.labelMaxDur.Position = [279 505 138 22];
+            app.labelMaxDur.Position = [279 505 186 22];
             app.labelMaxDur.Text = 'Max Dur (s):';
 
             % Create labelMinDur
             app.labelMinDur = uilabel(app.dlgTrainImg);
-            app.labelMinDur.Position = [94 505 138 22];
+            app.labelMinDur.Position = [94 505 165 22];
             app.labelMinDur.Text = 'Min Dur (s):';
 
             % Create labelAnnotationMetadata
