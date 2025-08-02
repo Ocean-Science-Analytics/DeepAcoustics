@@ -11,11 +11,11 @@ allAudio = [];
 detmetadata = [];
 for k = 1:length(detfile)
     % Load the detection and audio files
-    [Calls2Add,allAud2Add, ~, dmd2Add] = loadCallfile(PathToDet{k},handles,false);
+    [Calls2Add,allAud2Add, ~, dmd2Add] = loadCallfile(fullfile(detpath,detfile{k}),handles,false);
     CallsAnn = [CallsAnn;Calls2Add];
     allAudio = [allAudio;allAud2Add];
     detmetadata = [detmetadata;dmd2Add];
-    waitbar(k/length(PathToDet), h, sprintf('Loading File %g of %g', k, length(PathToDet))); 
+    waitbar(k/length(detfile), h, sprintf('Loading File %g of %g', k, length(detfile))); 
 end
 close(h)
 
@@ -133,6 +133,13 @@ if strVer >= 2023
         prec(i) = precvec{i}(end);
         recall(i) = recallvec{i}(end);
     end
+    % Confusion Matrix (remove Noise)
+    [confMat,confusionClassNames] = confusionMatrix(odMetrics,scoreThreshold=0,overlapThreshold=percTPThresh);
+    indNotNoise = ~strcmp(confusionClassNames,'Noise');
+    confMat{1} = confMat{1}(indNotNoise,indNotNoise);
+    confusionClassNames = confusionClassNames(indNotNoise);
+    figure
+    confusionchart(confMat{1},confusionClassNames)
 else
     if nTypes > 1
         error('Multi-Class not set up for Matlab functions in versions < 2023 - update Matlab or beg Gabi');
@@ -161,34 +168,37 @@ fscore = 2.*((prec.*recall)./(prec+recall));
 
 scores = cell(nTypes,1);
 for i = 1:nTypes
-    scores{i} = [results.Scores{1}(results.Label{:} == uniqClass(i))];
-    scores{i} = sort(scores{i},'descend');
-    scores{i} = [scores{i};0];
-    figure
-    scatter(recallvec{i},precvec{i},[],scores{i},'filled','MarkerEdgeColor',[0 0 0])
-    grid on
-    c = colorbar;
-    c.Label.String = 'Score Threshold';
-    title({sprintf('Call Type: %s',uniqClass{i}); ...
-        sprintf('Average Precision = %.1f',avgprec(i))})
-    xlabel('Recall')
-    ylabel('Precision')
-
-    msgbox({sprintf('Call Type: %s',uniqClass{i});...
-        'Values for Score Threshold == 0:'; ...
-        sprintf('# True Positives: %u',int16(numTP(i))); ...
-        sprintf('# False Positives: %u', int16(numFP(i)));...
-        sprintf('# of False Negatives: %u', int16(numFN(i)));...
-        sprintf('Precision: %.4f',prec(i));...
-        sprintf('Recall: %.4f', recall(i));...
-        sprintf('F-Score: %.4f', fscore(i));...
-        sprintf('Average Prec (%.2f Ovlp Threshold): %.4f',percTPThresh, avgprec(i));...
-        sprintf('mAP (0.1:0.1:0.9 Ovlp Threshold): %.4f', mAP(i))},'P/R Result');
+    % Skip Noise
+    if ~strcmp(uniqClass{i},'Noise')
+        scores{i} = [results.Scores{1}(results.Label{:} == uniqClass(i))];
+        scores{i} = sort(scores{i},'descend');
+        scores{i} = [scores{i};0];
+        figure
+        scatter(recallvec{i},precvec{i},[],scores{i},'filled','MarkerEdgeColor',[0 0 0])
+        grid on
+        c = colorbar;
+        c.Label.String = 'Score Threshold';
+        title({sprintf('Call Type: %s',uniqClass{i}); ...
+            sprintf('Average Precision = %.1f',avgprec(i))})
+        xlabel('Recall')
+        ylabel('Precision')
+    
+        msgbox({sprintf('Call Type: %s',uniqClass{i});...
+            'Values for Score Threshold == 0:'; ...
+            sprintf('# True Positives: %u',int16(numTP(i))); ...
+            sprintf('# False Positives: %u', int16(numFP(i)));...
+            sprintf('# of False Negatives: %u', int16(numFN(i)));...
+            sprintf('Precision: %.4f',prec(i));...
+            sprintf('Recall: %.4f', recall(i));...
+            sprintf('F-Score: %.4f', fscore(i));...
+            sprintf('Average Prec (%.2f Ovlp Threshold): %.4f',percTPThresh, avgprec(i));...
+            sprintf('mAP (0.1:0.1:0.9 Ovlp Threshold): %.4f', mAP(i))},'P/R Result');
+    end
 end
 
 [file,path] = uiputfile([handles.data.settings.networkfolder '\PerformanceMetrics.mat'],'Save Performance Metrics');
 save(fullfile(path,file),'NetPath','NetName','PathToDet','results','precvec','recallvec','prec','recall',...
-    'numTrueDets','numTP','numDets','numFP','numFN','fscore','avgprec','mAP','odMetrics','odMetricsmAP')
+    'numTrueDets','numTP','numDets','numFP','numFN','fscore','avgprec','mAP','odMetrics','odMetricsmAP','confMat','confusionClassNames')
 
 [~,audioname] = fileparts(AudioFile);
 detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
