@@ -139,7 +139,9 @@ if strVer >= 2023
     confMat{1} = confMat{1}(indNotNoise,indNotNoise);
     confusionClassNames = confusionClassNames(indNotNoise);
     figure
-    confusionchart(confMat{1},confusionClassNames)
+    cm = confusionchart(confMat{1},confusionClassNames);
+    cm.RowSummary = 'row-normalized';
+    cm.ColumnSummary = 'column-normalized';
 else
     if nTypes > 1
         error('Multi-Class not set up for Matlab functions in versions < 2023 - update Matlab or beg Gabi');
