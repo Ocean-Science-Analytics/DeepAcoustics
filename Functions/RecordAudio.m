@@ -233,7 +233,7 @@ if eventdata.Source.Value==1
                 disp(['Freq cut-offs (given spec settings) set to ' num2str(fr(lower_freq)) ' Hz and ' num2str(fr(upper_freq)) ' Hz']);
                 pow = p(lower_freq:upper_freq,:);
         
-                [nbboxes, scores, Class] = DetectChunk(fr,ti,pow,NeuralNetwork);
+                [nbboxes, scores, Class] = DetectChunk(pow,NeuralNetwork);
 
                 if ~isempty(nbboxes)
                     % Convert boxes from pixels to time and kHz
