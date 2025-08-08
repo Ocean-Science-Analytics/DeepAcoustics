@@ -59,7 +59,7 @@ for i = 1:length(tablepath)
 end
 
 % Check that image path still good, and have user replace if not
-[trypath,~,~] = fileparts(tablepath);
+[trypath,~,~] = fileparts(tablepath{1});
 indRePath = ~isfile(TrainingTables.imageFilename);
 while any(indRePath)
     [thispath,thisfn,thisext] = fileparts(TrainingTables.imageFilename{find(indRePath,1,"first")});
