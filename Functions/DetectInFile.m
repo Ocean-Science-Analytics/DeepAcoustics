@@ -106,7 +106,7 @@ for i = 1:length(chunks)-1
         end
         pow = p(lower_freq:upper_freq,:);
         
-        [nbboxes, scores, Class] = DetectChunk(fr,ti,pow,networkfile);
+        [nbboxes, scores, Class] = DetectChunk(pow,networkfile);
 
         % Convert boxes from pixels to time and kHz
         bboxes = [];
@@ -137,7 +137,7 @@ for i = 1:length(chunks)-1
             h,...
             sprintf('Error in Network, Skiping Audio Chunk'));
         disp('Error in Network, Why Broken?');
-        warning( getReport( ME, 'extended', 'hyperlinks', 'on' ) );
+        error( getReport( ME, 'extended', 'hyperlinks', 'on' ) );
     end
 end
 % Return is nothing was found
