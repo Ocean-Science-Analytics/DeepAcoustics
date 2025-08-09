@@ -135,9 +135,13 @@ if strVer >= 2023
     end
     % Confusion Matrix (remove Noise)
     [confMat,confusionClassNames] = confusionMatrix(odMetrics,scoreThreshold=0,overlapThreshold=percTPThresh);
-    indNotNoise = ~strcmp(confusionClassNames,'Noise');
-    confMat{1} = confMat{1}(indNotNoise,indNotNoise);
-    confusionClassNames = confusionClassNames(indNotNoise);
+    indNoise = strcmp(confusionClassNames,'Noise');
+    indUM = strcmp(confusionClassNames,'unmatched');
+    % Add Calls classified as Noise to unmatched category (skip unmatched
+    % Noise)
+    confMat{1}(~indUM,indUM) = confMat{1}(~indUM,indUM)+confMat{1}(~indUM,indNoise);
+    confMat{1} = confMat{1}(~indNoise,~indNoise);
+    confusionClassNames = confusionClassNames(~indNoise);
     figure
     cm = confusionchart(confMat{1},confusionClassNames);
     cm.RowSummary = 'row-normalized';
