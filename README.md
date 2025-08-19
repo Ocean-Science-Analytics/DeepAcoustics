@@ -5,7 +5,7 @@ This open-access, MATLAB-based tool is a modified version of a program called De
 
 To learn more about using DeepAcoustics, please visit our tool documentation: [DeepAcoustics Guide & Tutorial](https://ocean-science-analytics.github.io/DeepAcoustics_Guide_and_Tutorial/DA.html)
 
-![DA_Cover](https://github.com/user-attachments/assets/503fd3e4-3b93-45e9-81cc-43fddf89607b)
+![DA_Cover](https://github.com/Ocean-Science-Analytics/DeepAcoustics/blob/main/Background.png)
 
 
 
