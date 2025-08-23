@@ -1,0 +1,26 @@
+function ExportTensorFlowStep2()
+    %%% EVENTUALLY come back and add catches for Python version, presence
+    %%% of TF and keras, etc.
+
+    indir = uigetdir('','Select the directory where the results of Step 1 live');
+    outdir = uigetdir(indir,'Select the directory where you want the output of Step 2 to be saved (empty directory recommended)');
+
+    modname = strsplit(indir, filesep);
+    appath = strjoin(modname(1:end-1), filesep);
+    modname = modname{end};
+
+    % Add current path to Python path so import model works
+    py.sys.path().append(appath);
+    pyrun('import os')
+    pyrun('os.environ["TF_USE_LEGACY_KERAS"] = "1"')
+
+    % Import model
+    matmod = py.importlib.import_module(modname);
+    model = matmod.load_model();
+    
+    % Re-save model in formats for use in PAMGuard, etc.
+    model.save(fullfile(outdir,[modname '.keras']));
+    model.save(fullfile(outdir,[modname '.h5']));
+    % Following ONLY works with Keras2 (python -m pip install tf_keras)
+    model.save(fullfile(outdir,modname));
+end
