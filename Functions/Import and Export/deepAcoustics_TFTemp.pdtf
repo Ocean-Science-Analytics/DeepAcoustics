@@ -1,0 +1,75 @@
+{
+ "framework_info": {"framework": "deepAcoustics"},
+ "model_info": {
+  "input_shape": [
+  -1, 
+  INPUTSIZE1, 
+  INPUTSIZE2, 
+  INPUTSIZE3
+  ],
+  "anchorboxes":  [
+            ANCHORBOXMAT
+   ]
+ },
+ "class_info": {
+  "name_class": [
+   CLASSNAMEMAT
+  ],
+  "num_class": NUMCLASSES
+ },
+  "transforms": [
+  {
+  "name": "load_audio",
+  "params": {"sr": SAMPRATE}
+ },
+ {
+  "name": "spectrogramketos",
+  "params": {
+   "window_size": WINSIZESEC,
+   "fft": FFTSAMP,
+   "hop": FFTHOPSAMP
+  }
+ },
+ {
+  "name": "freq_trim",
+  "params": {
+   "fmin": MINFREQ,
+   "fmax": MAXFREQ
+  }
+ },
+ {
+  "name": "amplitude_to_decibel",
+  "params": {}
+ },
+ {
+  "name": "normalize_min_max",
+  "params": {}
+ },
+ {
+  "name": "spec_flip",
+  "params": {}
+ },
+ {
+  "name": "clahe2",
+  "params": {
+     "cliplimit": 0.005,
+     "alpha": 0.4
+  }
+ },
+ {
+  "name": "spec_resize",
+  "params": {
+   "time_bins": INPUTSIZE1,
+   "freq_bins": INPUTSIZE2
+  }
+ },
+ {
+  "name": "normalize_min_max",
+  "params": {}
+ }
+],
+ "description": "Deep Acoustics for acoustic whistle detection and classification using deep learning",
+ "version_info": {"version": 1},
+ "seg_size": {"size_ms": IMGLENGTHMSEC},
+ "example_sound": "DOLPHIN_WHISTLE"
+}
