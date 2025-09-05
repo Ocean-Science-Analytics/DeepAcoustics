@@ -10,7 +10,10 @@ function ExportTensorFlowStep2()
     modname = modname{end};
 
     % Add current path to Python path so import model works
-    py.sys.path().append(appath);
+    % Apparently this needs to be added to Matlab, not Python path for load_model() to
+    % work >:(
+    %py.sys.path().append(appath);
+    addpath(appath);
     pyrun('import os')
     pyrun('os.environ["TF_USE_LEGACY_KERAS"] = "1"')
 
@@ -23,4 +26,10 @@ function ExportTensorFlowStep2()
     model.save(fullfile(outdir,[modname '.h5']));
     % Following ONLY works with Keras2 (python -m pip install tf_keras)
     model.save(fullfile(outdir,modname));
+
+    %% Move PDTF FILE
+    movefile(fullfile(indir,'deepAcoustics.pdtf'),fullfile(outdir,modname,'deepAcoustics.pdtf'));
+
+    %% Zip PG folder
+    zip(fullfile(outdir,[modname '.zip']), fullfile(outdir,modname));
 end
