@@ -47,7 +47,7 @@ metadata.maxfreq = max([Calls.Box(:,2)]+[Calls.Box(:,4)]);
 metadata.minSR = min([Calls.Audiodata.SampleRate]);
 metadata.maxSR = max([Calls.Audiodata.SampleRate]);
 
-uniqLabels = unique(cellstr(Calls.Type));
+uniqLabels = unique(cellstr(Calls.Type))';
 
 app.RunTrainImgDlg(handles.data.settings.spect, metadata);
 if app.TrainImgbCancel; return; end
@@ -177,6 +177,8 @@ for k = 1:length(concatdata)
             wind = app.TrainImgSettings.windowsize;
             noverlap = app.TrainImgSettings.noverlap;
             nfft = app.TrainImgSettings.nfft;
+            freqlow = app.TrainImgSettings.FreqLow;
+            freqhigh = app.TrainImgSettings.FreqHigh;
     
             bins = SplitBouts(subCalls,imLength,imLength);
                 
@@ -196,7 +198,7 @@ for k = 1:length(concatdata)
     
                 % Get overall start of bout when using whole image sizes
                 % centered on entire bout
-                StartTime = CenterTime - (nDiv/2)*imLength;
+                StartTime = max(0,CenterTime - (nDiv/2)*imLength);
     
                 % Get all starts accounting for splitting calls
                 StartTimes = StartTime:imLength:(StartTime+imLength*nDiv);
@@ -273,15 +275,18 @@ for k = 1:length(concatdata)
                                 audioReader.audiodata.SampleRate,...
                                 BoutCalls,...
                                 uniqLabels,...
-                                noverlap,nfft,...
+                                wind,noverlap,nfft,...
+                                freqlow,freqhigh,...
                                 imgsize,...
                                 ffn,...
                                 replicatenumber);
+                            if ~isempty(box)
                                 if k <= nLenTData
                                     TTable = [TTable;[{bAug}, {ffn}, box]];
                                 else
                                     VTable = [VTable;[{bAug}, {ffn}, box]];
                                 end
+                            end
                         end
                     catch
                         disp("Something wrong with calculating bounding box indices - talk to Gabi!");
@@ -340,7 +345,8 @@ end
 
 
 % Create training images and boxes
-function [im, sepbox] = CreateTrainingData(audio,rate,Calls,uniqLabels,noverlap,nfft,imgsize,filename,replicatenumber)
+function [im, sepbox] = CreateTrainingData(audio,rate,Calls,uniqLabels,wind,noverlap,nfft,freqlow,freqhigh,imgsize,filename,replicatenumber)
+sepbox = [];
 AmplitudeRange = [.5, 1.5];
 %StretchRange = [0.75, 1.25];
 % Order of current unaugmented FFT
@@ -356,18 +362,19 @@ while any(size(p) < 3) && nCountTries < 5
     if replicatenumber > 1
         AmplitudeFactor = range(AmplitudeRange).*rand() + AmplitudeRange(1);
         StretchFactor = range(StretchRange).*rand() + StretchRange(1);
+        thisnfft = round(2^StretchFactor);
+        % Assume window == NFFT
+        thiswind = thisnfft;
     else
         AmplitudeFactor = 1;
-        StretchFactor = nFFTexp;
+        thisnfft = nfft*rate;
+        thiswind = wind*rate;
     end
     if width(audio)>height(audio)
         audio=audio';
     end
     
     thisnoverlap = noverlap/nfft;
-    thisnfft = round(2^StretchFactor);
-    % Assume window == NFFT
-    thiswind = thisnfft;
     % Keep same overlap?
     thisnoverlap = round(thisnoverlap*thisnfft);
     
@@ -398,25 +405,18 @@ if any(size(p) < 3)
     error('FFT settings suboptimal and causing losses in training data - recommend changing')
 end
 
-% -- remove frequencies below well outside of the box
-% GA: Removing this because I think it removes informative noise from
-% images and even if it did make sense, it doesn't make sense to do it on the low freq end and not the
-% high freq end
-% lowCut=(min(Calls.Box(:,2))-(min(Calls.Box(:,2))*.75))*1000;
-% min_freq  = find(fr>lowCut);
-% p = p(min_freq,:);
-
-
-% % Add brown noise to adjust the amplitude
-% if replicatenumber > 1
-%     AmplitudeFactor = spatialPattern(size(p), -3);
-%     AmplitudeFactor = AmplitudeFactor ./ std(AmplitudeFactor, [], 'all');
-%     AmplitudeFactor = AmplitudeFactor .* range(AmplitudeRange) ./ 2 + mean(AmplitudeRange);
-% end
-% im = log10(p);
-% im = (im - mean(im, 'all')) * std(im, [],'all');
-% im = rescale(im + AmplitudeFactor .* im.^3 ./ (im.^2+2), 'InputMin',-1 ,'InputMax', 5);
-
+upper_freq = find(fr>freqhigh,1,'first');
+lower_freq = find(fr<freqlow,1,'last');
+% Account for buffer overflow in either direction
+if isempty(upper_freq)
+    upper_freq = length(fr);
+end
+if isempty(lower_freq)
+    lower_freq = 1;
+end
+p = p(lower_freq:upper_freq,:);
+frlen = size(p,1);
+tilen = size(p,2);
 
 % -- convert power spectral density to [0 1]
 p(p==0)=.01;
@@ -439,38 +439,52 @@ end
 targetSize = [imgsize imgsize];
 sz=size(im);
 
+%% MAKE SURE THESE COORDINATES ACCOUNT FOR FREQ TRIMMING
 if ~isempty(Calls)
     % Find the box within the spectrogram
     x1 = axes2pix(length(ti), ti, Calls.Box(:,1));
     x2 = axes2pix(length(ti), ti, Calls.Box(:,3));
     y1 = axes2pix(length(fr), fr./1000, Calls.Box(:,2));
     y2 = axes2pix(length(fr), fr./1000, Calls.Box(:,4));
-    box = ceil([x1, length(fr)-y1-y2, x2, y2]);
-    box = box(Calls.Accept == 1, :);
+    % upper_freq should account for trim, lower freq should be accounted
+    % for using frlen limits below
+    box = ceil([x1, upper_freq-y1-y2, x2, y2]);
+
     % No zeros (must be at least 1)
     box(box <= 0) = 1;
     % start time index must be at least 1 less than (length of ti - 1)
-    box(box(:,1) > length(ti)-2,1) = length(ti)-2;
-    % 3+1 = right edge of box needs to be <= length(ti) (right edge of image)
-    box((box(:,3)+box(:,1)) >= length(ti),3) = length(ti)-1-box((box(:,3)+box(:,1)) >= length(ti),1);
+    box(box(:,1) > tilen-2,1) = tilen-2;
+    % 3+1 = right edge of box needs to be <= tilen (right edge of image)
+    box((box(:,3)+box(:,1)) >= tilen,3) = tilen-1-box((box(:,3)+box(:,1)) >= tilen,1);
     % start freq index must be at least 1 less than (length of fr - 1)
-    % actual axis of im = length(fr)-1 (frequencies must correspond
+    % actual axis of im = frlen-1 (frequencies must correspond
     % to between pixels not the pixels themselves)
-    box(box(:,2) > length(fr)-2,2) = length(fr)-2;
-    % 4+2 = bottom edge of box needs to be <= length(fr) (bottom edge of image)
-    % <= because actual axis of im = length(fr)-1 (frequencies must correspond
+    % First correct bandwidth (affected if shift freq); if becomes < 1
+    % Reject Call
+    box(box(:,2) > frlen-2,4) = box(box(:,2) > frlen-2,4)-(box(box(:,2) > frlen-2,2)-(frlen-2));
+    Calls.Accept(box(:,4)<1) = 0;
+    % Now correct starting freq
+    box(box(:,2) > frlen-2,2) = frlen-2;
+    % 4+2 = bandwidth of box needs to be <= frlen (bandwidth of image)
+    % <= because actual axis of im = frlen-1 (frequencies must correspond
     % to between pixels not the pixels themselves)
-    box((box(:,4)+box(:,2)) >= length(fr),4) = length(fr)-1-box((box(:,4)+box(:,2)) >= length(fr),2);
+    box((box(:,4)+box(:,2)) >= frlen,4) = frlen-1-box((box(:,4)+box(:,2)) >= frlen,2);
 
-    box = bboxresize(box,targetSize./sz);
+    % Remove calls we dropped because outside freq limits
+    box = box(Calls.Accept == 1, :);
+    Calls = Calls(Calls.Accept == 1,:);
 
-    if any((box(:,1)+box(:,3)) > imgsize,'all') || any((box(:,2)+box(:,4)) > imgsize,'all')
-        error('Training image bounding indices still not working right - talk to Gabi')
-    end
-
-    sepbox = cell(1,length(uniqLabels));
-    for i = 1:length(uniqLabels)
-        sepbox{i} = {box(Calls.Type==uniqLabels{i},:)};
+    if ~isempty(box)
+        box = bboxresize(box,targetSize./sz);
+    
+        if any((box(:,1)+box(:,3)) > imgsize,'all') || any((box(:,2)+box(:,4)) > imgsize,'all')
+            error('Training image bounding indices still not working right - talk to Gabi')
+        end
+    
+        sepbox = cell(1,length(uniqLabels));
+        for i = 1:length(uniqLabels)
+            sepbox{i} = {box(Calls.Type==uniqLabels{i},:)};
+        end
     end
 end
 
