@@ -189,9 +189,11 @@ if ~bNoiseSuccess
 else
     CallsBU = Calls;
     Calls = NoiseCalls;
+    % Unique call ID for noise calls
+    Calls.CallID = categorical(arrayfun(@(x) ['N' num2str(x)],1:height(Calls),'UniformOutput',false))';
     % Temporarily save Noise file so can loadCallFile() which will clean
     % things up (probably not the most efficient thing ever, but will do
-    % for now
+    % for now)
     save(fullfile(detpath,'TempNoiseCalls.mat'),'Calls','allAudio','detection_metadata','spect');
     [NoiseCalls] = loadCallfile(fullfile(detpath,'TempNoiseCalls.mat'),handles,false);
     delete(fullfile(detpath,'TempNoiseCalls.mat'));

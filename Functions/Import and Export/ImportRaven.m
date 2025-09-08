@@ -247,6 +247,11 @@ for i = 1:length(ravenname)
         else
             Type = categorical(repmat({'Call'}, height(subTable), 1));
         end
+        % Handle importing empty Annotation field
+        if any(isundefined(Type))
+            Type(isundefined(Type)) = categorical({'Missing Annotation'});
+            warning('Missing or otherwise problematic annotations in incoming text files')
+        end
         Audiodata = repmat(audiodata,height(subTable),1);
 
         %% Put all the variables into a table
