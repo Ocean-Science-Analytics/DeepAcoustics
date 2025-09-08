@@ -129,9 +129,9 @@ nLenTData = length(trainingdata);
 for k = 1:length(concatdata)
     % Load the detection and audio files
     audioReader = squeakData();
-    % Only need to re-load from the beginning if multiple Call files,
+    % Only need to re-load from the beginning if multiple Call files OR RandNoise added!!!,
     % otherwise already loaded!
-    if length(concatdata) > 1
+    if length(concatdata) > 1 || app.TrainImgSettings.bRandNoise
         if k > 1
             allindst = allindst+height(Calls);
         end
