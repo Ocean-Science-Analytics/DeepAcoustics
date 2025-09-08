@@ -33,14 +33,11 @@ NegMinDur = quantile(Calls.Box(:,3),0.05);
 NegMaxDur = quantile(Calls.Box(:,3),0.95);
 NegMinAR = quantile(Calls.Box(:,3)./Calls.Box(:,4),0.05);
 NegMaxAR = quantile(Calls.Box(:,3)./Calls.Box(:,4),0.95);
-% NegMinBW = quantile(Calls.Box(:,4),0.05);
-NegMaxBW = max(Calls.Box(:,4));
+NegMinBW = quantile(Calls.Box(:,4),0.05);
+NegMaxBW = quantile(Calls.Box(:,4),0.95);
 
 % Try to generate the same amount of Noise as signals if possible
 nNumApproxNeg = height(Calls);
-% Number of segments of ALL audio at least as long as our max
-% planned Noise duration
-nTotPossImgs = floor(sum([allAudio.Duration])/NegMaxDur);
 % Calculate space between all calls (relies on Calls being sorted by start
 % time)
 nSpace = zeros(1,height(Calls)+1);
@@ -89,7 +86,8 @@ nNoiseSamps = 0;
 nImgProcessed = 0;
 % Call index we're at in time
 nCallInd = 1;
-nTimeSinceLastCall = 0;
+% Very rough approximation of time until next call
+nTimeUntilNextCall = nSpace(1);
 for j = 1:length(allAudio)
     % Load the audio file
     audioReader = squeakData();
@@ -118,21 +116,24 @@ for j = 1:length(allAudio)
         vCallsThisFile = find(strcmp({Calls.Audiodata.Filename},audioReader.audiodata.Filename));
         if ~isempty(vCallsThisFile)
             vCallSts = Calls.Box(vCallsThisFile,1);
-            % If index of next call has changed, reset nTimeSinceLastCall
+            % If index of next call has changed, reset nTimeUntilNextCall
+            % (won't be exactly accurate because won't account for the time
+            % in the current image, but should be close enough)
             % for nSpaceLeft calculation
             if nCallInd ~= min(vCallsThisFile(vCallSts >= NegStTime))
                 nCallInd = min(vCallsThisFile(vCallSts >= NegStTime));
-                nTimeSinceLastCall = 0;
+                nTimeUntilNextCall = nSpace(nCallInd);
             end
         end
         
         % Note this is accounting for time dimension only
         nSpaceLeft = nSpace(nCallInd:end);
+        nSpaceLeft(nCallInd) = max(0,nTimeUntilNextCall);
         % nSpace(nCallInd) is the space available before nCallInd, which is
         % being eaten away by nTimeSinceLastCall, so have to subtract, but
         % adding max(0,X) to account for any endpoint miscalculation on my
         % part that may introduce a negative (should be close enough)
-        nSpaceLeft = max(0,floor((sum(nSpaceLeft)-nTimeSinceLastCall)/NegMaxDur));
+        nSpaceLeft = max(0,floor(sum(nSpaceLeft)/NegMaxDur));
         dPropLeft = min(1,nNoiseLeft/nSpaceLeft);
                         
         % Randomly decide to make image or not
@@ -143,13 +144,21 @@ for j = 1:length(allAudio)
             for i = 1:nTries
                 % Random duration based on Calls range of sizes
                 NegDur = rand*(NegMaxDur-NegMinDur)+NegMinDur;
-                %NegBW = rand*(NegMaxBW-NegMinBW)+NegMinBW;
                 NegAR = rand*(NegMaxAR-NegMinAR)+NegMinAR;
-                NegBW = NegDur/NegAR;
                 NegTSt = rand*(FinishTime-NegDur-NegStTime)+NegStTime;
                 freqNyq = floor(audioReader.audiodata.SampleRate/2)/1000;
+                NegBW = NegDur/NegAR;
+                % In case aspect ratio not doing a great job
+                if NegBW>=freqNyq
+                    NegBW = rand*(NegMaxBW-NegMinBW)+NegMinBW;
+                end
                 NegFSt = rand*(freqNyq-NegBW);
                 NegBox = [NegTSt,NegFSt,NegDur,NegBW];
+                % Sanity check
+                if NegTSt < 0 || (NegTSt+NegDur) > audioReader.audiodata.Duration || ...
+                        NegFSt <= 0 || (NegFSt+NegBW) > freqNyq
+                    error('Problem automatically generating Noise - talk to GA (DA tech support)')
+                end
     
                 %%%% MAKE SURE NOISE DOES NOT OVERLAP WITH A CALL BEFORE
                 %%%% PROCEEDING
@@ -166,6 +175,8 @@ for j = 1:length(allAudio)
             end
         end
         nImgProcessed = nImgProcessed + 1;
+        % Approach next call
+        nTimeUntilNextCall = nTimeUntilNextCall-NegMaxDur;
     end
 end
 
