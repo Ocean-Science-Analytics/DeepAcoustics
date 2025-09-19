@@ -13,6 +13,8 @@ function ExportTensorFlowStep2()
     % Apparently this needs to be added to Matlab, not Python path for load_model() to
     % work >:(
     %py.sys.path().append(appath);
+    cdBU = pwd;
+    cd(appath)
     addpath(appath);
     pyrun('import os')
     pyrun('os.environ["TF_USE_LEGACY_KERAS"] = "1"')
@@ -32,4 +34,5 @@ function ExportTensorFlowStep2()
 
     %% Zip PG folder
     zip(fullfile(outdir,[modname '.zip']), fullfile(outdir,modname));
+    cd(cdBU);
 end
