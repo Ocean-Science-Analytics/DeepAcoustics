@@ -81,6 +81,9 @@ if eventdata.Source.Value==1
                 
             % (3) Low frequency cutoff (kHz)
             LowCutoff = min(Settings(2),Settings(3));
+            if LowCutoff > 0
+                warning('This network was trained with a low frequency cutoff that will be applied during detection.')
+            end
             
             % (4) Score cutoff (kHz) - FOR MERGE BOXES FN
             score_cutoff=Settings(4);
@@ -95,6 +98,9 @@ if eventdata.Source.Value==1
                 SRused = HighCutoff*1000*2;
             else
                 SRused = deviceReader.SampleRate;
+                if deviceReader.SampleRate > (HighCutoff*1000)*2
+                    warning('The Nyquist frequency of this audio file is > the high frequency limit used to train the network.  Audio will be clipped to maintain frame.')
+                end
             end
             
             % Adjust settings, so spectrograms are the same for different sample rates

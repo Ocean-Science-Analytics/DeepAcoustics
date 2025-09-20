@@ -41,6 +41,9 @@ HighCutoff = max(Settings(2),Settings(3));
 
 % (3) Low frequency cutoff (kHz)
 LowCutoff = min(Settings(2),Settings(3));
+if LowCutoff > 0
+    warning('This network was trained with a low frequency cutoff that will be applied during detection.')
+end
 
 % (4) Score cutoff (kHz)
 score_cutoff=Settings(4);
@@ -51,6 +54,9 @@ if audio_info.SampleRate < (HighCutoff*1000)*2
     SRused = HighCutoff*1000*2;
 else
     SRused = audio_info.SampleRate;
+    if audio_info.SampleRate > (HighCutoff*1000)*2
+        warning('The Nyquist frequency of this audio file is > the high frequency limit used to train the network.  Audio will be clipped to maintain frame.')
+    end
 end
 
 % Adjust settings, so spectrograms are the same for different sample rates
