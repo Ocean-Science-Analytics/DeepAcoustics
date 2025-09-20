@@ -16,6 +16,11 @@ bNoiseSuccess = false;
 % Load the dets file
 [Calls,allAudio,spect,detection_metadata] = loadCallfile(fullfile(detpath,detfile),handles,false);
 
+if nargin == 2
+    freqlow = max(detection_metadata.Settings(2)*1000,detection_metadata.Settings(3)*1000);
+    freqhigh = min(detection_metadata.Settings(2)*1000,detection_metadata.Settings(3)*1000);
+end
+
 % For now, don't run if Noise already in file (can handle this differently
 % in the future if desired)
 if any(Calls.Type=='Noise')
