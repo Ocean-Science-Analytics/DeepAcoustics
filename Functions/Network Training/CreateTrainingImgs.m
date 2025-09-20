@@ -67,6 +67,8 @@ strImgDir = uigetdir(strImgDir,'Select Folder to Output Training Images');
 imgsize = app.TrainImgSettings.imSize;
 imLength = app.TrainImgSettings.imLength;
 repeats = app.TrainImgSettings.repeats+1;
+freqlow = app.TrainImgSettings.FreqLow;
+freqhigh = app.TrainImgSettings.FreqHigh;
 
 % If augmented duplicates, create a directory to separate out augmented
 % images
@@ -83,7 +85,7 @@ if app.TrainImgSettings.bRandNoise
     % Call AddRandNoise for each Dets file!
     for k = 1:length(trainingdata)
         waitbar(k/length(trainingdata), h, sprintf('Adding Noise to File %g of %g', k, length(trainingdata))); 
-        AddRandNoise(app,event,fullfile(trainingpath, trainingdata{k}));
+        AddRandNoise(app,event,fullfile(trainingpath, trainingdata{k}),freqlow,freqhigh);
     end
 end
 TTable = array2table(zeros(0,2+length(uniqLabels)));
@@ -177,8 +179,19 @@ for k = 1:length(concatdata)
             wind = app.TrainImgSettings.windowsize;
             noverlap = app.TrainImgSettings.noverlap;
             nfft = app.TrainImgSettings.nfft;
-            freqlow = app.TrainImgSettings.FreqLow;
-            freqhigh = app.TrainImgSettings.FreqHigh;
+
+            % Warn if any (parts of) boxes are outside selected frequency
+            % limits
+            % I was worried about this possibly making empty training images but
+            % I think by adding the freq limits to AddRandNoise this is
+            % at least mostly alleviated
+            % This could still happen but those instances should not end up
+            % in the Tables files, which I think is the important thing
+            % (that and that it's not happening a ton)
+            if any(subCalls.Box(subCalls.Type~='Noise',2)<(freqlow/1000)) || ...
+                  any((subCalls.Box(subCalls.Type~='Noise',2)+subCalls.Box(subCalls.Type~='Noise',4))>(freqhigh/1000)) 
+                warning('Some portions of training calls are outside your selected frequency limits and will be excluded from training')
+            end
     
             bins = SplitBouts(subCalls,imLength,imLength);
                 
@@ -333,12 +346,12 @@ msgbox({'Final Call Information:'; ...
     },'Images Output');
 
 [filename,matpath] = uiputfile(fullfile(handles.data.squeakfolder,'Training',[filename,'_Images.mat']));
-save(fullfile(matpath,filename),'TTable','wind','noverlap','nfft','imLength');
+save(fullfile(matpath,filename),'TTable','wind','noverlap','nfft','freqlow','freqhigh','imLength');
 disp(['Created ' num2str(height(TTable)) ' Training Images']);
 
 if nVCallsTotal > 0
     [filename,matpath] = uiputfile(fullfile(handles.data.squeakfolder,'Validation',[filename,'_ValImages.mat']));
-    save(fullfile(matpath,filename),'VTable','wind','noverlap','nfft','imLength');
+    save(fullfile(matpath,filename),'VTable','wind','noverlap','nfft','freqlow','freqhigh','imLength');
     disp(['Created ' num2str(height(VTable)) ' Validation Images']);
 end
 end

@@ -12,7 +12,7 @@ wind = [];
 for i = 1:length(tablepath)
     orig_state = warning;
     warning('off','all')
-    load(tablepath{i},'*Table','wind','noverlap','nfft','imLength','pathtodet');
+    load(tablepath{i},'*Table','wind','noverlap','nfft','freqlow','freqhigh','imLength');
     % Oops, saved val tables as VTable, so need to accommodate
     if exist('VTable','var')
         TTable = VTable;
@@ -51,10 +51,16 @@ for i = 1:length(tablepath)
 
     % Concat
     TrainingTables = [TrainingTables; TTable];
-    AllSettings = [AllSettings; wind noverlap nfft imLength];
-%     if exist('pathtodet','var')
-%         PathToDet{i} = pathtodet;
-%     end
+    if exist('freqlow','var')
+        TheseSettings = [wind noverlap nfft freqlow freqhigh imLength];
+    else
+        TheseSettings = [wind noverlap nfft imLength];
+    end
+    if isempty(AllSettings) || size(AllSettings,2) == size(TheseSettings,2)
+        AllSettings = [AllSettings; TheseSettings];
+    else
+        error('Mix of new and old image tables - please recreate older image tables to preserve metadata')
+    end
     PathToITs{i} = tablepath{i};
 end
 
@@ -106,7 +112,7 @@ end
 %% Create a warning if training files were created with different parameters
 warningmsg = 'Continue anyway';
 if size(unique(AllSettings,'rows'),1) ~= 1
-    warningmsg = questdlg({'Not all images were created with the same spectrogram settings','Network may not work as expected'}, ...
+    warningmsg = questdlg({'Not all images were created with the same settings','Network may not work as expected'}, ...
         'Warning','Continue anyway','Cancel','Cancel');
     waitfor(warningmsg)
 end

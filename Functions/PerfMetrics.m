@@ -21,38 +21,57 @@ close(h)
 
 [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Network to Evaluate');
 lastwarn('');
-netload = load([NetPath NetName]);
+NeuralNetwork = load([NetPath NetName]);
 [warnMsg, ~] = lastwarn;
 if ~isempty(warnMsg)
     error('Problem pathing to ValidationData - Talk to Gabi')
 end
 
-% Eventually this should be replaced with the Settings attached to the
-% network, not the detections
+% If detection settings are attached to network, those are first choice.  Otherwise
+% prompt user to supply
+dlg_title = 'Settings for Running This Network';
+num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
+% If metadata attached to ground-truthed files, use those as default
+% values (although I don't think this should ever happen)
 if ~isempty(detmetadata) && isa(detmetadata(1).Settings,'double')
     if ~isequal(detmetadata.Settings) || length(detmetadata) ~= length(detfile)
         error('Something odd about incoming detmetadata for ground-truthed files - double-check files or talk to GA')
     end
-    Settings = detmetadata(1).Settings;
+    def = detmetadata(1).Settings;
 else
-    prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (Hz)','High Frequency Cutoff (Hz)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
-    dlg_title = 'Settings for This Network';
-    num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='tex';
     def = handles.data.settings.detectionSettings;
+end
+
+if isfield(NeuralNetwork,'freqlow')
+    prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
+    % Remove freq limits (will carryover from network settings)
+    def = def([1,4:5]);
+else
+    % Back-compatible
+    warning('This is an older network - we recommend recreating if possible to preserve associated metadata')
+    prompt = {'Total Analysis Length (Seconds; 0 = Full Duration)','Low Frequency Cutoff (Hz)','High Frequency Cutoff (Hz)','Score Threshold (0-1)','Append Date to FileName (1 = yes)'};
     % Convert freq to Hz for display
     def(2) = sprintfc('%g',str2double(def{2})*1000);
     def(3) = sprintfc('%g',str2double(def{3})*1000);
-    Settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
 end
+Settings = str2double(inputdlg(prompt,dlg_title,num_lines,def,options));
 
 if isempty(Settings) % Stop if user presses cancel
     return
 end
 
-% Convert frequency inputs to kHz
-Settings(2:3) = Settings(2:3)/1000;
+if isfield(NeuralNetwork,'freqlow')
+    % Get settings from network
+    Settings(4:5) = Settings(2:3);
+    Settings(2) = NeuralNetwork.freqlow/1000;
+    Settings(3) = NeuralNetwork.freqhigh/1000;
+else
+    % Back-compatible
+    % Convert freq inputs to kHz
+    Settings(2:3) = Settings(2:3)/1000;
+end
 
-handles.data.settings.detectionSettings = sprintfc('%g',Settings(:,1))';
+handles.data.settings.detectionSettings = sprintfc('%g',Settings)';
 
 % Save the new settings
 handles.data.saveSettings();
@@ -69,7 +88,7 @@ Calls = [];
 for i = 1:length(allAudio)
     % Run detector
     AudioFile = allAudio(i).Filename;
-    Calls_ThisAudio = DetectInFile(AudioFile,netload,Settings,1,1);
+    Calls_ThisAudio = DetectInFile(AudioFile,NeuralNetwork,Settings,1,1);
 
     % Add detections to all Calls tables
     if ~isempty(Calls_ThisAudio)
@@ -102,7 +121,7 @@ results = renamevars(results,1:3,{'Box','Scores','Label'});
 grdtruth = table({table2array(CallsAnn(:,'BoxAdj'))},{categorical(CallsAnn.Type)});
 grdtruth = renamevars(grdtruth,1:2,{'Box','Label'});
 
-uniqClass = netload.detector.ClassNames;
+uniqClass = NeuralNetwork.detector.ClassNames;
 nTypes = length(uniqClass);
 
 % Set underlying category possibilities for annotated calls so eOD() can
