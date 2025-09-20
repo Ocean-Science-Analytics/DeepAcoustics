@@ -3,10 +3,10 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         dlgTrainImg              matlab.ui.Figure
-        labelWinSize_3           matlab.ui.control.Label
-        labelWinSize_2           matlab.ui.control.Label
+        labelFreqLow             matlab.ui.control.Label
+        labelFreqHigh            matlab.ui.control.Label
         ManuallySelectValidationDataLabel  matlab.ui.control.Label
-        labelFreqLowLim_2        matlab.ui.control.Label
+        labelImgSize             matlab.ui.control.Label
         labelTitle               matlab.ui.control.Label
         labelAnnotationMetadata  matlab.ui.control.Label
         labelMinDur              matlab.ui.control.Label
@@ -353,11 +353,11 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.labelTitle.Position = [158 645 194 22];
             app.labelTitle.Text = 'Settings for Training Images';
 
-            % Create labelFreqLowLim_2
-            app.labelFreqLowLim_2 = uilabel(app.dlgTrainImg);
-            app.labelFreqLowLim_2.HorizontalAlignment = 'right';
-            app.labelFreqLowLim_2.Position = [238 127 169 22];
-            app.labelFreqLowLim_2.Text = 'Image Resolution (pixels):';
+            % Create labelImgSize
+            app.labelImgSize = uilabel(app.dlgTrainImg);
+            app.labelImgSize.HorizontalAlignment = 'right';
+            app.labelImgSize.Position = [238 127 169 22];
+            app.labelImgSize.Text = 'Image Resolution (pixels):';
 
             % Create ManuallySelectValidationDataLabel
             app.ManuallySelectValidationDataLabel = uilabel(app.dlgTrainImg);
@@ -365,17 +365,17 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.ManuallySelectValidationDataLabel.Position = [45 152 174 22];
             app.ManuallySelectValidationDataLabel.Text = 'Manually Select Validation Data';
 
-            % Create labelWinSize_2
-            app.labelWinSize_2 = uilabel(app.dlgTrainImg);
-            app.labelWinSize_2.HorizontalAlignment = 'right';
-            app.labelWinSize_2.Position = [250 293 158 22];
-            app.labelWinSize_2.Text = 'High Frequency Cutoff (Hz):';
+            % Create labelFreqHigh
+            app.labelFreqHigh = uilabel(app.dlgTrainImg);
+            app.labelFreqHigh.HorizontalAlignment = 'right';
+            app.labelFreqHigh.Position = [250 293 158 22];
+            app.labelFreqHigh.Text = 'High Frequency Cutoff (Hz):';
 
-            % Create labelWinSize_3
-            app.labelWinSize_3 = uilabel(app.dlgTrainImg);
-            app.labelWinSize_3.HorizontalAlignment = 'right';
-            app.labelWinSize_3.Position = [250 326 158 22];
-            app.labelWinSize_3.Text = 'Low Frequency Cutoff (Hz):';
+            % Create labelFreqLow
+            app.labelFreqLow = uilabel(app.dlgTrainImg);
+            app.labelFreqLow.HorizontalAlignment = 'right';
+            app.labelFreqLow.Position = [250 326 158 22];
+            app.labelFreqLow.Text = 'Low Frequency Cutoff (Hz):';
 
             % Show the figure after all components are created
             app.dlgTrainImg.Visible = 'on';

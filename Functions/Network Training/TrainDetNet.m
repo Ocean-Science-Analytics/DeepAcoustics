@@ -45,14 +45,29 @@ choice = questdlg('Train from existing network?', 'Existing Network?', 'Yes', 'Y
 switch choice
     case 'Yes'
         [NetName, NetPath] = uigetfile(handles.data.settings.networkfolder,'Select Existing Network');
-        netload = load([NetPath NetName]);
-        detector = netload.detector;
-        options = netload.options;
-        detname = netload.detname;
+        NeuralNetwork = load([NetPath NetName]);
+        detector = NeuralNetwork.detector;
+        options = NeuralNetwork.options;
+        detname = NeuralNetwork.detname;
+        
         % Add to image tables record
-        PathToITs = [netload.PathToITs,PathToITs];
-        if isfield(netload,'PathToVITs')
-            PathToVITs = [netload.PathToVITs,PathToVITs];
+        PathToITs = [NeuralNetwork.PathToITs,PathToITs];
+        if isfield(NeuralNetwork,'PathToVITs')
+            PathToVITs = [NeuralNetwork.PathToVITs,PathToVITs];
+        end
+
+        % If network settings don't match imported image settings, warning
+        % dialog!
+        if isfield(NeuralNetwork,'freqlow') && (NeuralNetwork.freqlow ~= AllSettings(1,4) || NeuralNetwork.freqhigh ~= AllSettings(1,5))
+            warningmsg = questdlg({'Network detection settings do not match the settings used to create the imported image.','Network may not work as expected.'}, ...
+                'Warning','Continue anyway','Cancel','Cancel');
+            waitfor(warningmsg)
+            if ~strcmp(warningmsg,'Continue anyway')
+                TrainingTables = [];
+                AllSettings = [];
+                PathToITs = {};
+                return
+            end
         end
 
         if (~any(strcmp(TrainingTables.Properties.VariableNames,'USV')) && any(detector.ClassNames==categorical({'USV'})))
@@ -76,15 +91,17 @@ end
 
 %% Save the new network
 [FileName,PathName] = uiputfile(fullfile(handles.data.settings.networkfolder,'*.mat'),'Save New Network');
-wind = max(AllSettings(:,1));
-noverlap = max(AllSettings(:,2));
-nfft = max(AllSettings(:,3));
-imLength = max(AllSettings(:,4));
+wind = AllSettings(1,1);
+noverlap = AllSettings(1,2);
+nfft = AllSettings(1,3);
+freqlow = AllSettings(1,4);
+freqhigh = AllSettings(1,5);
+imLength = AllSettings(1,6);
 % See ValDataIssue commit from Apr 2023
 options.ValidationData = [];
 
 version = handles.DAVersion;
-save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','version','imLength','detname','PathToITs','PathToVITs');
+save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','freqlow','freqhigh','imLength','version','detname','PathToITs','PathToVITs');
 
 %% Update the menu
 update_folders(hObject, handles);

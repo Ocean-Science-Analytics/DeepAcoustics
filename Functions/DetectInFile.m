@@ -15,11 +15,6 @@ wind=networkfile.wind;
 noverlap=networkfile.noverlap;
 nfft=networkfile.nfft;
 
-% Adjust settings, so spectrograms are the same for different sample rates
-wind = round(wind * audio_info.SampleRate);
-noverlap = round(noverlap * audio_info.SampleRate);
-nfft = round(nfft * audio_info.SampleRate);
-
 %% Get settings
 % (1) Detection length (s)
 if Settings(1)>audio_info.Duration
@@ -43,10 +38,6 @@ overlap=networkfile.imLength*.2;
 % compatible
 % (2) High frequency cutoff (kHz)
 HighCutoff = max(Settings(2),Settings(3));
-if audio_info.SampleRate < (HighCutoff*1000)*2
-    disp('Warning: Upper frequency is above sampling rate / 2. Lowering it to the Nyquist frequency.');
-    HighCutoff=floor(audio_info.SampleRate/2)/1000;
-end
 
 % (3) Low frequency cutoff (kHz)
 LowCutoff = min(Settings(2),Settings(3));
@@ -54,13 +45,27 @@ LowCutoff = min(Settings(2),Settings(3));
 % (4) Score cutoff (kHz)
 score_cutoff=Settings(4);
 
+% Upsample audio if necessary to maintain proper frame for network
+if audio_info.SampleRate < (HighCutoff*1000)*2
+    warning('The Nyquist frequency of this audio file is < the high frequency limit used to train the network.  Resampling audio to maintain frame.')
+    SRused = HighCutoff*1000*2;
+else
+    SRused = audio_info.SampleRate;
+end
+
+% Adjust settings, so spectrograms are the same for different sample rates
+wind = round(wind * SRused);
+noverlap = round(noverlap * SRused);
+nfft = round(nfft * SRused);
+
 %% Detect Calls
 % Initialize variables
 AllBoxes=[];
 AllScores=[];
 AllClass=[];
 
-% Break the audio file into chunks
+% Break the audio file into chunks (audio info SR applies here because chunks defined
+% by og audio)
 chunks = linspace(1,(DetectLength - overlap) * audio_info.SampleRate,round(DetectLength / chunksize));
 for i = 1:length(chunks)-1
     try
@@ -72,6 +77,12 @@ for i = 1:length(chunks)-1
         
         % Read the audio
         audio = audioread(audio_info.Filename,double(floor([windL, windR])));
+
+        % Upsample audio if necessary to maintain proper frame for network
+        if audio_info.SampleRate < (HighCutoff*1000)*2
+            [L,M] = rat(SRused/audio_info.SampleRate);
+            audio = resample(audio,L,M);
+        end
         
         %% Mix multichannel audio:
         % By default, take the mean of multichannel audio.
@@ -89,7 +100,7 @@ for i = 1:length(chunks)-1
         end
 
         % Create spectrogram out of audio segment
-        [~,fr,ti,p] = spectrogram(audio(:,1),wind,noverlap,nfft,audio_info.SampleRate,'yaxis'); % Just use the first audio channel
+        [~,fr,ti,p] = spectrogram(audio(:,1),wind,noverlap,nfft,SRused,'yaxis'); % Just use the first audio channel
         % Air on the side of generosity with the bin cut-offs given
         % spectrogram settings
         upper_freq = find(fr>HighCutoff*1000,1,'first');
@@ -109,6 +120,8 @@ for i = 1:length(chunks)-1
         [nbboxes, scores, Class] = DetectChunk(pow,networkfile);
 
         % Convert boxes from pixels to time and kHz
+        % I think audio_info SR is correct here too because it is
+        % converting windL to seconds, and windL is based on OG SR
         bboxes = [];
         bboxes(:,1) = ti(nbboxes(:,1)) + (windL ./ audio_info.SampleRate);
         bboxes(:,2) = fr(upper_freq - (nbboxes(:,2) + nbboxes(:,4))) ./ 1000;
@@ -147,7 +160,7 @@ h = waitbar(1,h,'Merging Boxes...');
 DetSpect.wind = networkfile.wind;
 DetSpect.noverlap = networkfile.noverlap;
 DetSpect.nfft = networkfile.nfft;
-Calls = merge_boxes(AllBoxes, AllScores, AllClass, DetSpect, 1, score_cutoff, 0, audio_info);
+Calls = merge_boxes(AllBoxes, AllScores, AllClass, DetSpect, 1, score_cutoff, 0, audio_info, audio_info.Duration, SRused);
 close(h);
 end
 

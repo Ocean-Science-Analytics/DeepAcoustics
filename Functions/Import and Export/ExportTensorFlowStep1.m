@@ -71,15 +71,15 @@ function ExportTensorFlowStep1()
     txtPDTF = strrep(txtPDTF,'FFTHOPSAMP',num2str(round((NeuralNetwork.nfft-NeuralNetwork.noverlap)*NeuralNetwork.samprate),'%d'));
 
     % Convert min & max freq (Hz)
-    if ~isfield(NeuralNetwork,'minfreq')
+    if ~isfield(NeuralNetwork,'freqlow')
         dlg_title = 'Enter min and max freq cut-offs used to train this network';
         num_lines = [1 length(dlg_title)+30];
         minmaxfreq = inputdlg({'Min Freq (Hz):','Max Freq (Hz):'},dlg_title,num_lines);
-        NeuralNetwork.minfreq = str2double(minmaxfreq{1});
-        NeuralNetwork.maxfreq = str2double(minmaxfreq{2});
+        NeuralNetwork.freqlow = str2double(minmaxfreq{1});
+        NeuralNetwork.freqhigh = str2double(minmaxfreq{2});
     end
-    txtPDTF = strrep(txtPDTF,'MINFREQ',num2str(NeuralNetwork.minfreq,'%d'));
-    txtPDTF = strrep(txtPDTF,'MAXFREQ',num2str(NeuralNetwork.maxfreq,'%d'));
+    txtPDTF = strrep(txtPDTF,'MINFREQ',num2str(NeuralNetwork.freqlow,'%d'));
+    txtPDTF = strrep(txtPDTF,'MAXFREQ',num2str(NeuralNetwork.freqhigh,'%d'));
 
     % Convert image size
     txtPDTF = strrep(txtPDTF,'IMGLENGTHMSEC',num2str((NeuralNetwork.imLength*1000),'%d'));

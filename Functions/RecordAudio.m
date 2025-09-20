@@ -50,12 +50,6 @@ if eventdata.Source.Value==1
         if ~strcmp(app.RecOptsNN,'')
             bDet = true;
 
-            [handles.data.settings.detectionfolder,~,~] = fileparts(app.strSaveDetsFile);
-            handles.data.settings.detectionSettings = app.RecOptsDetStgs;
-            handles.data.saveSettings();
-            update_folders(hObject, handles);
-            handles = guidata(hObject);  % Get newest version of handles
-
             % Load neural network
             h = waitbar(0,'Loading neural network...');
             NeuralNetwork=load(app.RecOptsNN);
@@ -63,16 +57,27 @@ if eventdata.Source.Value==1
             NeuralNetwork.netfile = [NeuralNetwork.netfile, '.mat'];
             close(h);
 
+            if isfield(NeuralNetwork,'freqlow')
+                % Get settings from network
+                app.RecOptsDetStgs(2) = NeuralNetwork.freqlow/1000;
+                app.RecOptsDetStgs(3) = NeuralNetwork.freqhigh/1000;
+            else
+                % Back-compatible
+                warning('This is an older network - we recommend recreating if possible to preserve associated metadata. Applying detection to entire bandwidth of audio file.')
+            end
+
+            [handles.data.settings.detectionfolder,~,~] = fileparts(app.strSaveDetsFile);
+            handles.data.settings.detectionSettings = app.RecOptsDetStgs;
+            handles.data.saveSettings();
+            update_folders(hObject, handles);
+            handles = guidata(hObject);  % Get newest version of handles
+
             % Set detection variables
             Settings = str2double(handles.data.settings.detectionSettings);
             % Switched high- and low-freq cutoff order in dialog, but should be back
             % compatible
             % (2) High frequency cutoff (kHz)
             HighCutoff = max(Settings(2),Settings(3));
-            if deviceReader.SampleRate < (HighCutoff*1000)*2
-                disp('Warning: Upper frequency is above sampling rate / 2. Lowering it to the Nyquist frequency.');
-                HighCutoff=floor(deviceReader.SampleRate/2)/1000;
-            end
                 
             % (3) Low frequency cutoff (kHz)
             LowCutoff = min(Settings(2),Settings(3));
@@ -83,11 +88,19 @@ if eventdata.Source.Value==1
             DetSpect.wind = NeuralNetwork.wind;
             DetSpect.noverlap = NeuralNetwork.noverlap;
             DetSpect.nfft = NeuralNetwork.nfft;
+
+            % Upsample audio if necessary to maintain proper frame for network
+            if deviceReader.SampleRate < (HighCutoff*1000)*2
+                warning('The selected Nyquist frequency of the recording is < the high frequency limit used to train the network.  Resampling audio to maintain frame.')
+                SRused = HighCutoff*1000*2;
+            else
+                SRused = deviceReader.SampleRate;
+            end
             
             % Adjust settings, so spectrograms are the same for different sample rates
-            wind = round(DetSpect.wind * deviceReader.SampleRate);
-            noverlap = round(DetSpect.noverlap * deviceReader.SampleRate);
-            nfft = round(DetSpect.nfft * deviceReader.SampleRate);
+            wind = round(DetSpect.wind * SRused);
+            noverlap = round(DetSpect.noverlap * SRused);
+            nfft = round(DetSpect.nfft * SRused);
 
             % Initialize variables
             AllBoxes=[];
@@ -217,8 +230,15 @@ if eventdata.Source.Value==1
             % NEXT TIME CONTINUE HERE ASSUMING detBuff ABOVE IS CORRECT;
             % USE DETECTINFILE TO CONTINUE FILLING IN PIECES
             if bDet && loop ~= 1
+
+                % Upsample audio if necessary to maintain proper frame for network
+                if deviceReader.SampleRate < (HighCutoff*1000)*2
+                    [L,M] = rat(SRused/deviceReader.SampleRate);
+                    detBuff = resample(detBuff,L,M);
+                end
+
                 % Create spectrogram out of audio segment
-                [~,fr,ti,p] = spectrogram(detBuff,wind,noverlap,nfft,deviceReader.SampleRate,'yaxis');
+                [~,fr,ti,p] = spectrogram(detBuff,wind,noverlap,nfft,SRused,'yaxis');
                 % Air on the side of generosity with the bin cut-offs given
                 % spectrogram settings
                 upper_freq = find(fr>HighCutoff*1000,1,'first');
@@ -255,7 +275,7 @@ if eventdata.Source.Value==1
     
                     % Merge boxes and send Calls info to handles
                     if ~isempty(AllBoxes)
-                        Calls = merge_boxes(AllBoxes, AllScores, AllClass, DetSpect, 1, score_cutoff, 0, handles.data.audiodata, audDur, deviceReader.SampleRate);
+                        Calls = merge_boxes(AllBoxes, AllScores, AllClass, DetSpect, 1, score_cutoff, 0, handles.data.audiodata, audDur, SRused);
                         if ~isequaln(Calls,handles.data.calls)
                             handles.data.calls = Calls;
                             % Force render if RT (calls guidata)
