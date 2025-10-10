@@ -1,4 +1,8 @@
-function [Calls,allAudio,spect,detection_metadata,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT)
+function [Calls,allAudio,spect,detection_metadata,ClusteringData,modcheck] = loadCallfile(filename,handles,bTryDT,listCallTypes)
+
+if nargin < 4
+    listCallTypes = [];
+end
 
 modcheck = struct();
 data = load(filename);
@@ -269,14 +273,18 @@ if isfield(data, 'Calls')
     
     if nargout > 0 && nargout < 6 && length(unique(Calls.Type)) > 1
         list = cellstr(unique(Calls.Type));
-        [indx,tf] = listdlg('PromptString',{'Select the call types you would like to load.',...
-            'WARNING: Saving after this point','without modifying the file name will','overwrite your existing detections file',...
-            'with only the selected call types.',' ',' '},...
-            'ListString',list,'ListSize',[200,300]);
-        if tf
-            Calls = Calls(ismember(Calls.Type,list(indx)),:);
+        if isempty(listCallTypes)
+            [indx,tf] = listdlg('PromptString',{'Select the call types you would like to load.',...
+                'WARNING: Saving after this point','without modifying the file name will','overwrite your existing detections file',...
+                'with only the selected call types.',' ',' '},...
+                'ListString',list,'ListSize',[200,300]);
+            if tf
+                Calls = Calls(ismember(Calls.Type,list(indx)),:);
+            else
+                error('You chose to cancel')
+            end
         else
-            error('You chose to cancel')
+            Calls = Calls(ismember(Calls.Type,listCallTypes),:);
         end
     end
 
