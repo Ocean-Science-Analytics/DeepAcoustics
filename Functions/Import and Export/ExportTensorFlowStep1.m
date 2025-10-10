@@ -66,7 +66,7 @@ function ExportTensorFlowStep1()
     txtPDTF = strrep(txtPDTF,'SAMPRATE',num2str(NeuralNetwork.samprate,'%d'));
 
     % Convert FFT settings CHECK WITH JAMIE
-    txtPDTF = strrep(txtPDTF,'WINSIZESEC',num2str(NeuralNetwork.wind,'%0.5f'));
+    txtPDTF = strrep(txtPDTF,'WINSIZESEC',num2str((NeuralNetwork.imLength*1000),'%d'));
     txtPDTF = strrep(txtPDTF,'FFTSAMP',num2str(round(NeuralNetwork.nfft*NeuralNetwork.samprate),'%d'));
     txtPDTF = strrep(txtPDTF,'FFTHOPSAMP',num2str(round((NeuralNetwork.nfft-NeuralNetwork.noverlap)*NeuralNetwork.samprate),'%d'));
 
