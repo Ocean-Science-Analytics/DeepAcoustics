@@ -69,6 +69,10 @@ imLength = app.TrainImgSettings.imLength;
 repeats = app.TrainImgSettings.repeats+1;
 freqlow = app.TrainImgSettings.FreqLow;
 freqhigh = app.TrainImgSettings.FreqHigh;
+ 
+wind = app.TrainImgSettings.windowsize;
+noverlap = app.TrainImgSettings.noverlap;
+nfft = app.TrainImgSettings.nfft;
 
 % If augmented duplicates, create a directory to separate out augmented
 % images
@@ -165,20 +169,6 @@ for k = 1:length(concatdata)
         if ~isempty(indC)
             subCalls = Calls(strcmp({Calls.Audiodata.Filename},allAudio{j}),:);
             audioReader.audiodata = subCalls.Audiodata(1);
-            
-            % Correct and retrieve spect settings (need SR to complete)
-            if app.TrainImgSettings.nfft == 0
-                app.TrainImgSettings.nfft = app.TrainImgSettings.nfftsmp/audioReader.audiodata.SampleRate;
-                app.TrainImgSettings.windowsize = app.TrainImgSettings.windowsizesmp/audioReader.audiodata.SampleRate;
-                app.TrainImgSettings.noverlap = app.TrainImgSettings.noverlap/audioReader.audiodata.SampleRate;
-            elseif app.TrainImgSettings.nfftsmp == 0
-                app.TrainImgSettings.nfftsmp = app.TrainImgSettings.nfft*audioReader.audiodata.SampleRate;
-                app.TrainImgSettings.windowsizesmp = app.TrainImgSettings.windowsize*audioReader.audiodata.SampleRate;
-            end
-    
-            wind = app.TrainImgSettings.windowsize;
-            noverlap = app.TrainImgSettings.noverlap;
-            nfft = app.TrainImgSettings.nfft;
 
             % Warn if any (parts of) boxes are outside selected frequency
             % limits
