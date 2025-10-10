@@ -89,7 +89,7 @@ if app.TrainImgSettings.bRandNoise
     % Call AddRandNoise for each Dets file!
     for k = 1:length(trainingdata)
         waitbar(k/length(trainingdata), h, sprintf('Adding Noise to File %g of %g', k, length(trainingdata))); 
-        AddRandNoise(app,event,fullfile(trainingpath, trainingdata{k}),freqlow,freqhigh);
+        AddRandNoise(app,event,fullfile(trainingpath, trainingdata{k}),freqlow,freqhigh,uniqLabels);
     end
 end
 TTable = array2table(zeros(0,2+length(uniqLabels)));
@@ -141,7 +141,9 @@ for k = 1:length(concatdata)
         if k > 1
             allindst = allindst+height(Calls);
         end
-        [Calls,allAudio] = loadCallfile(fullfile(loadpath, concatdata{k}),handles,false);
+        % Already chose call types above, so feed to loadCallfile to skip
+        % being asked again
+        [Calls,allAudio] = loadCallfile(fullfile(loadpath, concatdata{k}),handles,false,uniqLabels);
     end
     allAudio = unique({allAudio.Filename},'stable');
     
