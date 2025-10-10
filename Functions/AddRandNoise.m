@@ -1,5 +1,9 @@
-function AddRandNoise(app,event,inpCallFile)
+function AddRandNoise(app,event,inpCallFile,listCallTypes)
 warning('This will save a temporary noise file to your Dets location. Cancel operation if you do not want this to happen!')
+
+if nargin < 4
+    listCallTypes = [];
+end
 
 if nargin == 2
     [detfile,detpath] = uigetfile('*.mat','Select detections.mat file to add noise samples to'); 
@@ -14,7 +18,7 @@ end
 bNoiseSuccess = false;
 
 % Load the dets file
-[Calls,allAudio,spect,detection_metadata] = loadCallfile(fullfile(detpath,detfile),handles,false);
+[Calls,allAudio,spect,detection_metadata] = loadCallfile(fullfile(detpath,detfile),handles,false,listCallTypes);
 
 % For now, don't run if Noise already in file (can handle this differently
 % in the future if desired)
@@ -23,6 +27,7 @@ if any(Calls.Type=='Noise')
         error('Noise already in file')
     else
         warning('Noise already in file - skipping Random Noise generation')
+        return
     end
 end
 
