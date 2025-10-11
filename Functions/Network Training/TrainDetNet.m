@@ -81,12 +81,25 @@ switch choice
                     end
             end
         end
+        
+        if any(~ismember(unique(TrainingTables.Properties.VariableNames(3:end)),detector.ClassNames))
+            error('New training tables have new call classes not present in network, which is not allowed by Matlab at the time of coding.')
+        end
+
         [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables, ValTables, detector, options, detname);
     case 'Yes - TensorFlow'
         detector = importTensorFlowLayers(uigetdir(pwd,'Please select the folder containing saved TensorFlow 2 model (saved_model.pb & variables subfolder)'));
         [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables, ValTables, detector);
     case 'No'
-        [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables, ValTables);
+        ansCont = questdlg(['WARNING: If you proceed, this network will be trained on the following call types:', ...
+            unique(TrainingTables.Properties.VariableNames(3:end))...
+            'Due to Matlab limitations at the time of coding, you will not be able to later build on this network with additional call types.  Do you wish to proceed?'],'Call Types Warning','Yes','No','Yes');
+        switch ansCont
+            case 'Yes'
+                [detector, layers, options, info, detname] = TrainSqueakDetector(TrainingTables, ValTables);
+            case 'No'
+                return
+        end
 end
 
 %% Save the new network
