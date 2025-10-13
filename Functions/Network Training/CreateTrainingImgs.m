@@ -85,7 +85,7 @@ end
 
 if app.TrainImgSettings.bRandNoise
     warning('This will overwrite your existing Dets files!')
-    uniqLabels = cellstr(['Noise',uniqLabels']);
+    uniqLabels = cellstr(['Noise',uniqLabels]);
     % Call AddRandNoise for each Dets file!
     for k = 1:length(trainingdata)
         waitbar(k/length(trainingdata), h, sprintf('Adding Noise to File %g of %g', k, length(trainingdata))); 
