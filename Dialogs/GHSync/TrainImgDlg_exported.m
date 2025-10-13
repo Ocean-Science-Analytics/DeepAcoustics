@@ -224,8 +224,12 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
                 % # of pixels
                 app.editImgLength.Value = dWidthFFTBinSec * app.editImgSize.Value;
                 app.editImgLength.Editable = "off";
+                app.buttonOptimize.BackgroundColor = [152/256 43/256 86/256];
+                app.buttonOptimize.FontColor = [1 1 1];
             else
                 app.editImgLength.Editable = "on";
+                app.buttonOptimize.BackgroundColor = [0.96,0.96,0.96];
+                app.buttonOptimize.FontColor = [0 0 0];
             end
         end
     end
@@ -325,6 +329,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.buttonOptimize = uibutton(app.dlgTrainImg, 'state');
             app.buttonOptimize.ValueChangedFcn = createCallbackFcn(app, @buttonOptimizeValueChanged, true);
             app.buttonOptimize.Text = 'Optimize';
+            app.buttonOptimize.BackgroundColor = [0.9608 0.9608 0.9608];
             app.buttonOptimize.Position = [286 159 75 23];
 
             % Create editImgLength
