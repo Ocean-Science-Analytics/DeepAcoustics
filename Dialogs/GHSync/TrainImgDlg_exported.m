@@ -147,13 +147,13 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
                 case 'Samples'
                     app.MainApp.TrainImgSettings.windowsizesmp = app.editWinSize.Value;
                     app.MainApp.TrainImgSettings.nfftsmp = app.editNFFT.Value;
-                    app.MainApp.TrainImgSettings.windowsize = app.TrainImgSettings.windowsizesmp/app.dEffectiveSR;
-                    app.MainApp.TrainImgSettings.nfft = app.TrainImgSettings.nfftsmp/app.dEffectiveSR;
+                    app.MainApp.TrainImgSettings.windowsize = app.MainApp.TrainImgSettings.windowsizesmp/app.dEffectiveSR;
+                    app.MainApp.TrainImgSettings.nfft = app.MainApp.TrainImgSettings.nfftsmp/app.dEffectiveSR;
                 case 'Seconds'
                     app.MainApp.TrainImgSettings.windowsize = app.editWinSize.Value;
                     app.MainApp.TrainImgSettings.nfft = app.editNFFT.Value;
-                    app.MainApp.TrainImgSettings.windowsizesmp = app.TrainImgSettings.windowsizesmp*app.dEffectiveSR;
-                    app.MainApp.TrainImgSettings.nfftsmp = app.TrainImgSettings.nfftsmp*app.dEffectiveSR;
+                    app.MainApp.TrainImgSettings.windowsizesmp = app.MainApp.TrainImgSettings.windowsizesmp*app.dEffectiveSR;
+                    app.MainApp.TrainImgSettings.nfftsmp = app.MainApp.TrainImgSettings.nfftsmp*app.dEffectiveSR;
             end
             app.MainApp.TrainImgSettings.noverlap = (app.editOverlap.Value / 100) * app.MainApp.TrainImgSettings.windowsize;
 
