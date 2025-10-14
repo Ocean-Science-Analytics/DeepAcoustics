@@ -25,6 +25,10 @@ if nargin == 2
     freqhigh = min(detection_metadata.Settings(2)*1000,detection_metadata.Settings(3)*1000);
 end
 
+% Convert thresholds to kHz to match rest of code
+freqlow = freqlow/1000;
+freqhigh = freqhigh/1000;
+
 % For now, don't run if Noise already in file (can handle this differently
 % in the future if desired)
 if any(Calls.Type=='Noise')
