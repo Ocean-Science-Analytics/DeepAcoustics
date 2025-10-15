@@ -3,7 +3,6 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         dlgTrainImg              matlab.ui.Figure
-        ConversionassumeseffectiveNyquistHighFrequencyCutoffLabel  matlab.ui.control.Label
         labelFreqLow             matlab.ui.control.Label
         labelFreqHigh            matlab.ui.control.Label
         ManuallySelectValidationDataLabel  matlab.ui.control.Label
@@ -21,6 +20,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
         buttongroupSpecUnits     matlab.ui.container.ButtonGroup
         buttonSeconds            matlab.ui.control.RadioButton
         buttonSamples            matlab.ui.control.RadioButton
+        labelWarnEffNyq          matlab.ui.control.Label
         editFreqLow              matlab.ui.control.NumericEditField
         editFreqHigh             matlab.ui.control.NumericEditField
         editWinSize              matlab.ui.control.NumericEditField
@@ -100,6 +100,8 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
                     app.editWinSize.ValueDisplayFormat = '%.0f';
                     app.editNFFT.Value = app.HandlesSpect.nfftsmp;
                     app.editNFFT.ValueDisplayFormat = '%.0f';
+                    app.labelWarnEffNyq.Visible = "on"; 
+                    app.editFreqHigh.FontColor = [0.64,0.08,0.18];                    
                 case 'Seconds'
                     app.labelWinSize.Text = 'Window Size (seconds):';
                     app.labelNFFT.Text = 'NFFT (seconds):';
@@ -107,6 +109,8 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
                     app.editWinSize.ValueDisplayFormat = '%11.4g';
                     app.editNFFT.Value = app.HandlesSpect.nfft;
                     app.editNFFT.ValueDisplayFormat = '%11.4g';
+                    app.labelWarnEffNyq.visible = "off";
+                    app.editFreqHigh.FontColor = [0,0,0]; 
             end
         end
 
@@ -368,6 +372,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.editFreqHigh.ValueDisplayFormat = '%.0f';
             app.editFreqHigh.ValueChangedFcn = createCallbackFcn(app, @editFreqHighValueChanged, true);
             app.editFreqHigh.HorizontalAlignment = 'center';
+            app.editFreqHigh.FontColor = [0.6392 0.0784 0.1804];
             app.editFreqHigh.Position = [474 293 69 22];
 
             % Create editFreqLow
@@ -376,6 +381,13 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.editFreqLow.ValueDisplayFormat = '%.0f';
             app.editFreqLow.HorizontalAlignment = 'center';
             app.editFreqLow.Position = [474 326 69 22];
+
+            % Create labelWarnEffNyq
+            app.labelWarnEffNyq = uilabel(app.dlgTrainImg);
+            app.labelWarnEffNyq.WordWrap = 'on';
+            app.labelWarnEffNyq.FontColor = [0.6353 0.0784 0.1843];
+            app.labelWarnEffNyq.Position = [313 387 198 47];
+            app.labelWarnEffNyq.Text = '*Using Samples assumes effective Nyquist = High Frequency Cutoff';
 
             % Create buttongroupSpecUnits
             app.buttongroupSpecUnits = uibuttongroup(app.dlgTrainImg);
@@ -464,6 +476,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             % Create labelFreqHigh
             app.labelFreqHigh = uilabel(app.dlgTrainImg);
             app.labelFreqHigh.HorizontalAlignment = 'right';
+            app.labelFreqHigh.FontColor = [0.6392 0.0784 0.1804];
             app.labelFreqHigh.Position = [307 293 158 22];
             app.labelFreqHigh.Text = 'High Frequency Cutoff (Hz):';
 
@@ -472,12 +485,6 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.labelFreqLow.HorizontalAlignment = 'right';
             app.labelFreqLow.Position = [307 326 158 22];
             app.labelFreqLow.Text = 'Low Frequency Cutoff (Hz):';
-
-            % Create ConversionassumeseffectiveNyquistHighFrequencyCutoffLabel
-            app.ConversionassumeseffectiveNyquistHighFrequencyCutoffLabel = uilabel(app.dlgTrainImg);
-            app.ConversionassumeseffectiveNyquistHighFrequencyCutoffLabel.WordWrap = 'on';
-            app.ConversionassumeseffectiveNyquistHighFrequencyCutoffLabel.Position = [313 389 183 47];
-            app.ConversionassumeseffectiveNyquistHighFrequencyCutoffLabel.Text = '*Conversion assumes effective Nyquist = High Frequency Cutoff';
 
             % Show the figure after all components are created
             app.dlgTrainImg.Visible = 'on';

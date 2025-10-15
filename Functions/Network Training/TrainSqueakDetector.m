@@ -132,10 +132,11 @@ if nargin == 2
                       'Plots','training-progress');
         case 'Customize'
             bAnchBox = questdlg('Do you already know how many anchor boxes you want to use?','# Anchor Boxes?','Yes','No','No');
+            dlg_title = 'Anchor Boxes';
+            num_lines = [1 length(dlg_title)+30];
             switch bAnchBox
             case 'Yes'
-                nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
-                     dlg_title,num_lines));
+                % Nothing needs to happen
             case 'No'
                 h = waitbar(0,'Calculating Anchor Boxes');
                 %% Dynamically choose # of Anchor Boxes
@@ -154,11 +155,9 @@ if nargin == 2
                 ylabel("Mean IoU")
                 xlabel("Number of Anchors")
                 title("Number of Anchors vs. Mean IoU")
-                dlg_title = 'Anchor Boxes';
-                num_lines = [1 length(dlg_title)+30];
-                nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
-                             dlg_title,num_lines));
             end
+            nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
+                         dlg_title,num_lines));
             % Must be even number for Tiny YOLO v4 and divisible by 3 for
             % Darknet
             switch basemodels
