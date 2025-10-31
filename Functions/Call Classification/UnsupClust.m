@@ -1055,11 +1055,12 @@ function C = get_kmeans_centroids(data,varargin)
                 hold on;
                 %plot(xvals, greater0, 'Color', 'red');
                 %plot(xvals, accummu, '-r');
-                plot(xvals, maxS, '-g');
+                plot(xvals, medianS, '-m');
                 %plot(xvals, medianS, '-y');
+                plot(xvals, maxS, '-g');
                 %plot(xvals, below_zero, 'Color', 'yellow');
                 %plot(xvals, meanAbv_zero, 'Color', 'magenta');
-                plot(xvals, propCAbMean1, '-m');
+                %plot(xvals, propCAbMean1, '-m');
                 plot(xvals, propCAbMean2, '-c');
                 %plot(xvals, propsing,'-k');
                 ylabel('Silhouette Value');
@@ -1068,7 +1069,8 @@ function C = get_kmeans_centroids(data,varargin)
                 hold off;
                 title(sprintf('Silhouette Values for k = %d through %d Clusters',minclust,maxclust));
                 %legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', 'Prop Singletons', '# of Singletons',...
-                legend('Overall Mean', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', '# of Singletons',...
+                %legend('Overall Mean', 'Overall Median', 'Max S (No Sngltns)', 'Prop > Mean by Cluster', '# of Singletons',...
+                legend('Overall Mean', 'Overall Median', 'Max S (No Sngltns)', 'Prop > Overall Mean', 'Prop > Mean by Cluster', '# of Singletons',...
                     'Location','southeast')%, 'Best Mean S', 'Best Min S')
                 legend('boxoff')
                 xlabel('Number of clusters (k)')
