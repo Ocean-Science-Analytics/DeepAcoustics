@@ -1,6 +1,10 @@
 function ExportTensorFlowStep2()
     %%% EVENTUALLY come back and add catches for Python version, presence
     %%% of TF and keras, etc.
+    fig = uifigure;
+    d = uiprogressdlg(fig,'Title','Loading and Re-saving Model',...
+        'Indeterminate','on');
+    drawnow
 
     indir = uigetdir('','Select the directory where the results of Step 1 live');
     outdir = uigetdir(indir,'Select the directory where you want the output of Step 2 to be saved (empty directory recommended)');
@@ -35,4 +39,7 @@ function ExportTensorFlowStep2()
     %% Zip PG folder
     zip(fullfile(outdir,[modname '.zip']), fullfile(outdir,modname));
     cd(cdBU);
+
+    % close the wait dialog box
+    close(d)
 end
