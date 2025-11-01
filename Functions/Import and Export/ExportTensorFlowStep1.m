@@ -5,11 +5,12 @@ function ExportTensorFlowStep1()
     NeuralNetwork=load(fullfile(networkpath,networkname));
     close(h);
 
+    uiwait(msgbox('WARNING: Your output directory name will be used to name your model going forward, so choose wisely'))
     outpath = uigetdir(networkpath,'Create and select the output directory (should be empty and must not begin with a number)');
     
     exportNetworkToTensorFlow(NeuralNetwork.detector.Network,outpath);
 
-        %% PDTF FILE
+    %% PDTF FILE
     % Load PDTF template to edit model details
     txtPDTF = readlines('deepAcoustics_TFTemp.pdtf');
 
@@ -27,19 +28,38 @@ function ExportTensorFlowStep1()
     end
 
     for i = 1:numDetHeads
-        abstr = '[';
+        % First allocate space in template file for the number of anchor
+        % box lines we need
         numThisHead = size(NeuralNetwork.detector.AnchorBoxes{i},1);
+        txtPDTF(insertind+numThisHead+2:end+(numThisHead+1)) = txtPDTF(insertind+1:end);
+
+        % Each head gets two lines for bracket lines and one line per
+        % anchor box, so numThisHead+2 and then -1 one because one line
+        % already exists per detection head
+        for j = 1:(numThisHead+1)
+            txtPDTF(insertind+j) = txtPDTF(insertind);
+        end
+
+        % Each detection head starts with a line with just an opening
+        % bracket
+        txtPDTF(insertind) = strrep(txtPDTF(insertind),'ANCHORBOXMAT','[');
+        insertind = insertind+1;
+
         for j = 1:numThisHead
-            abstr = sprintf('%s[%d,%d]',abstr,NeuralNetwork.detector.AnchorBoxes{i}(j,1),NeuralNetwork.detector.AnchorBoxes{i}(j,2));
+            abstr = sprintf('  [%d, %d]',NeuralNetwork.detector.AnchorBoxes{i}(j,1),NeuralNetwork.detector.AnchorBoxes{i}(j,2));
             if j<numThisHead
                 abstr = sprintf('%s,',abstr);
             end
+            txtPDTF(insertind) = strrep(txtPDTF(insertind),'ANCHORBOXMAT',abstr);
+            insertind = insertind+1;
         end
-        abstr = sprintf('%s]',abstr);
         if i<numDetHeads
-            abstr = sprintf('%s,',abstr);
+            abstr = '],';
+        else
+            abstr = ']';
         end
-        txtPDTF(insertind+i-1) = strrep(txtPDTF(insertind+i-1),'ANCHORBOXMAT',abstr);
+        txtPDTF(insertind) = strrep(txtPDTF(insertind),'ANCHORBOXMAT',abstr);
+        insertind = insertind+1;
     end
 
     % Convert class names
@@ -66,7 +86,7 @@ function ExportTensorFlowStep1()
     txtPDTF = strrep(txtPDTF,'SAMPRATE',num2str(NeuralNetwork.samprate,'%d'));
 
     % Convert FFT settings CHECK WITH JAMIE
-    txtPDTF = strrep(txtPDTF,'WINSIZESEC',num2str((NeuralNetwork.imLength*1000),'%d'));
+    txtPDTF = strrep(txtPDTF,'WINSIZESEC',num2str(NeuralNetwork.imLength,'%.1f'));
     txtPDTF = strrep(txtPDTF,'FFTSAMP',num2str(round(NeuralNetwork.nfft*NeuralNetwork.samprate),'%d'));
     txtPDTF = strrep(txtPDTF,'FFTHOPSAMP',num2str(round((NeuralNetwork.nfft-NeuralNetwork.noverlap)*NeuralNetwork.samprate),'%d'));
 
@@ -81,10 +101,13 @@ function ExportTensorFlowStep1()
     txtPDTF = strrep(txtPDTF,'MINFREQ',num2str(NeuralNetwork.minfreq,'%d'));
     txtPDTF = strrep(txtPDTF,'MAXFREQ',num2str(NeuralNetwork.maxfreq,'%d'));
 
+    % Customize description
+    txtPDTF = strrep(txtPDTF,'TXTDESCRIPTION',sprintf('DeepAcoustics model %s for acoustic deep learning',networkname(1:end-4)));
+
     % Convert image size
-    txtPDTF = strrep(txtPDTF,'IMGLENGTHMSEC',num2str((NeuralNetwork.imLength*1000),'%d'));
+    txtPDTF = strrep(txtPDTF,'IMGLENGTHMSEC',num2str((NeuralNetwork.imLength*1000),'%.1f'));
 
     writelines(txtPDTF,fullfile(outpath,'deepAcoustics.pdtf'));
 
-    msgbox('Check the main Matlab window for any information about custom layers that need to be addressed before proceeding to Step 2.  For more information refer to the DeepAcoustics User Manual and/or Matlab documentation about the "exportNetworkToTensorFlow" function.')
+    uiwait(msgbox('Check the main Matlab window for any information about custom layers that need to be addressed before proceeding to Step 2.  For more information refer to the DeepAcoustics User Manual and/or Matlab documentation about the "exportNetworkToTensorFlow" function.'))
 end

@@ -7,9 +7,10 @@
   INPUTSIZE2, 
   INPUTSIZE3
   ],
-  "anchorboxes":  [
-            ANCHORBOXMAT
-   ]
+  "anchorboxes":  
+  [
+    ANCHORBOXMAT
+  ]
  },
  "class_info": {
   "name_class": [
@@ -68,7 +69,7 @@
   "params": {}
  }
 ],
- "description": "Deep Acoustics for acoustic whistle detection and classification using deep learning",
+ "description": "TXTDESCRIPTION",
  "version_info": {"version": 1},
  "seg_size": {"size_ms": IMGLENGTHMSEC},
  "example_sound": "DOLPHIN_WHISTLE"
