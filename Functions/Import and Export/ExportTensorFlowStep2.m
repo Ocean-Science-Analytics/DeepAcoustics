@@ -1,14 +1,15 @@
 function ExportTensorFlowStep2()
     %%% EVENTUALLY come back and add catches for Python version, presence
     %%% of TF and keras, etc.
-    fig = uifigure;
-    d = uiprogressdlg(fig,'Title','Loading and Re-saving Model',...
-        'Indeterminate','on');
-    drawnow
 
     indir = uigetdir('','Select the directory where the results of Step 1 live');
     outdir = uigetdir(indir,'Select the directory where you want the output of Step 2 to be saved (empty directory recommended)');
 
+    fig = uifigure;
+    d = uiprogressdlg(fig,'Title','Loading and Re-saving Model',...
+        'Indeterminate','on');
+    drawnow
+    
     modname = strsplit(indir, filesep);
     appath = strjoin(modname(1:end-1), filesep);
     modname = modname{end};
@@ -42,4 +43,5 @@ function ExportTensorFlowStep2()
 
     % close the wait dialog box
     close(d)
+    close(fig)
 end
