@@ -8,6 +8,12 @@ function ExportTensorFlowStep1()
     uiwait(msgbox('WARNING: Your output directory name will be used to name your model going forward, so choose wisely'))
     outpath = uigetdir(networkpath,'Create and select the output directory (should be empty and must not begin with a number)');
     
+    % Wait dialog
+    fig = uifigure;
+    d = uiprogressdlg(fig,'Title','Loading and Re-saving Model',...
+        'Indeterminate','on');
+    drawnow
+
     exportNetworkToTensorFlow(NeuralNetwork.detector.Network,outpath);
 
     %% PDTF FILE
@@ -108,6 +114,10 @@ function ExportTensorFlowStep1()
     txtPDTF = strrep(txtPDTF,'IMGLENGTHMSEC',num2str((NeuralNetwork.imLength*1000),'%.1f'));
 
     writelines(txtPDTF,fullfile(outpath,'deepAcoustics.pdtf'));
+
+    % close the wait dialog box
+    close(d)
+    close(fig)
 
     uiwait(msgbox('Check the main Matlab window for any information about custom layers that need to be addressed before proceeding to Step 2.  For more information refer to the DeepAcoustics User Manual and/or Matlab documentation about the "exportNetworkToTensorFlow" function.'))
 end
