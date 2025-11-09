@@ -104,10 +104,11 @@ if ~isempty(Calls)
         Calls.Box(:,2) = Calls.Box(:,2) - freq_padding;
         Calls.Box(:,4) = Calls.Box(:,4) + freq_padding*2;
     end
+
+    maxDur = max(Calls.Box(:,3));
+    maxBW = max(Calls.Box(:,4));
 end
 %% for each call in the file, calculate stats for clustering
-maxDur = max(Calls.Box(:,3));
-maxBW = max(Calls.Box(:,4));
 for i = 1:height(Calls)
     waitbar(i/height(Calls),h, sprintf('Loading File %u of %u', perFileCallID(i), length(fileName)));
     

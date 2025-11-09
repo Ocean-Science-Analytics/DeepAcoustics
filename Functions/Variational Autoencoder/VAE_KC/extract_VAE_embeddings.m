@@ -7,7 +7,7 @@ for i = 1:size(ClusteringData, 1)
 end
 images = dlarray(single(images) ./ 256, 'SSCB');
 
-[~, zMean] = sampling(encoderNet, single(images));
+[~, zMean, zLogvar] = sampling(encoderNet, single(images));
 zMean = stripdims(zMean)';
 zMean = gather(extractdata(zMean));
 data = double(zMean);

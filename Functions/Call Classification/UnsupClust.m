@@ -36,13 +36,13 @@ function UnsupClust(app,event)
         while ~finished
             if ~bSuperBatch
                 %choice = questdlg('Choose clustering method:','Clustering Method','ARTwarp','Contour Parameters (recommended)', 'Auto Encoder + Contour','Contour Parameters (recommended)');
-                choice = questdlg('Choose clustering method:','Clustering Method','Contour Parameters (recommended)', 'Auto Encoder + Contour','Contour Parameters (recommended)');
+                choice = questdlg('Choose clustering method:','Clustering Method','Contour Parameters (recommended)', 'VAE','VGG','Contour Parameters (recommended)');
             end
             switch choice
                 case []
                     return
     
-                case {'Contour Parameters (recommended)', 'Auto Encoder + Contour'}
+                case {'Contour Parameters (recommended)', 'VAE','VGG'}
                     if ~bSuperBatch
                         FromExisting = questdlg('Use previously saved model? E.g. KMeans Model.mat','Load saved model mat?','Yes','No','No');
                     end
@@ -87,13 +87,13 @@ function UnsupClust(app,event)
                                     end
                                     ClusteringData{:,'NumContPts'} = num_pts;
                                     data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);
-                                case 'Auto Encoder + Contour'
+                                case 'VAE'
                                     [encoderNet, decoderNet, options, ClusteringData] = create_VAE_model(handles);
                                     data = extract_VAE_embeddings(encoderNet, options, ClusteringData);
-                                    num_pts = 16;
-                                    ClusteringData{:,'NumContPts'} = num_pts;
-                                    freq = cell2mat(cellfun(@(x) imresize(x',[1 num_pts]) ,ClusteringData.xFreq,'UniformOutput',0));
-                                    freq = zscore(freq,0,'all');
+                                    % num_pts = 16;
+                                    % ClusteringData{:,'NumContPts'} = num_pts;
+                                    % freq = cell2mat(cellfun(@(x) imresize(x',[1 num_pts]) ,ClusteringData.xFreq,'UniformOutput',0));
+                                    % freq = zscore(freq,0,'all');
                                     data = zscore(data,0,'all');
                                     % GA 230908 Turned off addition of
                                     % frequency to k-means data structure
@@ -102,6 +102,10 @@ function UnsupClust(app,event)
                                     % repercussions are for different
                                     % sounds
                                     %data = [data freq];
+                                case 'VGG'
+                                    [vggNet,ClusteringData] = create_VGG_model(handles);
+                                    data = extract_VGG_embeddings(vggNet, ClusteringData);
+                                    data = zscore(data,0,'all');
                             end
     
                             % Make a k-means model and return the centroids
@@ -146,7 +150,7 @@ function UnsupClust(app,event)
     
                                     ClusteringData{:,'NumContPts'} = num_pts;
                                     data = get_kmeans_data(ClusteringData, num_pts, RES, delta8_weight, slope_weight, concav_weight, freq_weight, relfreq_weight, duration_weight, pc_weight, ninflpt_weight);
-                                case 'Auto Encoder + Contour'
+                                case 'VAE'
                                     C = [];
                                     load(fullfile(PathName,FileName),'C','encoderNet','decoderNet','options');
                                     [ClusteringData, ~, options.freqRange, options.maxDuration, options.spectrogram] = CreateClusteringData(handles, ...
@@ -595,10 +599,15 @@ function UnsupClust(app,event)
                     if ~isnumeric(FileName)
                         save(fullfile(PathName, FileName), 'ARTnet', 'settings');
                     end
-                case 'Auto Encoder + Contour'
+                case 'VAE'
                     [FileName, PathName] = uiputfile(fullfile(handles.data.squeakfolder, 'Clustering Models', 'Variational Autoencoder Model.mat'), 'Save clustering model');
                     if ~isnumeric(FileName)
                         save(fullfile(PathName, FileName), 'C', 'encoderNet', 'decoderNet', 'options', 'clusterName');
+                    end
+                case 'VGG'
+                    [FileName, PathName] = uiputfile(fullfile(handles.data.squeakfolder, 'Clustering Models', 'VGG Model.mat'), 'Save clustering model');
+                    if ~isnumeric(FileName)
+                        save(fullfile(PathName, FileName), 'C', 'vggNet','options', 'clusterName');
                     end
             end
         end
