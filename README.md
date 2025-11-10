@@ -4,6 +4,7 @@ DeepAcoustics is a cutting-edge deep learning software tool designed for passive
 This open-access, MATLAB-based tool is a modified version of a program called DeepSqueak (Coffey et al., 2019). Originally designed for use with ultrasonic calls from rats for neurological studies, our modification of the program has led to an independent version of the software that has further developed network training interactivity, multi-class call detection, applicability to large dataset detection processing and more. 
 
 To learn more about using DeepAcoustics, please visit our tool documentation: [DeepAcoustics Guide & Tutorial](https://ocean-science-analytics.github.io/DeepAcoustics_Guide_and_Tutorial/DA.html)
+Read more in our publication regarding network selection and acoustic environment effects on object detection of whistles: [Sugarman et al., 2025](https://pubs.aip.org/asa/jasa/article/157/6/4613/3350873)
 
 ![DA_Cover](https://github.com/Ocean-Science-Analytics/DeepAcoustics/blob/main/Background.png)
 
