@@ -35,9 +35,13 @@ else
     [audiopn,~,~] = fileparts(audiofn);
 end
 
-handles.data.settings.audiofolder = audiopn;
-handles.data.saveSettings();
-update_folders(hObject, handles);
+if ~isnumeric(audiopn)
+    handles.data.settings.audiofolder = audiopn;
+    handles.data.saveSettings();
+    update_folders(hObject, handles);
+else
+    warning('Something weird about audio path - if you see this please let GA know!')
+end
 
 handles.data.audiodata = audioinfo(audiofn);
 handles.data.allAudio = allAudio;
