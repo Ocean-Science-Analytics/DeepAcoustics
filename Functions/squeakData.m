@@ -91,6 +91,10 @@ classdef squeakData < handle
             for i = missingSettings'
                 obj.settings.spect = setfield(obj.settings.spect, i{:}, getfield(obj.defaultSettings.spect,i{:}));
             end
+            % Fix audiofolder if messed up
+            if isfield(obj.settings,'audiofolder') && isnumeric(obj.settings.audiofolder)
+                obj.settings.audiofolder = fullfile(obj.squeakfolder, 'Audio/');
+            end
         end
         
         function set.audiodata(obj, audiodata)
