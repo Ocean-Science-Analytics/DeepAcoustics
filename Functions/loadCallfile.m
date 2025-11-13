@@ -104,6 +104,11 @@ if isfield(data, 'Calls')
                     audiopath = handles.data.settings.audiofolder;
                 end
                 audiopath = uigetdir(audiopath,'Select Folder Containing All Audio Files Used to Generate This Detections File');
+                
+                if isnumeric(audiopath)
+                    error('You chose to cancel')
+                end
+
                 % Update audio folder
                 if ~strcmp(handles.data.settings.audiofolder,audiopath)
                     handles.data.settings.audiofolder = audiopath;
@@ -179,6 +184,11 @@ if isfield(data, 'Calls')
                 % path
                 if ~bExist
                     newpn = uigetdir(handles.data.settings.audiofolder,['Select folder containing ',thisfn]);
+
+                    if isnumeric(newpn)
+                        error('You chose to cancel')
+                    end
+
                     % Double-check that they chose a good path
                     if ~exist(fullfile(newpn,[thisfn thisext]),'file')
                         error([thisfn ' not found in ' newpn])
