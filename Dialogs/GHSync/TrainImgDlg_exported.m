@@ -125,7 +125,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             % Check that resolution is optimized with FFT settings
             % Hz per bin
             dFreqRes = app.dEffectiveSR/app.HandlesSpect.nfftsmp;
-            dBandwidth = app.editFreqHigh.Value-app.editFreqHigh.Value;
+            dBandwidth = app.editFreqHigh.Value-app.editFreqLow.Value;
             % # of bins in bandwidth
             dNumBins = dBandwidth/dFreqRes;
             if app.editImgSize.Value < dNumBins
