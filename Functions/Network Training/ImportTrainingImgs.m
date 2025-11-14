@@ -12,7 +12,7 @@ wind = [];
 for i = 1:length(tablepath)
     orig_state = warning;
     warning('off','all')
-    load(tablepath{i},'*Table','wind','noverlap','nfft','freqlow','freqhigh','imLength');
+    load(tablepath{i},'*Table','wind','noverlap','nfft','freqlow','freqhigh','samprate','imLength');
     % Oops, saved val tables as VTable, so need to accommodate
     if exist('VTable','var')
         TTable = VTable;
@@ -53,6 +53,9 @@ for i = 1:length(tablepath)
     TrainingTables = [TrainingTables; TTable];
     if exist('freqlow','var')
         TheseSettings = [wind noverlap nfft freqlow freqhigh imLength];
+        if exist('samprate','var')
+            TheseSettings = [wind noverlap nfft freqlow freqhigh samprate imLength];
+        end
     else
         TheseSettings = [wind noverlap nfft imLength];
     end

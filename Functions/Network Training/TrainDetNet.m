@@ -58,7 +58,7 @@ switch choice
 
         % If network settings don't match imported image settings, warning
         % dialog!
-        if isfield(NeuralNetwork,'freqlow') && (NeuralNetwork.freqlow ~= AllSettings(1,4) || NeuralNetwork.freqhigh ~= AllSettings(1,5))
+        if isfield(NeuralNetwork,'freqlow') && ((NeuralNetwork.freqlow ~= AllSettings(1,4) || NeuralNetwork.freqhigh ~= AllSettings(1,5)))
             warningmsg = questdlg({'Network detection settings do not match the settings used to create the imported image.','Network may not work as expected.'}, ...
                 'Warning','Continue anyway','Cancel','Cancel');
             waitfor(warningmsg)
@@ -109,12 +109,13 @@ noverlap = AllSettings(1,2);
 nfft = AllSettings(1,3);
 freqlow = AllSettings(1,4);
 freqhigh = AllSettings(1,5);
-imLength = AllSettings(1,6);
+samprate = AllSettings(1,6);
+imLength = AllSettings(1,7);
 % See ValDataIssue commit from Apr 2023
 options.ValidationData = [];
 
 version = handles.DAVersion;
-save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','freqlow','freqhigh','imLength','version','detname','PathToITs','PathToVITs');
+save(fullfile(PathName,FileName),'detector','layers','options','info','wind','noverlap','nfft','freqlow','freqhigh','samprate','imLength','version','detname','PathToITs','PathToVITs');
 
 %% Update the menu
 update_folders(hObject, handles);

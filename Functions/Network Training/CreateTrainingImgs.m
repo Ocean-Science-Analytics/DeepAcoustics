@@ -47,6 +47,11 @@ metadata.maxfreq = max([Calls.Box(:,2)]+[Calls.Box(:,4)]);
 metadata.minSR = min([Calls.Audiodata.SampleRate]);
 metadata.maxSR = max([Calls.Audiodata.SampleRate]);
 
+if metadata.minSR ~= metadata.maxSR
+    msgbox('WARNING: Your training data contains multiple sampling rates, which is not recommended and may cause unpredictable behavior in DA. Will assume minimum SR for the purposes of TensorFlow export.')
+end
+samprate = metadata.minSR;
+
 uniqLabels = unique(cellstr(Calls.Type))';
 
 app.RunTrainImgDlg(handles.data.settings.spect, metadata);
@@ -338,12 +343,12 @@ msgbox({'Final Call Information:'; ...
     },'Images Output');
 
 [filename,matpath] = uiputfile(fullfile(handles.data.squeakfolder,'Training',[filename,'_Images.mat']));
-save(fullfile(matpath,filename),'TTable','wind','noverlap','nfft','freqlow','freqhigh','imLength');
+save(fullfile(matpath,filename),'TTable','wind','noverlap','nfft','freqlow','freqhigh','samprate','imLength');
 disp(['Created ' num2str(height(TTable)) ' Training Images']);
 
 if nVCallsTotal > 0
     [filename,matpath] = uiputfile(fullfile(handles.data.squeakfolder,'Validation',[filename,'_ValImages.mat']));
-    save(fullfile(matpath,filename),'VTable','wind','noverlap','nfft','freqlow','freqhigh','imLength');
+    save(fullfile(matpath,filename),'VTable','wind','noverlap','nfft','freqlow','freqhigh','samprate','imLength');
     disp(['Created ' num2str(height(VTable)) ' Validation Images']);
 end
 end

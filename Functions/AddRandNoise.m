@@ -21,8 +21,8 @@ bNoiseSuccess = false;
 [Calls,allAudio,spect,detection_metadata] = loadCallfile(fullfile(detpath,detfile),handles,false,listCallTypes);
 
 if nargin == 2
-    freqlow = max(detection_metadata.Settings(2)*1000,detection_metadata.Settings(3)*1000);
-    freqhigh = min(detection_metadata.Settings(2)*1000,detection_metadata.Settings(3)*1000);
+    freqlow = min(detection_metadata.Settings(2)*1000,detection_metadata.Settings(3)*1000);
+    freqhigh = max(detection_metadata.Settings(2)*1000,detection_metadata.Settings(3)*1000);
 end
 
 % Convert thresholds to kHz to match rest of code
