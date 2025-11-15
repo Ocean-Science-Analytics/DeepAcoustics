@@ -50,7 +50,7 @@ if make_spectrogram
     end
 
     audio = audioreader.AudioSamples(box(1)-nTimePadL, box(1) + box(3)+nTimePadR);
-    if (abs(length(audio)-(nSampGoal*audioreader.audiodata.SampleRate)) > 1)
+    if (abs(length(audio)-(nSampGoal*rate)) > 1)
         error('Oops')
     end
     if (length(audio) < min([windowsize,noverlap,nfft]))
@@ -99,7 +99,7 @@ x2 = length(ti);
 nFreqPadL = nFreqPad;
 nFreqPadR = nFreqPad;
 nSampGoal = box(4)+nFreqPad*2;
-maxBW = audioreader.audiodata.SampleRate/2000;
+maxBW = rate/2000;
 if box(2)-nFreqPad < 0
     nFreqPadL = box(2);
     nFreqPadR = nFreqPadR - (box(2)-nFreqPad);

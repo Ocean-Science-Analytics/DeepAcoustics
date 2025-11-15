@@ -115,6 +115,8 @@ for i = 1:height(Calls)
     % Change the audio file if needed
     audioReader.audiodata = Calls.Audiodata(i);
     % If for anomaly test, standardize box size
+    fTimePad = 0;
+    fFreqPad = 0;
     if p.Results.for_denoise
         fTimePad = (maxDur-Calls.Box(i,3))/2;
         fFreqPad = (maxBW-Calls.Box(i,4))/2;
