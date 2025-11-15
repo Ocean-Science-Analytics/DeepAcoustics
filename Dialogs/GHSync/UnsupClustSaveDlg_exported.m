@@ -214,8 +214,8 @@ classdef UnsupClustSaveDlg_exported < matlab.apps.AppBase
 
             % Create checkboxExpEC
             app.checkboxExpEC = uicheckbox(app.panelVariables);
-            app.checkboxExpEC.Text = 'Expanded Extracted Contours';
-            app.checkboxExpEC.Position = [21 187 182 22];
+            app.checkboxExpEC.Text = 'Expanded Clustering Data';
+            app.checkboxExpEC.Position = [21 187 162 22];
             app.checkboxExpEC.Value = true;
 
             % Create checkboxOverwriteEC

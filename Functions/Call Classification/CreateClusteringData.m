@@ -16,7 +16,7 @@ addParameter(p,'fixed_frequency', false);
 addParameter(p,'freqRange', []);
 % Ask to save the data for future use
 addParameter(p,'save_data', false);
-addParameter(p,'for_denoise', false);
+addParameter(p,'for_denoise', 0);
 parse(p,varargin{:});
 spectrogramOptions = p.Results.spectrogramOptions;
 
@@ -69,7 +69,7 @@ for j = 1:length(fileName)
         continue
     else
         % Remove calls that aren't accepted
-        if ~p.Results.for_denoise
+        if p.Results.for_denoise == 0
             Calls_tmp = Calls_tmp(Calls_tmp.Accept == 1 & ~ismember(Calls_tmp.Type,'Noise'), :);
         end
         Calls = [Calls; Calls_tmp];
@@ -117,7 +117,7 @@ for i = 1:height(Calls)
     % If for anomaly test, standardize box size
     fTimePad = 0;
     fFreqPad = 0;
-    if p.Results.for_denoise
+    if p.Results.for_denoise == 2
         fTimePad = (maxDur-Calls.Box(i,3))/2;
         fFreqPad = (maxBW-Calls.Box(i,4))/2;
     end
@@ -194,6 +194,20 @@ end
 
 ClusteringData = cell2table(ClusteringData(:,1:18), 'VariableNames', {'Spectrogram', 'Box', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign','xFreqAuto','xTimeAuto'});
 
+if p.Results.for_denoise == 3
+    maxDim1 = 0;
+    maxDim2 = 0;
+    for i = 1:height(ClusteringData)
+        maxDim1 = max(maxDim1,size(ClusteringData.Spectrogram{i},1));
+        maxDim2 = max(maxDim2,size(ClusteringData.Spectrogram{i},2));
+    end
+    for i = 1:height(ClusteringData)
+        imrep = zeros(maxDim1,maxDim2,'uint8');
+        imrep(1:size(ClusteringData.Spectrogram{i},1),1:size(ClusteringData.Spectrogram{i},2)) = ClusteringData.Spectrogram{i};
+        ClusteringData.Spectrogram{i} = imrep;
+    end
+end
+
 % Fix duplicated time points by adding a teensy weensy bit
 % to the latter of any duplications
 for i = 1:height(ClusteringData)
@@ -212,7 +226,7 @@ if p.Results.save_data && ~all(cellfun(@(x) isempty(fields(x)), audiodata)) % If
     pind = pind(end);
     pname = char(ClusteringData{1,'Filename'});
     pname = pname(1:pind);
-    [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save extracted data for faster loading (optional)');
+    [FileName,PathName] = uiputfile(fullfile(pname,'ClusteringData.mat'),'Save extracted data for faster loading (optional)');
     if FileName ~= 0
         if isempty(spect)
             spect = handles.data.settings.spect;

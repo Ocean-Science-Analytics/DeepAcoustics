@@ -139,7 +139,7 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp, ClusteringData, spect, EntThresh, AmpThresh)
             % Startup Warning
-            uiwait(warndlg('Changes made during contour tracing will only be saved in the Extracted Contours file, NOT in the original Detections file.', ...
+            uiwait(warndlg('Changes made during contour tracing will only be saved in the Clustering Data file, NOT in the original Detections file.', ...
                 'WARNING','modal'));
             
             % Link to parent app
@@ -190,12 +190,12 @@ classdef ContTraceDlg_exported < matlab.apps.AppBase
 
         % Close request function: dlgContTrace
         function dlgContTraceCloseRequest(app, event)
-            %Save Extracted Contours
+            %Save Clustering Data
             pind = regexp(char(app.ClusteringData{1,'Filename'}),'\');
             pind = pind(end);
             pname = char(app.ClusteringData{1,'Filename'});
             pname = pname(1:pind);
-            [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save edited contour data');
+            [FileName,PathName] = uiputfile(fullfile(pname,'Clustering Data.mat'),'Save edited contour data');
             if FileName ~= 0
                 ClusteringData = app.ClusteringData;
                 spect = app.spect;

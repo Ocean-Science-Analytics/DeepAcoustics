@@ -630,7 +630,7 @@ function UnsupClust(app,event)
                 spect = handles.data.settings.spect;
 
                 % Set save file name based on user options
-                strFullFile = fullfile(app.strUnsupSaveLoc, 'Extracted Contours.mat');
+                strFullFile = fullfile(app.strUnsupSaveLoc, 'ClusteringData.mat');
                 % If user chose not to overwrite, check that file exists and
                 % increment # in file name until a save won't overwrite an
                 % existing file

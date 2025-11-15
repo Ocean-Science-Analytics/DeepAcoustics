@@ -13,9 +13,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuSaveSess                matlab.ui.container.Menu
         menuImpExp                  matlab.ui.container.Menu
         menuExpRaven                matlab.ui.container.Menu
-        menuExpTF                   matlab.ui.container.Menu
-        ExpTFStep1                  matlab.ui.container.Menu
-        ExpTFStep2                  matlab.ui.container.Menu
         menuExpSpect                matlab.ui.container.Menu
         menuExpAudio                matlab.ui.container.Menu
         menuExpExcel                matlab.ui.container.Menu
@@ -1085,12 +1082,18 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             bGAOnly = false;
             if bGAOnly
-                [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false,'for_denoise',true);            %Save Extracted Contours
+                % % OPTION ONE - CLIP BOXES TO CALL
+                % [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false,'for_denoise',1);
+                % % OPTION TWO - ENLARGE ALL BOXES TO MAX CALL DIMS
+                % [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false,'for_denoise',2);
+                % OPTION THREE - INSET BOXES INTO MAX CALL DIMS
+                [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false,'for_denoise',3);
+
                 pind = regexp(char(ClusteringData{1,'Filename'}),'\');
                 pind = pind(end);
                 pname = char(ClusteringData{1,'Filename'});
                 pname = pname(1:pind);
-                [FileName,PathName] = uiputfile(fullfile(pname,'Extracted Contours.mat'),'Save edited contour data');
+                [FileName,PathName] = uiputfile(fullfile(pname,'ClusteringData.mat'),'Save edited clustering data');
                 if FileName ~= 0
                     ClusteringData = ClusteringData;
                     spect = spect;
@@ -1172,16 +1175,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function menuAddRandNoise_Callback(app, event)
             AddRandNoise(app,event);
         end
-
-        % Menu selected function: ExpTFStep1
-        function menuExpTFStep1_Callback(app, event)
-            ExportTensorFlowStep1()
-        end
-
-        % Menu selected function: ExpTFStep2
-        function menuExpTFStep2_Callback(app, event)
-            ExportTensorFlowStep2()
-        end
     end
 
     % Component initialization
@@ -1260,20 +1253,6 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.menuExpRaven.MenuSelectedFcn = createCallbackFcn(app, @menuExpRaven_Callback, true);
             app.menuExpRaven.Text = 'Export to Raven';
             app.menuExpRaven.Tag = 'export_raven';
-
-            % Create menuExpTF
-            app.menuExpTF = uimenu(app.menuImpExp);
-            app.menuExpTF.Text = 'Export to TensorFlow';
-
-            % Create ExpTFStep1
-            app.ExpTFStep1 = uimenu(app.menuExpTF);
-            app.ExpTFStep1.MenuSelectedFcn = createCallbackFcn(app, @menuExpTFStep1_Callback, true);
-            app.ExpTFStep1.Text = 'Step 1';
-
-            % Create ExpTFStep2
-            app.ExpTFStep2 = uimenu(app.menuExpTF);
-            app.ExpTFStep2.MenuSelectedFcn = createCallbackFcn(app, @menuExpTFStep2_Callback, true);
-            app.ExpTFStep2.Text = 'Step 2';
 
             % Create menuExpSpect
             app.menuExpSpect = uimenu(app.menuImpExp);
