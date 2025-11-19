@@ -1,4 +1,4 @@
-function [vggNet,ClusteringData] = create_VGG_model(handles)
+function [vggNet,options,ClusteringData] = create_VGG_model(handles)
 
 netog = imagePretrainedNetwork("vgg16",Weights="none");
 % net = netog;

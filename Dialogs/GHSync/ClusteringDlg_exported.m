@@ -102,8 +102,11 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                     sUID = 'N/A';
                     sType = 'N/A';
                     sD2C = 'N/A';
-                    sI = 'N/A';
                     sSil = 'N/A';
+                    sI = 'N/A';
+                    strD2C = 'Dist to Cent: %s  ';
+                    strSil = 'Silh Val: %s  ';
+                    strI = '# Infl Pts: %s';
                     
                     if ismember('UserID',app.ClusteringData.Properties.VariableNames)
                         sUID = app.ClusteringData.UserID(clustIndex(callID));
@@ -113,19 +116,22 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                     end
                     if ismember('DistToCen',app.ClusteringData.Properties.VariableNames)
                         sD2C = app.ClusteringData.DistToCen(clustIndex(callID));
-                    end
-                    if ismember('NumInflPts',app.ClusteringData.Properties.VariableNames)
-                        sI = app.ClusteringData.NumInflPts(clustIndex(callID));
+                        strD2C = strrep(strD2C,'%s','%0.4f');
                     end
                     if ismember('Silhouette',app.ClusteringData.Properties.VariableNames)
                         sSil = app.ClusteringData.Silhouette(clustIndex(callID));
+                        strSil = strrep(strSil,'%s','%0.4f');
+                    end
+                    if ismember('NumInflPts',app.ClusteringData.Properties.VariableNames)
+                        sI = app.ClusteringData.NumInflPts(clustIndex(callID));
+                        strI = strrep(strI,'%s','%d');
                     end
 
                     call_id = sprintf('Call: %u  UserID: %s  Type: %s', ...
                         app.ClusteringData.callID(clustIndex(callID)), ...
                         sUID, ...
                         sType);
-                    call_stats = sprintf('Dist to Cent: %0.4f  Silh Val: %0.4f  # Infl Pts: %d', ...
+                    call_stats = sprintf([strD2C strSil strI], ...
                         sD2C, ...
                         sSil, ...
                         sI);

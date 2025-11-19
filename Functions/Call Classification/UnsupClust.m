@@ -103,7 +103,8 @@ function UnsupClust(app,event)
                                     % sounds
                                     %data = [data freq];
                                 case 'VGG'
-                                    [vggNet,ClusteringData] = create_VGG_model(handles);
+                                    options = [];
+                                    [vggNet,options,ClusteringData] = create_VGG_model(handles);
                                     data = extract_VGG_embeddings(vggNet, ClusteringData);
                                     data = zscore(data,0,'all');
                             end
@@ -181,6 +182,23 @@ function UnsupClust(app,event)
     
                     ClusteringData.DistToCen = D;
                     ClusteringData.ClustAssign = clustAssign;
+
+                    %% TSNE
+                    embed = tsne(data);
+                    % Rescale values between 0 and 1
+                    embed = (embed - min(embed)) ./ (max(embed)-min(embed));
+                    embedY = 1-embed(:,2); % flip Y coordinates so the images looks like the UMAP figure
+                    embedX = embed(:,1);
+                    figTSNE = figure();
+                    clr = [0 0.4470 0.7410;...
+                        0.8500 0.3250 0.0980;...
+                        0.9290 0.6940 0.1250;...
+                        0.4940 0.1840 0.5560;...
+                        0.4660 0.6740 0.1880;...
+                        0.3010 0.7450 0.9330;...
+                        0.6350 0.0780 0.1840];
+                    gscatter(embedX, embedY, clustAssign,clr,'o+*xsdvph',8);
+                    title('t-SNE')
     
                     %% Save contour used in ClusteringData
         %             contourfreqsl = cellfun(@(x) {imresize(x',[1 num_pts+1])}, ClusteringData.xFreq,'UniformOutput',0);
@@ -264,23 +282,6 @@ function UnsupClust(app,event)
                         vecext0neg1 = cellfun(@(x) getIPcont(x,thresh_neg_shall,thresh_neg_steep),slopeall,'UniformOutput',false);
                         vecext = cellfun( @(x,y) [x,y], vecext0pos1, vecext0neg1, 'UniformOutput', false );
                         ClusteringData(:,'ExtPtVec') = vecext;
-                        
-                        %% TSNE
-                        embed = tsne(data);
-                        % Rescale values between 0 and 1
-                        embed = (embed - min(embed)) ./ (max(embed)-min(embed));
-                        embedY = 1-embed(:,2); % flip Y coordinates so the images looks like the UMAP figure
-                        embedX = embed(:,1);
-                        figTSNE = figure();
-                        clr = [0 0.4470 0.7410;...
-                            0.8500 0.3250 0.0980;...
-                            0.9290 0.6940 0.1250;...
-                            0.4940 0.1840 0.5560;...
-                            0.4660 0.6740 0.1880;...
-                            0.3010 0.7450 0.9330;...
-                            0.6350 0.0780 0.1840];
-                        gscatter(embedX, embedY, clustAssign,clr,'o+*xsdvph',8);
-                        title('t-SNE')
     
                         %% Centroid contours
                         if strcmp(choice,'Contour Parameters (recommended)') && relfreq_weight > 0
