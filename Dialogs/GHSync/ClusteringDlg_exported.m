@@ -335,6 +335,10 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
             sD2C = 'N/A';
             sI = 'N/A';
             sSil = 'N/A';
+            strI = 'I: %s';
+            strD2C = 'D: %s  ';
+            strSil = 'S: %s';
+
             if ismember('UserID',app.ClusteringData.Properties.VariableNames)
                 sUID = app.ClusteringData.UserID(i);
             end
@@ -343,16 +347,19 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
             end
             if ismember('DistToCen',app.ClusteringData.Properties.VariableNames)
                 sD2C = app.ClusteringData.DistToCen(i);
+                strD2C = strrep(strD2C,'%s','%0.3f');
             end
             if ismember('NumInflPts',app.ClusteringData.Properties.VariableNames)
                 sI = app.ClusteringData.NumInflPts(i);
+                strI = strrep(strI,'%s','%d');
             end
             if ismember('Silhouette',app.ClusteringData.Properties.VariableNames)
                 sSil = app.ClusteringData.Silhouette(i);
+                strSil = strrep(strSil,'%s','%0.3f');
             end
             
-            title(axis_handles,{sprintf('%s %s I: %d',sUID, sType, sI); ...
-                sprintf('D: %0.3f  S: %0.3f', sD2C, sSil)}, ...
+            title(axis_handles,{sprintf(['%s %s ' strI],sUID, sType, sI); ...
+                sprintf([strD2C strSil], sD2C, sSil)}, ...
                 'Color','white','Interpreter','none');
             
             xlabel(axis_handles,'Time (s)');
