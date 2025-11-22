@@ -539,9 +539,14 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                     if ismember('Spec1',app.ClusteringData.Properties.VariableNames)
                         app.ClusteringData.Spectrogram = app.ClusteringData.Spec1;
                     end
-                %case 'Opt 1b - Do not use yet'
-                % case 'Opt 1'
-                %     error('I told you not to do this yet *wags finger*')
+                %case 'Opt 1b - Clipped w Noise 2 AR'
+                case 'Opt 1b'
+                    % Only need to do if still original file, in which case
+                    % Spec1 may not exist
+                    if ~ismember('Spec1',app.ClusteringData.Properties.VariableNames)
+                        app.ClusteringData.Spectrogram = app.ClusteringData.Spec1;
+                    end
+                    app.ClusteringData.Spectrogram = app.ClusteringData.Spec1b;
                 %case 'Opt 3 - Std Dims Inset in Zeros'
                 case 'Opt 3'
                     % Only need to do if still original file, in which case
@@ -612,7 +617,7 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
 
             % Create dropdownSpecType
             app.dropdownSpecType = uidropdown(app.dlgClustering);
-            app.dropdownSpecType.Items = {'Opt 1', 'Opt 3', 'Opt 4'};
+            app.dropdownSpecType.Items = {'Opt 1', 'Opt 1b', 'Opt 3', 'Opt 4'};
             app.dropdownSpecType.ValueChangedFcn = createCallbackFcn(app, @dropdownSpecType_Callback, true);
             app.dropdownSpecType.FontColor = [1 1 1];
             app.dropdownSpecType.BackgroundColor = [0 0 0];

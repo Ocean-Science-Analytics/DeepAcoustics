@@ -2,15 +2,17 @@ function [encoderNet, decoderNet, options, ClusteringData] = create_VAE_model(ha
 
 options.imageSize = [128, 128, 1];
 
+[ClusteringData, ~, options.freqRange, options.maxDuration, options.spectrogram] = CreateClusteringData(handles, 'forClustering', false, 'save_data', true,'for_denoise',3);
+
 % Creates fixed frequency spectrograms (unless loading pre-created
 % Clustering Data)
-[ClusteringData, ~, options.freqRange, options.maxDuration, options.spectrogram] = CreateClusteringData(handles, 'scale_duration', true,...
-    'fixed_frequency', true,'forClustering', true, 'save_data', true);
+% [ClusteringData, ~, options.freqRange, options.maxDuration, options.spectrogram] = CreateClusteringData(handles, 'scale_duration', true,...
+%     'fixed_frequency', true,'forClustering', true, 'save_data', true);
 
 % Creates spectrograms only within the box
 %[ClusteringData, ~, options.freqRange, options.maxDuration, options.spectrogram] = CreateClusteringData(handles, 'forClustering', true, 'save_data', true);
 
-list = {'Opt 1 - Clipped Spec','Opt 1b - Do not use yet','Opt 3 - Std Dims Inset in Zeros','Opt 4 - Std Dims Inset in Noise'};
+list = {'Opt 1 - Clipped Spec','Opt 1b - Clipped w Noise 2 AR','Opt 3 - Std Dims Inset in Zeros','Opt 4 - Std Dims Inset in Noise'};
 [optimize,tf] = listdlg('PromptString','Choose an image standardization method','ListString',list,'SelectionMode','single','Name','Imaging Method');
 
 if tf == 1
@@ -22,16 +24,23 @@ if tf == 1
             if ismember('Spec1',ClusteringData.Properties.VariableNames)
                 ClusteringData.Spectrogram = ClusteringData.Spec1;
             end
-        %case 'Opt 1b - Do not use yet'
+        %case 'Opt 1b - Clipped w Noise 2 AR'
         case 2
-            error('I told you not to do this yet *wags finger*')
+            if ~ismember('Spec1',ClusteringData.Properties.VariableNames)
+                ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            end
+            ClusteringData.Spectrogram = ClusteringData.Spec1b;
         %case 'Opt 3 - Std Dims Inset in Zeros'
         case 3
-            ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            if ~ismember('Spec1',ClusteringData.Properties.VariableNames)
+                ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            end
             ClusteringData.Spectrogram = ClusteringData.Spec3;
         %case 'Opt 4 - Std Dims Inset in Noise'
         case 4
-            ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            if ~ismember('Spec1',ClusteringData.Properties.VariableNames)
+                ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            end
             ClusteringData.Spectrogram = ClusteringData.Spec4;
     end
 else

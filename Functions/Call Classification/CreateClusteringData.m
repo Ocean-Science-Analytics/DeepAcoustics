@@ -105,9 +105,9 @@ if ~isempty(Calls)
         Calls.Box(:,2) = Calls.Box(:,2) - freq_padding;
         Calls.Box(:,4) = Calls.Box(:,4) + freq_padding*2;
     end
-
-    maxDur = max(Calls.Box(:,3));
-    maxBW = max(Calls.Box(:,4));
+    % 
+    % maxDur = max(Calls.Box(:,3));
+    % maxBW = max(Calls.Box(:,4));
 
     Noise = [];
     warning('Spectrograms saved in Clustering Data will be padded up to 5% in both directions.')
@@ -184,7 +184,7 @@ for i = 1:height(Calls)
             imnoise = adapthisteq(flipud(pownoise),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
         end
 
-        Noise = [Noise, imnoise];
+        Noise = [Noise, uint8(imnoise .* 256)];
     end
 
     %% Other Clustering Data info
@@ -242,9 +242,6 @@ end
 
 ClusteringData = cell2table(ClusteringData(:,1:18), 'VariableNames', {'Spectrogram', 'Box', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign','xFreqAuto','xTimeAuto'});
 
-ClusteringData.SpecFF = specFF;
-Noise = uint8(Noise .* 256);
-
 maxDim1 = 0;
 maxDim2 = 0;
 % Fix duplicated time points by adding a teensy weensy bit
@@ -262,33 +259,56 @@ for i = 1:height(ClusteringData)
     maxDim2 = max(maxDim2,size(ClusteringData.Spectrogram{i},2));
 end
 
-% Opt3 = standardize size and shape of image, but maintain size and shape
-% of actual call (snap to upper left corner of black canvas)
-% Opt4 = same as Opt 3 but canvas is filled in with noise
-if p.Results.for_denoise >= 2
-    ClusteringData.Spec3 = ClusteringData.Spectrogram;
-    for i = 1:height(ClusteringData)
-        imrep3 = zeros(maxDim1,maxDim2,'uint8');
-        if p.Results.for_denoise == 3
-            imrep4 = imrep3;
-            for j = 1:maxDim1
-                for k = 1:maxDim2
-                    rand1 = randi(size(Noise,1));
-                    rand2 = randi(size(Noise,2));
-                    imrep4(j,k) = Noise(rand1,rand2);
+% Only do this if variables are available from loading Dets file
+if ~isempty(Calls)
+    ClusteringData.SpecFF = specFF;
+    
+    goalAR = median(cellfun(@(im) size(im,1) ./ size(im,2), ClusteringData.Spectrogram));
+    
+    % Opt3 = standardize size and shape of image, but maintain size and shape
+    % of actual call (snap to upper left corner of black canvas)
+    % Opt4 = same as Opt 3 but canvas is filled in with noise
+    if p.Results.for_denoise >= 2
+        for i = 1:height(ClusteringData)
+            imrep3 = zeros(maxDim1,maxDim2,'uint8');
+            % for Opt 1b
+            thisAR = size(ClusteringData.Spectrogram{i},1)/size(ClusteringData.Spectrogram{i},2);
+            goaldim1 = size(ClusteringData.Spectrogram{i},1);
+            goaldim2 = size(ClusteringData.Spectrogram{i},2);
+            if thisAR < goalAR
+                goaldim1 = round(goaldim2*goalAR);
+            else
+                goaldim2 = round(goaldim1*goalAR);
+            end
+            imrep1b = zeros(goaldim1,goaldim2);
+            if p.Results.for_denoise == 3
+                imrep4 = imrep3;
+                for j = 1:(max(maxDim1,goaldim1))
+                    for k = 1:(max(maxDim2,goaldim2))
+                        rand1 = randi(size(Noise,1));
+                        rand2 = randi(size(Noise,2));
+                        if j <= maxDim1 && k <= maxDim2
+                            imrep4(j,k) = Noise(rand1,rand2);
+                        end
+                        if j <= goaldim1 && k <= goaldim2
+                            imrep1b(j,k) = Noise(rand1,rand2);
+                        end
+                    end
                 end
             end
+            imrep3(1:size(ClusteringData.Spectrogram{i},1),1:size(ClusteringData.Spectrogram{i},2)) = ClusteringData.Spectrogram{i};
+            imrep4(1:size(ClusteringData.Spectrogram{i},1),1:size(ClusteringData.Spectrogram{i},2)) = ClusteringData.Spectrogram{i};
+            imrep1b(1:size(ClusteringData.Spectrogram{i},1),1:size(ClusteringData.Spectrogram{i},2)) = ClusteringData.Spectrogram{i};
+            ClusteringData.Spec3{i} = imrep3;
+            ClusteringData.Spec4{i} = imrep4;
+            ClusteringData.Spec1b{i} = imrep1b;
         end
-        imrep3(1:size(ClusteringData.Spectrogram{i},1),1:size(ClusteringData.Spectrogram{i},2)) = ClusteringData.Spectrogram{i};
-        imrep4(1:size(ClusteringData.Spectrogram{i},1),1:size(ClusteringData.Spectrogram{i},2)) = ClusteringData.Spectrogram{i};
-        ClusteringData.Spec3{i} = imrep3;
-        ClusteringData.Spec4{i} = imrep4;
     end
 end
 
 close(h)
 
-if p.Results.save_data && ~all(cellfun(@(x) isempty(fields(x)), audiodata)) % If audiodata has no fields, then only extracted contours were used, so don't ask to save them again
+if p.Results.save_data && ~isempty(Calls) % GA: audiodata not a variable so bug at some point, so commented this out and replaced with Calls check ~all(cellfun(@(x) isempty(fields(x)), audiodata)) % If audiodata has no fields, then only extracted contours were used, so don't ask to save them again
     pind = regexp(char(ClusteringData{1,'Filename'}),'\');
     pind = pind(end);
     pname = char(ClusteringData{1,'Filename'});
