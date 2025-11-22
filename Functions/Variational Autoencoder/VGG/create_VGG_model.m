@@ -32,13 +32,20 @@ if tf == 1
         %case 'Opt 1b - Do not use yet'
         case 2
             error('I told you not to do this yet *wags finger*')
+            if ~ismember('Spec1',ClusteringData.Properties.VariableNames)
+                ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            end
         %case 'Opt 3 - Std Dims Inset in Zeros'
         case 3
-            ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            if ~ismember('Spec1',ClusteringData.Properties.VariableNames)
+                ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            end
             ClusteringData.Spectrogram = ClusteringData.Spec3;
         %case 'Opt 4 - Std Dims Inset in Noise'
         case 4
-            ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            if ~ismember('Spec1',ClusteringData.Properties.VariableNames)
+                ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            end
             ClusteringData.Spectrogram = ClusteringData.Spec4;
     end
 else
