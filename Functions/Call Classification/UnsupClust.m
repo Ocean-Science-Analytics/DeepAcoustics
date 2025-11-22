@@ -102,11 +102,23 @@ function UnsupClust(app,event)
                                     % repercussions are for different
                                     % sounds
                                     %data = [data freq];
+
+                                    % Put Spec 1 back because that is
+                                    % easiest to visualize in GUI
+                                    if ismember('Spec1',ClusteringData.Properties.VariableNames)
+                                        ClusteringData.Spectrogram = ClusteringData.Spec1;
+                                    end
                                 case 'VGG'
                                     options = [];
                                     [vggNet,options,ClusteringData] = create_VGG_model(handles);
                                     data = extract_VGG_embeddings(vggNet, ClusteringData);
                                     data = zscore(data,0,'all');
+                                    
+                                    % Put Spec 1 back because that is
+                                    % easiest to visualize in GUI
+                                    if ismember('Spec1',ClusteringData.Properties.VariableNames)
+                                        ClusteringData.Spectrogram = ClusteringData.Spec1;
+                                    end
                             end
     
                             % Make a k-means model and return the centroids
