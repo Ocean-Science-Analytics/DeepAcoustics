@@ -22,6 +22,13 @@ list = {'Opt 1 - Clipped Spec','Opt 1b - Do not use yet','Opt 3 - Std Dims Inset
 
 if tf == 1
     switch optimize
+        %case 'Opt 1 - Clipped Spec'
+        case 1
+            % Only need to do if original file got overwritten while doing
+            % VAE/VGG stuff, in which case Spec1 exists
+            if ismember('Spec1',ClusteringData.Properties.VariableNames)
+                ClusteringData.Spectrogram = ClusteringData.Spec1;
+            end
         %case 'Opt 1b - Do not use yet'
         case 2
             error('I told you not to do this yet *wags finger*')
