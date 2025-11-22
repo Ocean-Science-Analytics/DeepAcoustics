@@ -1,15 +1,20 @@
-function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad, nFreqPad, bClipSpect)
+function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p,pnoise] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad, nFreqPad, bFF)
 %% Extract call features for CalculateStats and display
 
 if nargin < 3
     make_spectrogram = true;
     nTimePad = 0;
     nFreqPad = 0;
+    bFF = false;
 elseif nargin == 3 || ~make_spectrogram
     nTimePad = 0;
     nFreqPad = 0;
+    bFF = false;
 elseif nargin == 4
     nFreqPad = 0;
+    bFF = false;
+elseif nargin == 5
+    bFF = false;
 end
 
 rate = call.Audiodata.SampleRate;
@@ -63,6 +68,11 @@ if make_spectrogram
         return
     end
     [s, fr, ti, p] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
+
+    if nargout == 12
+        audio = [audioreader.AudioSamples(box(1)-nTimePadL, box(1)); audioreader.AudioSamples(box(1) + box(3), box(1) + box(3)+nTimePadR)];
+        [~, ~, ~, pnoise] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
+    end
 else
     audio = [];
     indbox = DAdata.page_spect.t > call.Box(1) & DAdata.page_spect.t < sum(call.Box([1,3]));
@@ -124,7 +134,7 @@ if isempty(I)
     error('Something wrong with box')
 end
 
-%Save for later - update that saves only boxed call
-if nargin == 6 && bClipSpect
+% Make clipped spectrogram the default
+if nargin < 6 || ~bFF
     p=p(min_freq:max_freq,x1:x2);
 end

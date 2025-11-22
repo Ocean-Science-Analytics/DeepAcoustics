@@ -2,12 +2,34 @@ function [encoderNet, decoderNet, options, ClusteringData] = create_VAE_model(ha
 
 options.imageSize = [128, 128, 1];
 
-% Creates fixed frequency spectrograms
+% Creates fixed frequency spectrograms (unless loading pre-created
+% Clustering Data)
 [ClusteringData, ~, options.freqRange, options.maxDuration, options.spectrogram] = CreateClusteringData(handles, 'scale_duration', true,...
     'fixed_frequency', true,'forClustering', true, 'save_data', true);
 
 % Creates spectrograms only within the box
 %[ClusteringData, ~, options.freqRange, options.maxDuration, options.spectrogram] = CreateClusteringData(handles, 'forClustering', true, 'save_data', true);
+
+list = {'Opt 1 - Clipped Spec','Opt 1b - Do not use yet','Opt 3 - Std Dims Inset in Zeros','Opt 4 - Std Dims Inset in Noise'};
+[optimize,tf] = listdlg('PromptString','Choose an image standardization method','ListString',list,'SelectionMode','single','Name','Imaging Method');
+
+if tf == 1
+    switch optimize
+        %case 'Opt 1b - Do not use yet'
+        case 2
+            error('I told you not to do this yet *wags finger*')
+        %case 'Opt 3 - Std Dims Inset in Zeros'
+        case 3
+            ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            ClusteringData.Spectrogram = ClusteringData.Spec3;
+        %case 'Opt 4 - Std Dims Inset in Noise'
+        case 4
+            ClusteringData.Spec1 = ClusteringData.Spectrogram;
+            ClusteringData.Spectrogram = ClusteringData.Spec4;
+    end
+else
+    error('You chose to cancel')
+end
 
 % Resize the images to match the input image size
 images = zeros([options.imageSize, size(ClusteringData, 1)]);

@@ -1086,7 +1086,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 % [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false,'for_denoise',1);
                 % % OPTION TWO - ENLARGE ALL BOXES TO MAX CALL DIMS
                 % [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false,'for_denoise',2);
-                % OPTION THREE - INSET BOXES INTO MAX CALL DIMS
+                % OPTION THREE - INSET BOXES INTO MAX CALL DIMS (3 = fill
+                % with black; 4 = fill with noise)
                 [ClusteringData, ~, ~, ~, ~, spect] = CreateClusteringData(handles, 'forClustering', false,'for_denoise',3);
 
                 pind = regexp(char(ClusteringData{1,'Filename'}),'\');

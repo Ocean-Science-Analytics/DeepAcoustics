@@ -22,6 +22,7 @@ spectrogramOptions = p.Results.spectrogramOptions;
 
 ClusteringData = {};
 clustAssign = [];
+specFF = [];
 maxDuration = [];
 freqRange = [];
 xFreq = [];
@@ -107,21 +108,28 @@ if ~isempty(Calls)
 
     maxDur = max(Calls.Box(:,3));
     maxBW = max(Calls.Box(:,4));
+
+    Noise = [];
+    warning('Spectrograms saved in Clustering Data will be padded up to 5% in both directions.')
 end
+
 %% for each call in the file, calculate stats for clustering
 for i = 1:height(Calls)
     waitbar(i/height(Calls),h, sprintf('Loading File %u of %u', perFileCallID(i), length(fileName)));
     
     % Change the audio file if needed
     audioReader.audiodata = Calls.Audiodata(i);
-    % If for anomaly test, standardize box size
-    fTimePad = 0;
-    fFreqPad = 0;
-    if p.Results.for_denoise == 2
-        fTimePad = (maxDur-Calls.Box(i,3))/2;
-        fFreqPad = (maxBW-Calls.Box(i,4))/2;
-    end
-    [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles.data, true, fTimePad, fFreqPad, p.Results.for_denoise);
+    % Add a little padding
+    fTimePad = Calls.Box(i,3)*0.05;
+    fFreqPad = Calls.Box(i,4)*0.05;
+    % % If for anomaly test, standardize box size to max dims
+    % if p.Results.for_denoise == 2
+    %     fTimePad = (maxDur-Calls.Box(i,3))/2;
+    %     fFreqPad = (maxBW-Calls.Box(i,4))/2;
+    % end
+
+    %% For basic clipped spectrogram
+    [I,wind,noverlap,nfft,rate,box,~,~,~,~,pow] = CreateFocusSpectrogram(Calls(i,:), handles.data, true, fTimePad, fFreqPad);
     
     % If spectrogram settings iffy
     if any(size(pow) < 3)
@@ -129,8 +137,6 @@ for i = 1:height(Calls)
         continue
     end
 
-    % im = mat2gray(flipud(I),[0 max(max(I))/4]); % Set max brightness to 1/4 of max
-    % im = mat2gray(flipud(I), prctile(I, [1 99], 'all')); % normalize brightness
     pow(pow==0)=.01;
     pow = log10(pow);
     pow = rescale(imcomplement(abs(pow)));
@@ -138,10 +144,50 @@ for i = 1:height(Calls)
     xTile=ceil(size(pow,1)/10);
     yTile=ceil(size(pow,2)/10);
     if xTile>1 && yTile>1
-    im = adapthisteq(flipud(pow),'NumTiles',[xTile yTile],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
+        im = adapthisteq(flipud(pow),'NumTiles',[xTile yTile],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
     else
-    im = adapthisteq(flipud(pow),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
+        im = adapthisteq(flipud(pow),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
     end
+
+    %% For full-freq spectrogram
+    [~,~,~,~,~,~,~,~,~,~,powff,pownoise] = CreateFocusSpectrogram(Calls(i,:), handles.data, true, fTimePad, fFreqPad, true);
+
+    % If spectrogram settings iffy
+    if any(size(powff) < 3)
+        warning('FFT settings suboptimal and causing calls to be skipped when creating Clustering Data - recommend changing')
+        continue
+    end
+
+    powff(powff==0)=.01;
+    powff = log10(powff);
+    powff = rescale(imcomplement(abs(powff)));
+    % Create Adjusted Image for Identification
+    xTile=ceil(size(powff,1)/10);
+    yTile=ceil(size(powff,2)/10);
+    if xTile>1 && yTile>1
+        imff = adapthisteq(flipud(powff),'NumTiles',[xTile yTile],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
+    else
+        imff = adapthisteq(flipud(powff),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
+    end
+
+    %% Saving a bunch of Noise
+    if ~any(size(pownoise) < 3)
+        pownoise(pownoise==0)=.01;
+        pownoise = log10(pownoise);
+        pownoise = rescale(imcomplement(abs(pownoise)));
+        % Create Adjusted Image for Identification
+        xTile=ceil(size(pownoise,1)/10);
+        yTile=ceil(size(pownoise,2)/10);
+        if xTile>1 && yTile>1
+            imnoise = adapthisteq(flipud(pownoise),'NumTiles',[xTile yTile],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
+        else
+            imnoise = adapthisteq(flipud(pownoise),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
+        end
+
+        Noise = [Noise, imnoise];
+    end
+
+    %% Other Clustering Data info
     
     spectrange = audioReader.audiodata.SampleRate / 2000; % get frequency range of spectrogram in KHz
     FreqScale = spectrange / (1 + floor(nfft / 2)); % size of frequency pixels
@@ -188,26 +234,19 @@ for i = 1:height(Calls)
         {xFreqAuto}
         {xTimeAuto}
         ]'];
-    
+
+    % Full Frequency Image
+    specFF = [specFF; {uint8(imff .* 256)}];
     clustAssign = [clustAssign; Calls.Type(i)];
 end
 
 ClusteringData = cell2table(ClusteringData(:,1:18), 'VariableNames', {'Spectrogram', 'Box', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign','xFreqAuto','xTimeAuto'});
 
-if p.Results.for_denoise == 3
-    maxDim1 = 0;
-    maxDim2 = 0;
-    for i = 1:height(ClusteringData)
-        maxDim1 = max(maxDim1,size(ClusteringData.Spectrogram{i},1));
-        maxDim2 = max(maxDim2,size(ClusteringData.Spectrogram{i},2));
-    end
-    for i = 1:height(ClusteringData)
-        imrep = zeros(maxDim1,maxDim2,'uint8');
-        imrep(1:size(ClusteringData.Spectrogram{i},1),1:size(ClusteringData.Spectrogram{i},2)) = ClusteringData.Spectrogram{i};
-        ClusteringData.Spectrogram{i} = imrep;
-    end
-end
+ClusteringData.SpecFF = specFF;
+Noise = uint8(Noise .* 256);
 
+maxDim1 = 0;
+maxDim2 = 0;
 % Fix duplicated time points by adding a teensy weensy bit
 % to the latter of any duplications
 for i = 1:height(ClusteringData)
@@ -216,6 +255,34 @@ for i = 1:height(ClusteringData)
         indDups = [false,diff(ClusteringData.xTime{i})==0];
         ClusteringData.xTime{i}(indDups) = ClusteringData.xTime{i}(indDups)+0.0001;
         bDup = any(diff(ClusteringData.xTime{i})==0);
+    end
+
+    % Take advantage of this loop to set maxDims for for_denoise >= 2
+    maxDim1 = max(maxDim1,size(ClusteringData.Spectrogram{i},1));
+    maxDim2 = max(maxDim2,size(ClusteringData.Spectrogram{i},2));
+end
+
+% Opt3 = standardize size and shape of image, but maintain size and shape
+% of actual call (snap to upper left corner of black canvas)
+% Opt4 = same as Opt 3 but canvas is filled in with noise
+if p.Results.for_denoise >= 2
+    ClusteringData.Spec3 = ClusteringData.Spectrogram;
+    for i = 1:height(ClusteringData)
+        imrep3 = zeros(maxDim1,maxDim2,'uint8');
+        if p.Results.for_denoise == 3
+            imrep4 = imrep3;
+            for j = 1:maxDim1
+                for k = 1:maxDim2
+                    rand1 = randi(size(Noise,1));
+                    rand2 = randi(size(Noise,2));
+                    imrep4(j,k) = Noise(rand1,rand2);
+                end
+            end
+        end
+        imrep3(1:size(ClusteringData.Spectrogram{i},1),1:size(ClusteringData.Spectrogram{i},2)) = ClusteringData.Spectrogram{i};
+        imrep4(1:size(ClusteringData.Spectrogram{i},1),1:size(ClusteringData.Spectrogram{i},2)) = ClusteringData.Spectrogram{i};
+        ClusteringData.Spec3{i} = imrep3;
+        ClusteringData.Spec4{i} = imrep4;
     end
 end
 
