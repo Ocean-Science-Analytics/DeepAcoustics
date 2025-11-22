@@ -2,18 +2,20 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        dlgClustering       matlab.ui.Figure
-        labelCallInfo       matlab.ui.control.TextArea
-        labelClustName      matlab.ui.control.Label
-        labelPageNofN       matlab.ui.control.Label
-        labelTotalCount     matlab.ui.control.Label
-        editfieldClustName  matlab.ui.control.EditField
-        buttonRedo          matlab.ui.control.Button
-        buttonSave          matlab.ui.control.Button
-        buttonNextPage      matlab.ui.control.Button
-        buttonNextClust     matlab.ui.control.Button
-        buttonPrevPage      matlab.ui.control.Button
-        buttonPrevClust     matlab.ui.control.Button
+        dlgClustering          matlab.ui.Figure
+        SpecTypeDropDownLabel  matlab.ui.control.Label
+        labelCallInfo          matlab.ui.control.TextArea
+        labelClustName         matlab.ui.control.Label
+        labelPageNofN          matlab.ui.control.Label
+        labelTotalCount        matlab.ui.control.Label
+        editfieldClustName     matlab.ui.control.EditField
+        buttonRedo             matlab.ui.control.Button
+        buttonSave             matlab.ui.control.Button
+        dropdownSpecType       matlab.ui.control.DropDown
+        buttonNextPage         matlab.ui.control.Button
+        buttonNextClust        matlab.ui.control.Button
+        buttonPrevPage         matlab.ui.control.Button
+        buttonPrevClust        matlab.ui.control.Button
     end
 
     
@@ -525,6 +527,40 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                 app.plotimages();
             end
         end
+
+        % Value changed function: dropdownSpecType
+        function dropdownSpecType_Callback(app, event)
+            value = app.dropdownSpecType.Value;
+            switch value
+                %case 'Opt 1 - Clipped Spec'
+                case 'Opt 1'
+                    % Only need to do if original file got overwritten while doing
+                    % VAE/VGG stuff, in which case Spec1 exists
+                    if ismember('Spec1',app.ClusteringData.Properties.VariableNames)
+                        app.ClusteringData.Spectrogram = app.ClusteringData.Spec1;
+                    end
+                %case 'Opt 1b - Do not use yet'
+                % case 'Opt 1'
+                %     error('I told you not to do this yet *wags finger*')
+                %case 'Opt 3 - Std Dims Inset in Zeros'
+                case 'Opt 3'
+                    % Only need to do if still original file, in which case
+                    % Spec1 may not exist
+                    if ~ismember('Spec1',app.ClusteringData.Properties.VariableNames)
+                        app.ClusteringData.Spectrogram = app.ClusteringData.Spec1;
+                    end
+                    app.ClusteringData.Spectrogram = app.ClusteringData.Spec3;
+                %case 'Opt 4 - Std Dims Inset in Noise'
+                case 'Opt 4'
+                    % Only need to do if still original file, in which case
+                    % Spec1 may not exist
+                    if ~ismember('Spec1',app.ClusteringData.Properties.VariableNames)
+                        app.ClusteringData.Spectrogram = app.ClusteringData.Spec1;
+                    end
+                    app.ClusteringData.Spectrogram = app.ClusteringData.Spec4;
+            end
+            app.plotimages();
+        end
     end
 
     % Component initialization
@@ -573,6 +609,15 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
             app.buttonNextPage.FontColor = [1 1 1];
             app.buttonNextPage.Position = [352 764 123 30];
             app.buttonNextPage.Text = 'Next Page';
+
+            % Create dropdownSpecType
+            app.dropdownSpecType = uidropdown(app.dlgClustering);
+            app.dropdownSpecType.Items = {'Opt 1', 'Opt 3', 'Opt 4'};
+            app.dropdownSpecType.ValueChangedFcn = createCallbackFcn(app, @dropdownSpecType_Callback, true);
+            app.dropdownSpecType.FontColor = [1 1 1];
+            app.dropdownSpecType.BackgroundColor = [0 0 0];
+            app.dropdownSpecType.Position = [1210 771 74 22];
+            app.dropdownSpecType.Value = 'Opt 1';
 
             % Create buttonSave
             app.buttonSave = uibutton(app.dlgClustering, 'push');
@@ -624,6 +669,14 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
             app.labelCallInfo.BackgroundColor = [0 0 0];
             app.labelCallInfo.Position = [587 757 479 81];
             app.labelCallInfo.Value = {'Call:   UserID:   Type:   '; 'Dist to Cent:   Silhouette Val:   NumInfl Pts:   '; 'Filename:'};
+
+            % Create SpecTypeDropDownLabel
+            app.SpecTypeDropDownLabel = uilabel(app.dlgClustering);
+            app.SpecTypeDropDownLabel.BackgroundColor = [0 0 0];
+            app.SpecTypeDropDownLabel.HorizontalAlignment = 'right';
+            app.SpecTypeDropDownLabel.FontColor = [1 1 1];
+            app.SpecTypeDropDownLabel.Position = [1134 771 61 22];
+            app.SpecTypeDropDownLabel.Text = 'Spec Type';
 
             % Show the figure after all components are created
             app.dlgClustering.Visible = 'on';

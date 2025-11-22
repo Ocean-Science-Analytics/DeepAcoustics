@@ -113,7 +113,7 @@ function UnsupClust(app,event)
                                     [vggNet,options,ClusteringData] = create_VGG_model(handles);
                                     data = extract_VGG_embeddings(vggNet, ClusteringData);
                                     data = zscore(data,0,'all');
-                                    
+
                                     % Put Spec 1 back because that is
                                     % easiest to visualize in GUI
                                     if ismember('Spec1',ClusteringData.Properties.VariableNames)
@@ -641,6 +641,11 @@ function UnsupClust(app,event)
                 % Set up variables to save
                 ClusteringData{:,'ClustAssign'} = clustAssign;
                 spect = handles.data.settings.spect;
+
+                % Undo any Spec manipulation
+                if ismember('Spec1',ClusteringData.Properties.VariableNames)
+                    ClusteringData.Spectrogram = ClusteringData.Spec1;
+                end
 
                 % Set save file name based on user options
                 strFullFile = fullfile(app.strUnsupSaveLoc, 'ClusteringData.mat');
