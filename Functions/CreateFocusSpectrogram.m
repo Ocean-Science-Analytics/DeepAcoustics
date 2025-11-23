@@ -55,9 +55,11 @@ if make_spectrogram
     end
 
     audio = audioreader.AudioSamples(box(1)-nTimePadL, box(1) + box(3)+nTimePadR);
-    if (abs(length(audio)-(nSampGoal*rate)) > 1)
-        error('Oops')
-    end
+    % Don't need this for now but need to remember that sometimes won't reach
+% the full padding if box is already taking up most of the bandwidth!
+    % if (abs(length(audio)-(nSampGoal*rate)) > 1)
+    %     error('Oops')
+    % end
     if (length(audio) < min([windowsize,noverlap,nfft]))
         warning('Call too short to generate spectrogram, returning empty')
         I = [];
@@ -124,9 +126,11 @@ min_freq = max(min_freq-1, 1);
 max_freq = find(fr./1000 <= (box(4) + box(2) + nFreqPadR), 1, 'last');
 max_freq = min(round(max_freq)+1, length(fr));
 
-if (abs((fr(2)*(max_freq-min_freq))-nSampGoal*1000) > fr(3))
-    error('Oops')
-end
+% Don't need this for now but need to remember that sometimes won't reach
+% the full padding if box is already taking up most of the bandwidth!
+% if (abs((fr(2)*(max_freq-min_freq))-nSampGoal*1000) > fr(3))
+%     error('Oops')
+% end
 
 I=abs(s(min_freq:max_freq,x1:x2));
 

@@ -122,6 +122,7 @@ for i = 1:height(Calls)
     % Add a little padding
     fTimePad = Calls.Box(i,3)*0.05;
     fFreqPad = Calls.Box(i,4)*0.05;
+    %fFreqPad = 0;
     % % If for anomaly test, standardize box size to max dims
     % if p.Results.for_denoise == 2
     %     fTimePad = (maxDur-Calls.Box(i,3))/2;
