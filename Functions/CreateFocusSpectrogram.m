@@ -1,4 +1,4 @@
-function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p,pnoise] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad, nFreqPad, bFF)
+function [I,windowsize,noverlap,nfft,rate,box,s,fr,ti,audio,p,audnoise] = CreateFocusSpectrogram(call, DAdata, make_spectrogram, nTimePad, nFreqPad, bFF)
 %% Extract call features for CalculateStats and display
 
 if nargin < 3
@@ -70,8 +70,8 @@ if make_spectrogram
     [s, fr, ti, p] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
 
     if nargout == 12
-        audio = [audioreader.AudioSamples(box(1)-nTimePadL, box(1)); audioreader.AudioSamples(box(1) + box(3), box(1) + box(3)+nTimePadR)];
-        [~, ~, ~, pnoise] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
+        audnoise = [audioreader.AudioSamples(box(1)-nTimePadL, box(1)); audioreader.AudioSamples(box(1) + box(3), box(1) + box(3)+nTimePadR)];
+        %[~, ~, ~, pnoise] = spectrogram(audio,windowsize,noverlap,nfft,rate,'yaxis');
     end
 else
     audio = [];
