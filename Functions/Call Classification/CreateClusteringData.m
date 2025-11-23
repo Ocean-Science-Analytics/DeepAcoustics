@@ -245,32 +245,32 @@ for i = 1:height(ClusteringData)
     maxDim2 = max(maxDim2,size(ClusteringData.Spectrogram{i},2));
 end
 
-% Noise spec
-if (length(Noise) < min([wind,noverlap,nfft]))
-    warning('Not enough noise accumulated to create some alternative spec options')
-    Noise = [];
-else
-    [~,~,~,pownoise] = spectrogram(audnoise,wind,noverlap,nfft,rate,'yaxis');
-    if ~any(size(pownoise) < 3)
-        pownoise(pownoise==0)=.01;
-        pownoise = log10(pownoise);
-        pownoise = rescale(imcomplement(abs(pownoise)));
-        % Create Adjusted Image for Identification
-        xTile=ceil(size(pownoise,1)/10);
-        yTile=ceil(size(pownoise,2)/10);
-        if xTile>1 && yTile>1
-            imnoise = adapthisteq(flipud(pownoise),'NumTiles',[xTile yTile],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
-        else
-            imnoise = adapthisteq(flipud(pownoise),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
-        end
-        Noise = uint8(imnoise .* 256);
-    else
-        Noise = [];
-    end
-end
-
 % Only do this if variables are available from loading Dets file
 if ~isempty(Calls)
+    % Noise spec
+    if (length(Noise) < min([wind,noverlap,nfft]))
+        warning('Not enough noise accumulated to create some alternative spec options')
+        Noise = [];
+    else
+        [~,~,~,pownoise] = spectrogram(audnoise,wind,noverlap,nfft,rate,'yaxis');
+        if ~any(size(pownoise) < 3)
+            pownoise(pownoise==0)=.01;
+            pownoise = log10(pownoise);
+            pownoise = rescale(imcomplement(abs(pownoise)));
+            % Create Adjusted Image for Identification
+            xTile=ceil(size(pownoise,1)/10);
+            yTile=ceil(size(pownoise,2)/10);
+            if xTile>1 && yTile>1
+                imnoise = adapthisteq(flipud(pownoise),'NumTiles',[xTile yTile],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);
+            else
+                imnoise = adapthisteq(flipud(pownoise),'NumTiles',[2 2],'ClipLimit',.005,'Distribution','rayleigh','Alpha',.4);    
+            end
+            Noise = uint8(imnoise .* 256);
+        else
+            Noise = [];
+        end
+    end
+
     ClusteringData.SpecFF = specFF;
     
     goalAR = median(cellfun(@(im) size(im,1) ./ size(im,2), ClusteringData.Spectrogram));
