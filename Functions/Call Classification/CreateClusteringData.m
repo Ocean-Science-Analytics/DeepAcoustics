@@ -257,7 +257,7 @@ if ~isempty(Calls)
         warning('Not enough noise accumulated to create some alternative spec options')
         Noise = [];
     else
-        [~,~,~,pownoise] = spectrogram(audnoise,wind,noverlap,nfft,rate,'yaxis');
+        [~,~,~,pownoise] = spectrogram(Noise,wind,noverlap,nfft,rate,'yaxis');
         if ~any(size(pownoise) < 3)
             pownoise(pownoise==0)=.01;
             pownoise = log10(pownoise);
