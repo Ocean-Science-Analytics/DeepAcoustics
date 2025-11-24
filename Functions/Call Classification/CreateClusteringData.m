@@ -20,7 +20,7 @@ addParameter(p,'for_denoise', 0);
 parse(p,varargin{:});
 spectrogramOptions = p.Results.spectrogramOptions;
 
-ClusteringData = {};
+ClusteringData = table();
 clustAssign = [];
 specFF = [];
 maxDuration = [];
@@ -36,7 +36,7 @@ else
     prompt = 'Select detection file(s) for viewing';
 end
 [fileName, filePath] = uigetfile(fullfile(handles.data.settings.detectionfolder,'*.mat'),prompt,'MultiSelect', 'on');
-if isnumeric(fileName); ClusteringData = {}; return; end
+if isnumeric(fileName); ClusteringData = table(); return; end
 
 % If one file is selected, turn it into a cell
 fileName = cellstr(fileName);
@@ -66,7 +66,8 @@ for j = 1:length(fileName)
             loaded_ClusteringData.xFreqAuto = loaded_ClusteringData.xFreq;
             loaded_ClusteringData.xTimeAuto = loaded_ClusteringData.xTime;
         end
-        ClusteringData = [ClusteringData; table2cell(loaded_ClusteringData)];
+        %ClusteringData = [ClusteringData; table2cell(loaded_ClusteringData)];
+        ClusteringData = [ClusteringData; loaded_ClusteringData];
         continue
     else
         % Remove calls that aren't accepted
@@ -81,6 +82,8 @@ end
 %% Stretch the duration of calls by a factor of sqrt(t_max / t)
 % This is used for VAE
 if ~isempty(Calls)
+    % One day I will try to make this never a cell container
+    ClusteringData = {};
     if p.Results.scale_duration
         if islogical(p.Results.scale_duration)
             maxDuration = prctile(Calls.Box(:,3),95);
@@ -226,7 +229,9 @@ for i = 1:height(Calls)
     clustAssign = [clustAssign; Calls.Type(i)];
 end
 
-ClusteringData = cell2table(ClusteringData(:,1:18), 'VariableNames', {'Spectrogram', 'Box', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign','xFreqAuto','xTimeAuto'});
+if ~isempty(Calls)
+    ClusteringData = cell2table(ClusteringData(:,1:18), 'VariableNames', {'Spectrogram', 'Box', 'MinFreq', 'Duration', 'xFreq', 'xTime', 'Filename', 'callID', 'Power', 'Bandwidth','FreqScale','TimeScale','NumContPts','Type','UserID','ClustAssign','xFreqAuto','xTimeAuto'});
+end
 
 maxDim1 = 0;
 maxDim2 = 0;
