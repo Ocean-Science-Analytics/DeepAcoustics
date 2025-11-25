@@ -24,24 +24,28 @@ if tf == 1
             if ismember('Spec1',ClusteringData.Properties.VariableNames)
                 ClusteringData.Spectrogram = ClusteringData.Spec1;
             end
-        %case 'Opt 1b - Clipped w Noise 2 AR'
+            ClusteringData.OptUsed = repmat('1',height(ClusteringData,1),1);
+        %case 'Opt 1b - Clipped w Noise up to Median AR'
         case 2
             if ~ismember('Spec1',ClusteringData.Properties.VariableNames)
                 ClusteringData.Spec1 = ClusteringData.Spectrogram;
             end
             ClusteringData.Spectrogram = ClusteringData.Spec1b;
+            ClusteringData.OptUsed = repmat('1b',height(ClusteringData,1),1);
         %case 'Opt 3 - Std Dims Inset in Zeros'
         case 3
             if ~ismember('Spec1',ClusteringData.Properties.VariableNames)
                 ClusteringData.Spec1 = ClusteringData.Spectrogram;
             end
             ClusteringData.Spectrogram = ClusteringData.Spec3;
+            ClusteringData.OptUsed = repmat('3',height(ClusteringData,1),1);
         %case 'Opt 4 - Std Dims Inset in Noise'
         case 4
             if ~ismember('Spec1',ClusteringData.Properties.VariableNames)
                 ClusteringData.Spec1 = ClusteringData.Spectrogram;
             end
             ClusteringData.Spectrogram = ClusteringData.Spec4;
+            ClusteringData.OptUsed = repmat('4',height(ClusteringData,1),1);
     end
 else
     error('You chose to cancel')
