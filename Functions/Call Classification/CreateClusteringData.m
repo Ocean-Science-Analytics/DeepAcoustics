@@ -295,7 +295,7 @@ if ~isempty(Calls)
             else
                 goaldim2 = round(goaldim1*goalAR);
             end
-            imrep1b = zeros(goaldim1,goaldim2);
+            imrep1b = zeros(goaldim1,goaldim2,'uint8');
             if p.Results.for_denoise == 3 & ~isempty(Noise)
                 imrep4 = imrep3;
                 for j = 1:(max(maxDim1,goaldim1))
