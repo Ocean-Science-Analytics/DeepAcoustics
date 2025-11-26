@@ -137,7 +137,7 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                         sD2C, ...
                         sSil, ...
                         sI);
-                    pointerBehavior.enterFcn = @(~,~) set(app.labelCallInfo, 'Value', {call_id, call_stats, call_file});
+                    pointerBehavior.enterFcn = @(~,~) set(app.labelCallInfo, 'Value', {call_id, call_stats, call_file{1}});
                     pointerBehavior.traverseFcn = [];
                     pointerBehavior.exitFcn = @(~,~) set(app.labelCallInfo, 'Value', '');
                     iptSetPointerBehavior(app.handle_image(i), pointerBehavior);
