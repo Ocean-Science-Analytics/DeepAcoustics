@@ -544,7 +544,7 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                     % Only need to do if still original file, in which case
                     % Spec1 may not exist
                     if ~ismember('Spec1',app.ClusteringData.Properties.VariableNames)
-                        app.ClusteringData.Spectrogram = app.ClusteringData.Spec1;
+                        app.ClusteringData.Spec1 = app.ClusteringData.Spectrogram;
                     end
                     app.ClusteringData.Spectrogram = app.ClusteringData.Spec1b;
                 %case 'Opt 3 - Std Dims Inset in Zeros'
@@ -552,7 +552,7 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                     % Only need to do if still original file, in which case
                     % Spec1 may not exist
                     if ~ismember('Spec1',app.ClusteringData.Properties.VariableNames)
-                        app.ClusteringData.Spectrogram = app.ClusteringData.Spec1;
+                        app.ClusteringData.Spec1 = app.ClusteringData.Spectrogram;
                     end
                     app.ClusteringData.Spectrogram = app.ClusteringData.Spec3;
                 %case 'Opt 4 - Std Dims Inset in Noise'
@@ -560,7 +560,7 @@ classdef ClusteringDlg_exported < matlab.apps.AppBase
                     % Only need to do if still original file, in which case
                     % Spec1 may not exist
                     if ~ismember('Spec1',app.ClusteringData.Properties.VariableNames)
-                        app.ClusteringData.Spectrogram = app.ClusteringData.Spec1;
+                        app.ClusteringData.Spec1 = app.ClusteringData.Spectrogram;
                     end
                     app.ClusteringData.Spectrogram = app.ClusteringData.Spec4;
             end
