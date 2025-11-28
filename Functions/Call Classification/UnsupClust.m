@@ -680,19 +680,19 @@ function UnsupClust(app,event)
             case false
         end
 
-        if isvalid(figTSNE) && app.btSNE
+        if ~isempty(figTSNE) && isvalid(figTSNE) && app.btSNE
             saveas(figTSNE,fullfile(app.strUnsupSaveLoc,'tSNE.fig'));
             close(figTSNE)
         end
-        if isvalid(figCentCont) && app.bContours
+        if ~isempty(figCentCont) && isvalid(figCentCont) && app.bContours
             saveas(figCentCont,fullfile(app.strUnsupSaveLoc,'CentroidContours.png'));
             close(figCentCont)
         end
-        if isvalid(figSilh) && app.bSilh
+        if ~isempty(figSilh) && isvalid(figSilh) && app.bSilh
             saveas(figSilh,fullfile(app.strUnsupSaveLoc,'Silhouettes.png'));
             close(figSilh)
         end
-        if isvalid(figClosest) && app.bClosest
+        if ~isempty(figClosest) && isvalid(figClosest) && app.bClosest
             saveas(figClosest,fullfile(app.strUnsupSaveLoc,'ClosestCalls.png'));
             close(figClosest)
         end
