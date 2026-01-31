@@ -26,6 +26,8 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         editfieldNum2Disp        matlab.ui.control.NumericEditField
         editfieldnTimePad        matlab.ui.control.NumericEditField
         editfieldnFreqPad        matlab.ui.control.NumericEditField
+        listboxDisplayFilter     matlab.ui.control.ListBox
+        buttonDisplayFilter      matlab.ui.control.Button
     end
 
     
@@ -44,12 +46,18 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         strConvTo       % Call type to convert to
         nTimePad        % Pad displayed spectrogram (time)
         nFreqPad        % Pad displayed spectrogram (freq kHz)
+        subCalls        % Subset of calls to display
+        calltypesel     % Calltypes stashed in subCalls
     end
     
     methods (Access = private)
         
         % Call whenever a new call is displayed on screen
         function RevPlotNew(app)
+            % Set call index limits
+            app.editfieldCallIndex.Limits = [1,height(app.subCalls)];
+            app.labelTotalCalls.Text = ['/',num2str(height(app.subCalls)),' Total Calls'];
+
             % Set call index
             app.editfieldCallIndex.Value = app.indSt;
             app.editfieldNum2Disp.Value = app.indNumDisp;
@@ -61,12 +69,16 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         
         % Call whenever changes are made to the contour
         function RevPlotRefresh(app)
+            % Update main Calls table
+            app.Calls(ismember(app.Calls.Type,categorical(app.calltypesel)),:) = app.subCalls;
             % (Re)set dropdowns calltype list
             app.dropdownCallType.Items = [cellstr(unique(app.Calls.Type)); 'Add New Call Type'];
+            app.listboxDisplayFilter.Items = cellstr(unique(app.Calls.Type));
             app.indSel = [];
-            app.dropdownCallType.Value = char(app.Calls.Type(min(app.indSt)));
+            app.dropdownCallType.Value = char(app.subCalls.Type(min(app.indSt)));
+            app.listboxDisplayFilter.Value = app.calltypesel(ismember(app.calltypesel,app.listboxDisplayFilter.Items));
 
-            app.dropdownConvertFrom.Items = ['Select...'; cellstr(unique(app.Calls.Type))];
+            app.dropdownConvertFrom.Items = ['Select...'; app.calltypesel];
             app.dropdownConvertTo.Items = ['Select...'; cellstr(unique(app.Calls.Type)); 'Add New Call Type'];
             app.dropdownConvertFrom.Value = 'Select...';
             app.dropdownConvertTo.Value = 'Select...';
@@ -75,15 +87,15 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             d = uiprogressdlg(app.dlgCallReview,'Title','Please Wait',...
                 'Message','Creating Spectrograms');
             montTile = tiledlayout(app.panelImgs,'flow','TileSpacing','Tight','Padding','Tight');
-            app.indEnd = min(app.indSt+app.indNumDisp-1,height(app.Calls));
+            app.indEnd = min(app.indSt+app.indNumDisp-1,height(app.subCalls));
             for i = app.indSt:app.indEnd
                 d.Value = (i-app.indSt+1)/(app.indEnd-app.indSt+1);
                 ax1 = nexttile(montTile);
 
                 % Create spectrogram image
-                [~,wind,noverlap,nfft,~,~,~,~,~,~,pow] = CreateFocusSpectrogram(app.Calls(i,:), app.CallingApp.DAdata, true, app.nTimePad);
+                [~,wind,noverlap,nfft,~,~,~,~,~,~,pow] = CreateFocusSpectrogram(app.subCalls(i,:), app.CallingApp.DAdata, true, app.nTimePad);
 
-                if (1/app.CallingApp.DAdata.settings.spect.nfft > (app.Calls.Box(i,4)*1000))
+                if (1/app.CallingApp.DAdata.settings.spect.nfft > (app.subCalls.Box(i,4)*1000))
                     error('%s\n%s\n','Spectrogram settings bad - recommend loading Calls in DA, adjusting Display Settings, save, and try again')
                 end
                 
@@ -107,14 +119,14 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             
                 im = uint8(im .* 256);
 
-                spectrange = app.Calls.Audiodata(i).SampleRate / 2000; % get frequency range of spectrogram in KHz
+                spectrange = app.subCalls.Audiodata(i).SampleRate / 2000; % get frequency range of spectrogram in KHz
                 FreqScale = spectrange / (1 + floor(nfft / 2)); % size of frequency pixels
-                TimeScale = (wind - noverlap) / app.Calls.Audiodata(i).SampleRate; % size of time pixels
+                TimeScale = (wind - noverlap) / app.subCalls.Audiodata(i).SampleRate; % size of time pixels
 
                 % Plot boxed portion of spectrogram
                 plotspec = flipud(im);
-                lowfreq = app.Calls.Box(i,2)-app.nFreqPad;
-                highfreq = app.Calls.Box(i,2)+app.Calls.Box(i,4)+app.nFreqPad;
+                lowfreq = app.subCalls.Box(i,2)-app.nFreqPad;
+                highfreq = app.subCalls.Box(i,2)+app.subCalls.Box(i,4)+app.nFreqPad;
                 lowfreq = max(0.001,lowfreq);
                 highfreq = min(spectrange,highfreq);
                 specindymin = floor(lowfreq/FreqScale);
@@ -124,7 +136,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
                 ax1.YLim = [specindymin,specindymax];
                 imagesc(ax1,[1,size(plotspec,2)],[specindymin,specindymax],plotspec(specindymin:specindymax,:),"HitTest","off");
                 ax1.YDir = "normal";
-                title(ax1,sprintf('%s (%s)',num2str(i),app.Calls.Type(i)));
+                title(ax1,{sprintf('%s',num2str(i));sprintf('%s (%s)',app.subCalls.CallID(i),app.subCalls.Type(i))});
                 % Make axes in proper units
                 ax1.XTick = [size(plotspec,2)];
                 ax1.XTickLabel{1} = ax1.XTick(1)*TimeScale;
@@ -152,10 +164,10 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             end
             if isempty(app.indSel)
                 app.dropdownCallType.Enable = "off";
-                app.dropdownCallType.Value = char(app.Calls.Type(min(app.indSt)));
+                app.dropdownCallType.Value = char(app.subCalls.Type(min(app.indSt)));
             else
                 app.dropdownCallType.Enable = "on";
-                app.dropdownCallType.Value = char(app.Calls.Type(min(app.indSel)));
+                app.dropdownCallType.Value = char(app.subCalls.Type(min(app.indSel)));
             end
         end
     end
@@ -184,9 +196,8 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             [~,typesort] = sort(typesort,'descend');
             app.Calls.Type = reordercats(app.Calls.Type,typesort);
 
-            % Set call index limits
-            app.editfieldCallIndex.Limits = [1,height(app.Calls)];
-            app.labelTotalCalls.Text = ['/',num2str(height(app.Calls)),' Total Calls'];
+            app.subCalls = app.Calls;
+            app.calltypesel = cellstr(unique(app.subCalls.Type));
 
             % Default strings
             app.strConvFrom = 'Select...';
@@ -207,6 +218,9 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
 
         % Close request function: dlgCallReview
         function dlgCallReviewCloseRequest(app, event)
+            % First update main Calls table
+            app.Calls(ismember(app.Calls.Type,categorical(app.calltypesel)),:) = app.subCalls;
+
             %Save Edited Dets
             [FileName, PathName] = uiputfile(app.detfilename, 'Save Session (.mat)');
             if FileName ~= 0
@@ -240,7 +254,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
 
         % Button pushed function: buttonNext
         function buttonNext_Callback(app, event)
-            app.indSt = min(height(app.Calls)-app.indNumDisp+1,app.indSt+app.indNumDisp);
+            app.indSt = min(height(app.subCalls)-app.indNumDisp+1,app.indSt+app.indNumDisp);
             app.RevPlotNew();
         end
 
@@ -268,7 +282,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
                 new_label = inputdlg(prompt,dlg_title,num_lines,definput,options);
                 newcalltype = new_label{1};
              end
-             app.Calls.Type(app.indSel) = categorical(cellstr(newcalltype));
+             app.subCalls.Type(app.indSel) = categorical(cellstr(newcalltype));
              app.RevPlotRefresh();
         end
 
@@ -276,10 +290,10 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         function buttonReject_Callback(app, event)
             newcalltype = 'Noise';
             if isempty(app.indSel)
-                %app.Calls.Type(app.indSt:app.indEnd) = categorical(cellstr(newcalltype));
+                %app.subCalls.Type(app.indSt:app.indEnd) = categorical(cellstr(newcalltype));
                 msgbox('No calls selected')
             else
-                app.Calls.Type(app.indSel) = categorical(cellstr(newcalltype));
+                app.subCalls.Type(app.indSel) = categorical(cellstr(newcalltype));
             end
             app.RevPlotRefresh();
         end
@@ -323,8 +337,8 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
 
         % Button pushed function: buttonConvertApply
         function buttonConvertApply_Callback(app, event)
-            app.indSel = find(app.Calls.Type==app.strConvFrom);
-            app.Calls.Type(app.indSel) = categorical(cellstr(app.strConvTo));
+            app.indSel = find(app.subCalls.Type==app.strConvFrom);
+            app.subCalls.Type(app.indSel) = categorical(cellstr(app.strConvTo));
             app.buttonConvertApply.Enable = "off";
             app.dropdownConvertTo.Enable = "off";
             app.RevPlotRefresh();
@@ -341,6 +355,25 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.nFreqPad = app.editfieldnFreqPad.Value/1000;
             app.RevPlotNew();
         end
+
+        % Button pushed function: buttonDisplayFilter
+        function buttonDisplayFilter_Callback(app, event)
+            % First update main Calls table
+            app.Calls(ismember(app.Calls.Type,categorical(app.calltypesel)),:) = app.subCalls;
+            findNewindSt = find(ismember(app.Calls.Type,categorical(app.calltypesel)));
+            app.indSt = findNewindSt(app.indSt);
+            % Get new selection
+            app.calltypesel = app.listboxDisplayFilter.Value';
+            % Create new subCalls to display
+            app.subCalls = app.Calls(ismember(app.Calls.Type,categorical(app.calltypesel)),:);
+            % Try staying on same indSt
+            findNewindSt = find(ismember(app.Calls.Type,categorical(app.calltypesel)));
+            app.indSt = find(findNewindSt==app.indSt);
+            if isempty(app.indSt)
+                app.indSt = 1;
+            end
+            app.RevPlotNew();
+        end
     end
 
     % Component initialization
@@ -351,7 +384,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
 
             % Create dlgCallReview and hide until all components are created
             app.dlgCallReview = uifigure('Visible', 'off');
-            app.dlgCallReview.Position = [100 100 696 726];
+            app.dlgCallReview.Position = [100 100 696 775];
             app.dlgCallReview.Name = 'Call Review Dialog';
             app.dlgCallReview.CloseRequestFcn = createCallbackFcn(app, @dlgCallReviewCloseRequest, true);
             app.dlgCallReview.WindowStyle = 'modal';
@@ -361,21 +394,33 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.panelTop.AutoResizeChildren = 'off';
             app.panelTop.BorderColor = [0.9412 0.9412 0.9412];
             app.panelTop.HighlightColor = [0.9412 0.9412 0.9412];
-            app.panelTop.Position = [35 593 617 109];
+            app.panelTop.Position = [35 585 617 166];
+
+            % Create buttonDisplayFilter
+            app.buttonDisplayFilter = uibutton(app.panelTop, 'push');
+            app.buttonDisplayFilter.ButtonPushedFcn = createCallbackFcn(app, @buttonDisplayFilter_Callback, true);
+            app.buttonDisplayFilter.Position = [8 21 80 48];
+            app.buttonDisplayFilter.Text = {'Apply'; 'Selection'};
+
+            % Create listboxDisplayFilter
+            app.listboxDisplayFilter = uilistbox(app.panelTop);
+            app.listboxDisplayFilter.Multiselect = 'on';
+            app.listboxDisplayFilter.Position = [94 8 162 74];
+            app.listboxDisplayFilter.Value = {'Item 1'};
 
             % Create editfieldnFreqPad
             app.editfieldnFreqPad = uieditfield(app.panelTop, 'numeric');
             app.editfieldnFreqPad.Limits = [0 Inf];
             app.editfieldnFreqPad.ValueDisplayFormat = '%d';
             app.editfieldnFreqPad.ValueChangedFcn = createCallbackFcn(app, @editfieldnFreqPad_Callback, true);
-            app.editfieldnFreqPad.Position = [552 11 62 22];
+            app.editfieldnFreqPad.Position = [552 68 62 22];
 
             % Create editfieldnTimePad
             app.editfieldnTimePad = uieditfield(app.panelTop, 'numeric');
             app.editfieldnTimePad.Limits = [0 Inf];
             app.editfieldnTimePad.ValueDisplayFormat = '%.3f';
             app.editfieldnTimePad.ValueChangedFcn = createCallbackFcn(app, @editfieldnTimePad_Callback, true);
-            app.editfieldnTimePad.Position = [395 11 62 22];
+            app.editfieldnTimePad.Position = [395 68 62 22];
             app.editfieldnTimePad.Value = 0.5;
 
             % Create editfieldNum2Disp
@@ -383,23 +428,23 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.editfieldNum2Disp.Limits = [0 Inf];
             app.editfieldNum2Disp.ValueDisplayFormat = '%d';
             app.editfieldNum2Disp.ValueChangedFcn = createCallbackFcn(app, @editfieldNum2Disp_Callback, true);
-            app.editfieldNum2Disp.Position = [552 40 62 22];
+            app.editfieldNum2Disp.Position = [552 97 62 22];
 
             % Create ofCallstoDisplayLabel
             app.ofCallstoDisplayLabel = uilabel(app.panelTop);
             app.ofCallstoDisplayLabel.HorizontalAlignment = 'right';
-            app.ofCallstoDisplayLabel.Position = [429 40 114 22];
+            app.ofCallstoDisplayLabel.Position = [429 97 114 22];
             app.ofCallstoDisplayLabel.Text = '# of Calls to Display:';
 
             % Create CallLabel
             app.CallLabel = uilabel(app.panelTop);
             app.CallLabel.HorizontalAlignment = 'right';
-            app.CallLabel.Position = [8 40 39 22];
+            app.CallLabel.Position = [8 97 39 22];
             app.CallLabel.Text = 'Call #:';
 
             % Create labelTotalCalls
             app.labelTotalCalls = uilabel(app.panelTop);
-            app.labelTotalCalls.Position = [108 40 121 22];
+            app.labelTotalCalls.Position = [108 97 121 22];
             app.labelTotalCalls.Text = '/ ? Total Calls';
 
             % Create editfieldCallIndex
@@ -407,13 +452,13 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.editfieldCallIndex.Limits = [0 Inf];
             app.editfieldCallIndex.ValueDisplayFormat = '%d';
             app.editfieldCallIndex.ValueChangedFcn = createCallbackFcn(app, @editfieldCallIndex_Callback, true);
-            app.editfieldCallIndex.Position = [55 40 46 22];
+            app.editfieldCallIndex.Position = [55 97 46 22];
 
             % Create buttonConvertApply
             app.buttonConvertApply = uibutton(app.panelTop, 'push');
             app.buttonConvertApply.ButtonPushedFcn = createCallbackFcn(app, @buttonConvertApply_Callback, true);
             app.buttonConvertApply.Enable = 'off';
-            app.buttonConvertApply.Position = [561 73 53 23];
+            app.buttonConvertApply.Position = [561 130 53 23];
             app.buttonConvertApply.Text = 'Apply';
 
             % Create dropdownConvertTo
@@ -421,20 +466,20 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.dropdownConvertTo.Items = {'Select...'};
             app.dropdownConvertTo.ValueChangedFcn = createCallbackFcn(app, @dropdownConvertTo_Callback, true);
             app.dropdownConvertTo.Enable = 'off';
-            app.dropdownConvertTo.Position = [459 73 95 22];
+            app.dropdownConvertTo.Position = [459 130 95 22];
             app.dropdownConvertTo.Value = 'Select...';
 
             % Create dropdownConvertFrom
             app.dropdownConvertFrom = uidropdown(app.panelTop);
             app.dropdownConvertFrom.Items = {'Select...'};
             app.dropdownConvertFrom.ValueChangedFcn = createCallbackFcn(app, @dropdownConvertFrom_Callback, true);
-            app.dropdownConvertFrom.Position = [341 73 95 22];
+            app.dropdownConvertFrom.Position = [341 130 95 22];
             app.dropdownConvertFrom.Value = 'Select...';
 
             % Create AssignCallTypeLabel
             app.AssignCallTypeLabel = uilabel(app.panelTop);
             app.AssignCallTypeLabel.HorizontalAlignment = 'right';
-            app.AssignCallTypeLabel.Position = [8 73 110 22];
+            app.AssignCallTypeLabel.Position = [8 130 110 22];
             app.AssignCallTypeLabel.Text = 'Assign to Selection:';
 
             % Create dropdownCallType
@@ -442,31 +487,31 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.dropdownCallType.Items = {'Call'};
             app.dropdownCallType.ValueChangedFcn = createCallbackFcn(app, @dropdownCallType_Callback, true);
             app.dropdownCallType.Enable = 'off';
-            app.dropdownCallType.Position = [122 73 138 22];
+            app.dropdownCallType.Position = [122 130 138 22];
             app.dropdownCallType.Value = 'Call';
 
             % Create ToLabel
             app.ToLabel = uilabel(app.panelTop);
             app.ToLabel.HorizontalAlignment = 'right';
-            app.ToLabel.Position = [441 73 16 22];
+            app.ToLabel.Position = [441 130 16 22];
             app.ToLabel.Text = 'To:';
 
             % Create ConvertAllLabel
             app.ConvertAllLabel = uilabel(app.panelTop);
             app.ConvertAllLabel.HorizontalAlignment = 'right';
-            app.ConvertAllLabel.Position = [271 73 66 22];
+            app.ConvertAllLabel.Position = [271 130 66 22];
             app.ConvertAllLabel.Text = 'Convert All:';
 
             % Create ofCallstoDisplayLabel_2
             app.ofCallstoDisplayLabel_2 = uilabel(app.panelTop);
             app.ofCallstoDisplayLabel_2.HorizontalAlignment = 'right';
-            app.ofCallstoDisplayLabel_2.Position = [459 11 84 22];
+            app.ofCallstoDisplayLabel_2.Position = [459 68 84 22];
             app.ofCallstoDisplayLabel_2.Text = 'Freq Pad (Hz):';
 
             % Create ofCallstoDisplayLabel_3
             app.ofCallstoDisplayLabel_3 = uilabel(app.panelTop);
             app.ofCallstoDisplayLabel_3.HorizontalAlignment = 'right';
-            app.ofCallstoDisplayLabel_3.Position = [297 11 89 22];
+            app.ofCallstoDisplayLabel_3.Position = [297 68 89 22];
             app.ofCallstoDisplayLabel_3.Text = 'Time Pad (sec):';
 
             % Create panelButtons
@@ -474,7 +519,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.panelButtons.AutoResizeChildren = 'off';
             app.panelButtons.BorderColor = [0.9412 0.9412 0.9412];
             app.panelButtons.HighlightColor = [0.9412 0.9412 0.9412];
-            app.panelButtons.Position = [35 8 628 131];
+            app.panelButtons.Position = [35 3 628 131];
 
             % Create buttonSaveClose
             app.buttonSaveClose = uibutton(app.panelButtons, 'push');
@@ -502,7 +547,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
 
             % Create panelImgs
             app.panelImgs = uipanel(app.dlgCallReview);
-            app.panelImgs.Position = [48 147 601 434];
+            app.panelImgs.Position = [48 142 601 434];
 
             % Show the figure after all components are created
             app.dlgCallReview.Visible = 'on';
