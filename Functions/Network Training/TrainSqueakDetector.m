@@ -21,66 +21,72 @@ if nargin == 2 || isempty(detname)
         return
     end
     detname = list{basemodels};
-elseif nargin == 5
-    basemodels = find(strcmp(detname,list));
 end
 
-samp = read(dsTrain);
-if istable(samp)
-    sampleData = samp{1,1};
-    sampleImg = sampleData{1};
-else
-    sampleData = samp(1,1);
-    sampleImg = sampleData{1};
-end
-
-% Probably 300 x 300
-dim1 = size(sampleImg,1);
-dim2 = size(sampleImg,2);
-
-% Set model defaults
-switch basemodels
-    % Tiny & DarkNet - probably 288 x 288
-    case {1,2}
-        dim1 = 32*round(size(sampleImg,1)/32);
-        dim2 = 32*round(size(sampleImg,2)/32);
-    % ResNet50 (pre-trained) 224 x 224
-    case 3
-        dim1 = 224;
-        dim2 = 224;
-end
-if dim1 ~= dim2
-    error('Oops, image not square, talk to Gabi')
-end
-
-% User input so can reduce size if memory error
-warning('%s\n%s\n','If GPU crashes (out of memory error), you may need to reduce the image size.', ...
-    'Warning: If you choose an image size > the resolution used to create the images, your effective image size will be the resolution used to create the images.')
-prompt = {'Enter image size (square):'};
-dlg_title = 'Image Size';
-num_lines = [1 length(dlg_title)+30];
-definput = {num2str(dim1)};
-dim1 = str2double(inputdlg(prompt,dlg_title,num_lines,definput));
-dim2 = dim1;
-
-switch basemodels
-    % Tiny & DarkNet - probably 288 x 288
-    case {1,2}
-        if mod(dim1,32) ~= 0
-            warning('COCO models require image size be a multiple of 32; automatically rounding to nearest multiple')
-            dim1 = 32*round(dim1/32);
-            dim2 = dim1;
-        end
-end
-
-% Training image dims need to matchcase 'Tiny YOLO v4 COCO' or
-% 'CSP-DarkNet-53'
-inputSize = [dim1 dim2 3];
 if nargin == 5
-    if size(layers.InputSize,2) ~= 3
-        inputSize = [dim1 dim2];
+    basemodels = find(strcmp(detname,list));
+    inputSize = layers.InputSize;
+else
+    samp = read(dsTrain);
+    if istable(samp)
+        sampleData = samp{1,1};
+        sampleImg = sampleData{1};
+    else
+        sampleData = samp(1,1);
+        sampleImg = sampleData{1};
     end
+    
+    % Probably 300 x 300
+    dim1 = size(sampleImg,1);
+    dim2 = size(sampleImg,2);
+    
+    % Set model defaults
+    switch basemodels
+        % Tiny & DarkNet - probably 288 x 288
+        case {1,2}
+            if mod(dim1,32) ~= 0
+                warning('COCO models require image size be a multiple of 32; automatically rounding to nearest multiple')
+                dim1 = 32*round(size(sampleImg,1)/32);
+                dim2 = 32*round(size(sampleImg,2)/32);
+            end
+    
+            % User input so can reduce size if memory error
+            warningmsg = questdlg(sprintf('%s\n%s\n','Would you like to reduce your image resolution b/c your GPU crashed the last time you tried this?', ...
+                '(Warning: If you choose an image size > the resolution used to create the images, even if your GPU does not crash, your effective image size will be the resolution used to create the images.)'), ...
+                'Edit Image Resolution?','No - I believe in my GPU','Yes - I want to edit','Cancel','No - I believe in my GPU');
+            waitfor(warningmsg)
+            if strcmp(warningmsg,'Yes - I want to edit')
+                prompt = {'Enter image size (square):'};
+                dlg_title = 'Image Size';
+                num_lines = [1 length(dlg_title)+30];
+                definput = {num2str(dim1)};
+                dim1 = str2double(inputdlg(prompt,dlg_title,num_lines,definput));
+                dim2 = dim1;
+    
+                % Still needs to be multiple of 32
+                if mod(dim1,32) ~= 0
+                    warning('COCO models require image size be a multiple of 32; automatically rounding to nearest multiple')
+                    dim1 = 32*round(dim1/32);
+                    dim2 = dim1;
+                end
+            elseif strcmp(warningmsg,'Cancel')
+                return
+            end
+        % ResNet50 (pre-trained) 224 x 224
+        case 3
+            if dim1 ~= 224 || dim2 ~= 224
+                warning('ResNet50 will enforce an image resolution of 224 sq px')
+                dim1 = 224;
+                dim2 = 224;
+            end
+    end
+    if dim1 ~= dim2
+        error('Oops, image not square, talk to Gabi')
+    end
+    
+    inputSize = [dim1 dim2 3];
 end
+
 dsTrainReSize = transform(dsTrain,@(data)preprocessData(data,inputSize));
 
 if ~isempty(ValTables)
@@ -126,10 +132,11 @@ if nargin == 2
                       'Plots','training-progress');
         case 'Customize'
             bAnchBox = questdlg('Do you already know how many anchor boxes you want to use?','# Anchor Boxes?','Yes','No','No');
+            dlg_title = 'Anchor Boxes';
+            num_lines = [1 length(dlg_title)+30];
             switch bAnchBox
             case 'Yes'
-                nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
-                     dlg_title,num_lines));
+                % Nothing needs to happen
             case 'No'
                 h = waitbar(0,'Calculating Anchor Boxes');
                 %% Dynamically choose # of Anchor Boxes
@@ -148,11 +155,9 @@ if nargin == 2
                 ylabel("Mean IoU")
                 xlabel("Number of Anchors")
                 title("Number of Anchors vs. Mean IoU")
-                dlg_title = 'Anchor Boxes';
-                num_lines = [1 length(dlg_title)+30];
-                nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
-                             dlg_title,num_lines));
             end
+            nAnchors = str2double(inputdlg('How many anchor boxes would you like to use (minimize # while maximizing Mean IoU)?:',...
+                         dlg_title,num_lines));
             % Must be even number for Tiny YOLO v4 and divisible by 3 for
             % Darknet
             switch basemodels

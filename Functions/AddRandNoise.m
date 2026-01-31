@@ -1,7 +1,7 @@
-function AddRandNoise(app,event,inpCallFile,listCallTypes)
+function AddRandNoise(app,event,inpCallFile,freqlow,freqhigh,listCallTypes)
 warning('This will save a temporary noise file to your Dets location. Cancel operation if you do not want this to happen!')
 
-if nargin < 4
+if nargin < 6
     listCallTypes = [];
 end
 
@@ -19,6 +19,15 @@ bNoiseSuccess = false;
 
 % Load the dets file
 [Calls,allAudio,spect,detection_metadata] = loadCallfile(fullfile(detpath,detfile),handles,false,listCallTypes);
+
+if nargin == 2
+    freqlow = min(detection_metadata.Settings(2)*1000,detection_metadata.Settings(3)*1000);
+    freqhigh = max(detection_metadata.Settings(2)*1000,detection_metadata.Settings(3)*1000);
+end
+
+% Convert thresholds to kHz to match rest of code
+freqlow = freqlow/1000;
+freqhigh = freqhigh/1000;
 
 % For now, don't run if Noise already in file (can handle this differently
 % in the future if desired)
@@ -38,8 +47,8 @@ NegMinDur = quantile(Calls.Box(:,3),0.05);
 NegMaxDur = quantile(Calls.Box(:,3),0.95);
 NegMinAR = quantile(Calls.Box(:,3)./Calls.Box(:,4),0.05);
 NegMaxAR = quantile(Calls.Box(:,3)./Calls.Box(:,4),0.95);
-NegMinBW = quantile(Calls.Box(:,4),0.05);
-NegMaxBW = quantile(Calls.Box(:,4),0.95);
+NegMinBW = max(freqhigh-freqlow,quantile(Calls.Box(:,4),0.05));
+NegMaxBW = min(freqhigh-freqlow,quantile(Calls.Box(:,4),0.95));
 
 % Try to generate the same amount of Noise as signals if possible
 nNumApproxNeg = height(Calls);
@@ -154,10 +163,13 @@ for j = 1:length(allAudio)
                 freqNyq = floor(audioReader.audiodata.SampleRate/2)/1000;
                 NegBW = NegDur/NegAR;
                 % In case aspect ratio not doing a great job
-                if NegBW>=freqNyq
+                if NegBW>=(freqhigh-freqlow)
                     NegBW = rand*(NegMaxBW-NegMinBW)+NegMinBW;
                 end
-                NegFSt = rand*(freqNyq-NegBW);
+                % freqhigh-NegBW is the highest possible starting freq
+                % freqlow is the lowest possible starting freq
+                % so starting freq is anywhere between those two extremes
+                NegFSt = rand*(freqhigh-NegBW-freqlow)+freqlow;
                 NegBox = [NegTSt,NegFSt,NegDur,NegBW];
                 % Sanity check
                 if NegTSt < 0 || (NegTSt+NegDur) > audioReader.audiodata.Duration || ...
