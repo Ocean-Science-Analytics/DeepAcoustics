@@ -10,6 +10,7 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
         buttonReject             matlab.ui.control.Button
         buttonSaveClose          matlab.ui.control.Button
         panelTop                 matlab.ui.container.Panel
+        buttonSelectAll          matlab.ui.control.Button
         ofCallstoDisplayLabel_3  matlab.ui.control.Label
         ofCallstoDisplayLabel_2  matlab.ui.control.Label
         ConvertAllLabel          matlab.ui.control.Label
@@ -273,17 +274,22 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
 
         % Value changed function: dropdownCallType
         function dropdownCallType_Callback(app, event)
-             newcalltype = app.dropdownCallType.Value;
-             if strcmp(newcalltype,'Add New Call Type')
+            newcalltype = app.dropdownCallType.Value;
+            if strcmp(newcalltype,'Add New Call Type')
                 prompt = {'Enter call type:'};
                 definput = {''};
                 dlg_title = 'Set Custom Label';
                 num_lines=[1,60]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='none';
                 new_label = inputdlg(prompt,dlg_title,num_lines,definput,options);
                 newcalltype = new_label{1};
-             end
-             app.subCalls.Type(app.indSel) = categorical(cellstr(newcalltype));
-             app.RevPlotRefresh();
+            end
+            app.subCalls.Type(app.indSel) = categorical(cellstr(newcalltype));
+            % Need to get rid of calls in display if not desired call type
+            if ~ismember(categorical(cellstr(newcalltype)),categorical(app.calltypesel))
+                buttonDisplayFilter_Callback(app, event)
+            else
+                app.RevPlotRefresh();
+            end
         end
 
         % Button pushed function: buttonReject
@@ -295,7 +301,12 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             else
                 app.subCalls.Type(app.indSel) = categorical(cellstr(newcalltype));
             end
-            app.RevPlotRefresh();
+            % Need to get rid of calls in display if not desired call type
+            if ~ismember(categorical(cellstr(newcalltype)),categorical(app.calltypesel))
+                buttonDisplayFilter_Callback(app, event)
+            else
+                app.RevPlotRefresh();
+            end
         end
 
         % Value changed function: editfieldNum2Disp
@@ -341,6 +352,13 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.subCalls.Type(app.indSel) = categorical(cellstr(app.strConvTo));
             app.buttonConvertApply.Enable = "off";
             app.dropdownConvertTo.Enable = "off";
+
+            % Need to get rid of calls in display if not desired call type
+            if ~ismember(categorical(cellstr(app.strConvTo)),categorical(app.calltypesel))
+                buttonDisplayFilter_Callback(app, event)
+            else
+                app.RevPlotRefresh();
+            end
             app.RevPlotRefresh();
         end
 
@@ -373,6 +391,20 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
                 app.indSt = 1;
             end
             app.RevPlotNew();
+        end
+
+        % Button pushed function: buttonSelectAll
+        function buttonSelectAll_Callback(app, event)
+            app.indSel = app.indSt:1:app.indEnd;
+            turnVal = 0.5;
+            % De-select all
+            if app.panelImgs.Children.Children(1).Children.AlphaData == 0.5
+                app.indSel = [];
+                turnVal = 1;
+            end
+            for i = 1:length(app.panelImgs.Children.Children)
+                app.panelImgs.Children.Children(i).Children.AlphaData = turnVal;
+            end
         end
     end
 
@@ -513,6 +545,12 @@ classdef CallReviewDlg_exported < matlab.apps.AppBase
             app.ofCallstoDisplayLabel_3.HorizontalAlignment = 'right';
             app.ofCallstoDisplayLabel_3.Position = [297 68 89 22];
             app.ofCallstoDisplayLabel_3.Text = 'Time Pad (sec):';
+
+            % Create buttonSelectAll
+            app.buttonSelectAll = uibutton(app.panelTop, 'push');
+            app.buttonSelectAll.ButtonPushedFcn = createCallbackFcn(app, @buttonSelectAll_Callback, true);
+            app.buttonSelectAll.Position = [495 20 118 23];
+            app.buttonSelectAll.Text = 'Select/De-select All';
 
             % Create panelButtons
             app.panelButtons = uipanel(app.dlgCallReview);
