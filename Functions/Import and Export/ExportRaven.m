@@ -1,7 +1,7 @@
 function ExportRaven(hObject, eventdata, handles)
     % Export current file as a txt file for viewing in Raven
     % http://www.birds.cornell.edu/brp/raven/RavenOverview.html
-    raventable = [{'Selection'} {'View'} {'Channel'} {'Begin Time (s)'} {'End Time (s)'} {'Low Freq (Hz)'} {'High Freq (Hz)'} {'Delta Time (s)'} {'Delta Freq (Hz)'} {'Avg Power Density (dB FS)'} {'Annotation'} {'Begin Path'} {'File Offset'}];
+    raventable = [{'Selection'} {'View'} {'Channel'} {'Begin Time (s)'} {'End Time (s)'} {'Low Freq (Hz)'} {'High Freq (Hz)'} {'Delta Time (s)'} {'Delta Freq (Hz)'} {'Avg Power Density (dB FS)'} {'Annotation'} {'Begin Path'} {'Begin File'} {'File Offset'}];
     View = 'Spectrogram 1';
     Channel = 1;
     for i = 1:height(handles.data.calls)
@@ -16,8 +16,10 @@ function ExportRaven(hObject, eventdata, handles)
             AvgPwr = 1;
             Annotation = char(handles.data.calls.Type(i));
             BeginPath = handles.data.calls.Audiodata(i).Filename;
+            [~,BeginFile,ext] = fileparts(BeginPath);
+            BeginFile = [BeginFile ext];
             FileOffset = handles.data.calls.Box(i, 1);
-            raventable = [raventable; {Selection} {View} {Channel} {BeginTime} {EndTime} {LowFreq} {HighFreq} {DeltaTime} {DeltaFreq} {AvgPwr} {Annotation} {BeginPath} {FileOffset}];
+            raventable = [raventable; {Selection} {View} {Channel} {BeginTime} {EndTime} {LowFreq} {HighFreq} {DeltaTime} {DeltaFreq} {AvgPwr} {Annotation} {BeginPath} {BeginFile} {FileOffset}];
         end
     end
     a  = cell2table(raventable);
