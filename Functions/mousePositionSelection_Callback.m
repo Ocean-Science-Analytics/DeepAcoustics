@@ -10,9 +10,9 @@ handles.data.focusCenter = min(handles.data.focusCenter,  handles.data.audiodata
 % Subset calls to those restricted to current audio file
 if ~isempty(handles.data.calls)
     subCalls = handles.data.calls((handles.data.calls.Visible==1) & ...
-        strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
+        strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename),:);
     indSC = find((handles.data.calls.Visible==1) & ...
-        strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename));
+        strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename));
     if ~isempty(subCalls)
         callMidpoints = subCalls.Box(:,1) + subCalls.Box(:,3)/2;
         [~, closestCall] = min(abs(callMidpoints - handles.data.focusCenter));

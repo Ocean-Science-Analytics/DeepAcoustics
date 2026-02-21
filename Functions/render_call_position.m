@@ -6,7 +6,7 @@ if isempty(handles.data.calls)
 else
     % Subset calls to those restricted to current audio file & Visible
     subCalls = handles.data.calls((handles.data.calls.Visible==1) & ...
-        strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
+        strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename),:);
 end
 % Initialize the display
 if all_calls

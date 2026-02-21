@@ -554,10 +554,10 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                             handles.data.currentcall = min(handles.data.currentcall,find(handles.data.calls.Visible==1,1,'last'));
                             % Get beginning and end rows for the current audio file
                             handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
-                                (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+                                (strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename)),...
                                 1,'first');
                             handles.data.thisaudend = find((handles.data.calls.Visible==1) & ...
-                                (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+                                (strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename)),...
                                 1,'last');
                         else
                             handles.data.currentcall = 0;
@@ -1997,6 +1997,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonFilterDisplay.Interruptible = 'off';
             app.buttonFilterDisplay.BackgroundColor = [0.8706 0.1098 0.5804];
             app.buttonFilterDisplay.FontWeight = 'bold';
+            app.buttonFilterDisplay.FontColor = [1 1 1];
             app.buttonFilterDisplay.Position = [262 52 108 24];
             app.buttonFilterDisplay.Text = 'Filter Display';
 
