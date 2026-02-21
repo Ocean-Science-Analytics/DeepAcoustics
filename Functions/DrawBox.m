@@ -21,6 +21,7 @@ new_box.ClustCat = categorical({'None'});
 new_box.EntThresh = handles.data.settings.EntropyThreshold;
 new_box.AmpThresh = handles.data.settings.AmplitudeThreshold;
 new_box.Accept = true;
+new_box.Visible = true;
 new_box.Ovlp = 0;
 % Check for Date/Time??
 new_box.StTime = NaT;
@@ -37,8 +38,12 @@ handles.data.calls = [handles.data.calls; new_box];
 % using height of calls to index SortCalls)
 [handles.data.calls,handles.data.currentcall] = SortCalls(handles.data.calls,'time',height(handles.data.calls));
 % Get beginning and end rows for the current audio file
-handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'first');
-handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
+handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
+    (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+    1,'first');
+handles.data.thisaudend = find((handles.data.calls.Visible==1) & ...
+    (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+    1,'last');
 % Move focus to new current call
 handles.data.focusCenter = handles.data.calls.Box(handles.data.currentcall,1) + handles.data.calls.Box(handles.data.currentcall,3)/2;
 % Update figure

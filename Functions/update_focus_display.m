@@ -48,7 +48,8 @@ set_tick_timestamps(handles.focusWindow, true, sttime);
 
 % Don't update the call info the there aren't any calls in the page view
 % Subset of calls restricted to current audio file
-subCalls = handles.data.calls(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
+subCalls = handles.data.calls((handles.data.calls.Visible==1) & ...
+    strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
 if isempty(subCalls) || handles.data.currentcall == 0 || ~any(handles.data.calls.Box(handles.data.currentcall,1) > ti_f(1) &...
         sum(handles.data.calls.Box(handles.data.currentcall,[1,3]),2) < ti_f(end))
     return

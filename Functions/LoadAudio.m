@@ -47,7 +47,7 @@ handles.data.audiodata = audioinfo(audiofn);
 handles.data.allAudio = allAudio;
 handles.data.thisAllAudind = 1;
 
-Calls = table(zeros(0,4),[],[],[],[],[],[],[],[],[],[],[], 'VariableNames', {'Box', 'Score', 'Type', 'Audiodata', 'DetSpect','CallID', 'ClustCat','EntThresh', 'AmpThresh', 'Accept','Ovlp','StTime'});
+Calls = table(zeros(0,4),[],[],[],[],[],[],[],[],[],[],[],[], 'VariableNames', {'Box', 'Score', 'Type', 'Audiodata', 'DetSpect','CallID', 'ClustCat','EntThresh', 'AmpThresh', 'Accept','Visible','Ovlp','StTime'});
 % Calls.Box = [0 0 1 1];
 % Calls.Score = 0;
 % Calls.Type = categorical({'NA'});

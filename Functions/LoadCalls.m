@@ -73,8 +73,12 @@ handles.data.thisaudst = [];
 handles.data.thisaudend = [];
 handles.data.currentcall = 0;
 if ~isempty(handles.data.calls)
-    handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'first');
-    handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
+    handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
+        (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+        1,'first');
+    handles.data.thisaudend = find((handles.data.calls.Visible==1) & ...
+        (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+        1,'last');
 end
 
 if ~isempty(handles.data.detmetadata) && isa(handles.data.detmetadata.Settings,'double')

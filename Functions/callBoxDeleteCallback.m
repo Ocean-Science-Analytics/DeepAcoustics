@@ -13,11 +13,15 @@ switch  evt.SelectionType
     case 'right' % delete if right click
         handles.data.calls(clicked_tag,:) = [];
         % Refresh indices and figure
-        if height(handles.data.calls) > 0
-            handles.data.currentcall = min(clicked_tag,height(handles.data.calls));
+        if height(handles.data.calls(handles.data.calls.Visible==1,:)) > 0
+            handles.data.currentcall = min(clicked_tag,find(handles.data.calls.Visible==1,1,'last'));
             % Get beginning and end rows for the current audio file
-            handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'first');
-            handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
+            handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
+                (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+                1,'first');
+            handles.data.thisaudend = find((handles.data.calls.Visible==1) & ...
+                (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+                1,'last');
         else
             handles.data.currentcall = 0;
             handles.data.thisaudst = [];

@@ -5,7 +5,10 @@ handles = guidata(hObject);  % Get newest version of handles
 % Break if find calls or no calls any earlier in dataset
 while isempty(handles.data.thisaudst) && handles.data.thisAllAudind > 1
     handles.data.thisAllAudind = handles.data.thisAllAudind - 1;
-    handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.allAudio(handles.data.thisAllAudind).Filename),1,'first');
+
+    handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
+        (strcmp({handles.data.calls.Audiodata.Filename},handles.data.allAudio(handles.data.thisAllAudind).Filename)),...
+        1,'first');
 
     % Add back one because subtract one below
     if ~isempty(handles.data.thisaudst)

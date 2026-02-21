@@ -4,8 +4,9 @@ function  handles = render_call_position(handles, all_calls)
 if isempty(handles.data.calls)
     subCalls = [];
 else
-    % Subset calls to those restricted to current audio file
-    subCalls = handles.data.calls(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
+    % Subset calls to those restricted to current audio file & Visible
+    subCalls = handles.data.calls((handles.data.calls.Visible==1) & ...
+        strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),:);
 end
 % Initialize the display
 if all_calls

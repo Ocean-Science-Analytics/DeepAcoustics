@@ -78,6 +78,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         buttonLoadDets              matlab.ui.control.Button
         buttonLoadAudio             matlab.ui.control.Button
         buttonRecordAudio           matlab.ui.control.StateButton
+        buttonFilterDisplay         matlab.ui.control.Button
         textDetReview               matlab.ui.control.Label
         buttonAcceptCall            matlab.ui.control.Button
         buttonRejectCall            matlab.ui.control.Button
@@ -540,7 +541,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 case {'q', 28} % char(28) is left arrow key
                     PrevCall(hObject, eventdata, handles);
                 case 'a'
-                    AcceptCall(hObject, eventdata, handles);
+                    AcceptCall(hObject, eventdata, handles, app);
                 case 'r'
                     RejectCall(hObject, eventdata, handles);
                 case 'd'
@@ -549,11 +550,15 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                     if handles.data.currentcall > 0
                         handles.data.calls(handles.data.currentcall,:) = [];
                         % Refresh indices and figure
-                        if height(handles.data.calls) > 0
-                            handles.data.currentcall = min(handles.data.currentcall,height(handles.data.calls));
+                        if height(handles.data.calls(handles.data.calls.Visible==1,:)) > 0
+                            handles.data.currentcall = min(handles.data.currentcall,find(handles.data.calls.Visible==1,1,'last'));
                             % Get beginning and end rows for the current audio file
-                            handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'first');
-                            handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename),1,'last');
+                            handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
+                                (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+                                1,'first');
+                            handles.data.thisaudend = find((handles.data.calls.Visible==1) & ...
+                                (strcmp({handles.data.calls.Audiodata.Filename},handles.data.audiodata.Filename)),...
+                                1,'last');
                         else
                             handles.data.currentcall = 0;
                             handles.data.thisaudst = [];
@@ -853,7 +858,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         function buttonAcceptCall_Callback(app, event)
             % Create GUIDE-style callback args - Added by Migration Tool
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-            AcceptCall(hObject, eventdata, handles);
+            AcceptCall(hObject, eventdata, handles, app);
         end
 
         % Button pushed function: buttonRejectCall
@@ -1206,6 +1211,25 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 end
                 update_fig(hObject, handles);
             end
+        end
+
+        % Button pushed function: buttonFilterDisplay
+        function buttonFilterDisplay_Callback(app, event)
+            [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+            % Add as field if not present
+            if ~any(strcmp('Visible', handles.data.calls.Properties.VariableNames))
+                handles.data.calls.Visible(:) = 1;
+            end
+
+            list = [cellstr(unique(handles.data.calls.Type))];
+
+            [indx,tf] = listdlg('PromptString',{'Select the call type(s) you want to display.',' ',' '},...
+                'ListString',list,'ListSize',[200,300],'SelectionMode','multiple');
+            if tf
+                handles.data.calls.Visible(:) = 0;
+                handles.data.calls.Visible(ismember(handles.data.calls.Type,categorical(list(indx)))) = 1;
+            end
+            update_fig(hObject, handles);
         end
     end
 
@@ -1773,7 +1797,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonNextAudFile = uibutton(app.mainfigure, 'push');
             app.buttonNextAudFile.ButtonPushedFcn = createCallbackFcn(app, @buttonNextAudFile_Callback, true);
             app.buttonNextAudFile.Tag = 'NextFile';
-            app.buttonNextAudFile.BackgroundColor = [0.870588235294118 0.113725490196078 0.580392156862745];
+            app.buttonNextAudFile.BackgroundColor = [0.8706 0.1098 0.5804];
             app.buttonNextAudFile.FontSize = 14.6666666666667;
             app.buttonNextAudFile.FontWeight = 'bold';
             app.buttonNextAudFile.FontColor = [1 1 1];
@@ -1785,7 +1809,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonPrevAudFile = uibutton(app.mainfigure, 'push');
             app.buttonPrevAudFile.ButtonPushedFcn = createCallbackFcn(app, @buttonPrevAudFile_Callback, true);
             app.buttonPrevAudFile.Tag = 'PrevFile';
-            app.buttonPrevAudFile.BackgroundColor = [0.870588235294118 0.113725490196078 0.580392156862745];
+            app.buttonPrevAudFile.BackgroundColor = [0.8706 0.1098 0.5804];
             app.buttonPrevAudFile.FontSize = 14.6666666666667;
             app.buttonPrevAudFile.FontWeight = 'bold';
             app.buttonPrevAudFile.FontColor = [1 1 1];
@@ -1809,7 +1833,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonFwdALot = uibutton(app.mainfigure, 'push');
             app.buttonFwdALot.ButtonPushedFcn = createCallbackFcn(app, @buttonFwdALot_Callback, true);
             app.buttonFwdALot.Tag = 'forwardButton';
-            app.buttonFwdALot.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
+            app.buttonFwdALot.BackgroundColor = [0.8706 0.1098 0.5804];
             app.buttonFwdALot.FontSize = 14.6666666666667;
             app.buttonFwdALot.FontWeight = 'bold';
             app.buttonFwdALot.FontColor = [1 1 1];
@@ -1821,7 +1845,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonFwdABit = uibutton(app.mainfigure, 'push');
             app.buttonFwdABit.ButtonPushedFcn = createCallbackFcn(app, @buttonFwdABit_Callback, true);
             app.buttonFwdABit.Tag = 'topRightButton';
-            app.buttonFwdABit.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
+            app.buttonFwdABit.BackgroundColor = [0.8706 0.1098 0.5804];
             app.buttonFwdABit.FontSize = 14.6666666666667;
             app.buttonFwdABit.FontWeight = 'bold';
             app.buttonFwdABit.FontColor = [1 1 1];
@@ -1833,7 +1857,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonNextCall = uibutton(app.mainfigure, 'push');
             app.buttonNextCall.ButtonPushedFcn = createCallbackFcn(app, @buttonNextCall_Callback, true);
             app.buttonNextCall.Tag = 'NextCall';
-            app.buttonNextCall.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
+            app.buttonNextCall.BackgroundColor = [0.8706 0.1098 0.5804];
             app.buttonNextCall.FontSize = 14.6666666666667;
             app.buttonNextCall.FontWeight = 'bold';
             app.buttonNextCall.FontColor = [1 1 1];
@@ -1845,7 +1869,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonPrevCall = uibutton(app.mainfigure, 'push');
             app.buttonPrevCall.ButtonPushedFcn = createCallbackFcn(app, @buttonPrevCall_Callback, true);
             app.buttonPrevCall.Tag = 'PreviousCall';
-            app.buttonPrevCall.BackgroundColor = [0.568627450980392 0.141176470588235 0.4];
+            app.buttonPrevCall.BackgroundColor = [0.8706 0.1098 0.5804];
             app.buttonPrevCall.FontSize = 14.6666666666667;
             app.buttonPrevCall.FontWeight = 'bold';
             app.buttonPrevCall.FontColor = [1 1 1];
@@ -1857,7 +1881,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonBackABit = uibutton(app.mainfigure, 'push');
             app.buttonBackABit.ButtonPushedFcn = createCallbackFcn(app, @buttonBackABit_Callback, true);
             app.buttonBackABit.Tag = 'topLeftButton';
-            app.buttonBackABit.BackgroundColor = [0.858823529411765 0.32156862745098 0.219607843137255];
+            app.buttonBackABit.BackgroundColor = [0.8706 0.1098 0.5804];
             app.buttonBackABit.FontSize = 14.6666666666667;
             app.buttonBackABit.FontWeight = 'bold';
             app.buttonBackABit.FontColor = [1 1 1];
@@ -1869,7 +1893,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonBackALot = uibutton(app.mainfigure, 'push');
             app.buttonBackALot.ButtonPushedFcn = createCallbackFcn(app, @buttonBackALot_Callback, true);
             app.buttonBackALot.Tag = 'backwardButton';
-            app.buttonBackALot.BackgroundColor = [0.949019607843137 0.450980392156863 0.101960784313725];
+            app.buttonBackALot.BackgroundColor = [0.8706 0.1098 0.5804];
             app.buttonBackALot.FontSize = 14.6666666666667;
             app.buttonBackALot.FontWeight = 'bold';
             app.buttonBackALot.FontColor = [1 1 1];
@@ -1967,6 +1991,15 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textDetReview.Position = [499 139 196 22];
             app.textDetReview.Text = 'Annotation & Detection -------------';
 
+            % Create buttonFilterDisplay
+            app.buttonFilterDisplay = uibutton(app.mainfigure, 'push');
+            app.buttonFilterDisplay.ButtonPushedFcn = createCallbackFcn(app, @buttonFilterDisplay_Callback, true);
+            app.buttonFilterDisplay.Interruptible = 'off';
+            app.buttonFilterDisplay.BackgroundColor = [0.8706 0.1098 0.5804];
+            app.buttonFilterDisplay.FontWeight = 'bold';
+            app.buttonFilterDisplay.Position = [262 52 108 24];
+            app.buttonFilterDisplay.Text = 'Filter Display';
+
             % Create buttonRecordAudio
             app.buttonRecordAudio = uibutton(app.mainfigure, 'state');
             app.buttonRecordAudio.ValueChangedFcn = createCallbackFcn(app, @buttonRecordAudio_Callback, true);
@@ -1975,7 +2008,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonRecordAudio.BackgroundColor = [0.392156862745098 0.831372549019608 0.0745098039215686];
             app.buttonRecordAudio.FontWeight = 'bold';
             app.buttonRecordAudio.FontColor = [1 1 1];
-            app.buttonRecordAudio.Position = [262 52 108 25];
+            app.buttonRecordAudio.Position = [262 21 108 25];
 
             % Create buttonLoadAudio
             app.buttonLoadAudio = uibutton(app.mainfigure, 'push');

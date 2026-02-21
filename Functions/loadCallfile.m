@@ -241,6 +241,9 @@ if isfield(data, 'Calls')
     if ~any(strcmp('Accept', Calls.Properties.VariableNames))
         Calls.Accept(:) = 1;
     end
+    if ~any(strcmp('Visible', Calls.Properties.VariableNames))
+        Calls.Visible(:) = 1;
+    end
     if ~any(strcmp('Ovlp', Calls.Properties.VariableNames))
         Calls.Ovlp(:) = 0;
     end

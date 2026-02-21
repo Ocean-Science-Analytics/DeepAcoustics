@@ -5,8 +5,13 @@ handles = guidata(hObject);  % Get newest version of handles
 % Break if find calls or no calls any later in dataset
 while isempty(handles.data.thisaudst) && handles.data.thisAllAudind < height(handles.data.allAudio)
     handles.data.thisAllAudind = handles.data.thisAllAudind + 1;
-    handles.data.thisaudst = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.allAudio(handles.data.thisAllAudind).Filename),1,'first');
-    handles.data.thisaudend = find(strcmp({handles.data.calls.Audiodata.Filename},handles.data.allAudio(handles.data.thisAllAudind).Filename),1,'last');
+
+    handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
+        (strcmp({handles.data.calls.Audiodata.Filename},handles.data.allAudio(handles.data.thisAllAudind).Filename)),...
+        1,'first');
+    handles.data.thisaudend = find((handles.data.calls.Visible==1) & ...
+        (strcmp({handles.data.calls.Audiodata.Filename},handles.data.allAudio(handles.data.thisAllAudind).Filename)),...
+        1,'last');
 
     % Set thisaudend to one before thisaudst so that indexing below is
     % correct (i.e., LoadCalls will load actual thisaudst and then reset
