@@ -85,7 +85,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         buttonDraw                  matlab.ui.control.Button
         buttonPlayCall              matlab.ui.control.Button
         buttonDrawLabel             matlab.ui.control.Button
-        buttonChangeLabel           matlab.ui.control.Button
+        buttonReLabel               matlab.ui.control.Button
         textDrawType                matlab.ui.control.Label
         textNavigation              matlab.ui.control.Label
         buttonBackALot              matlab.ui.control.Button
@@ -546,6 +546,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                     RejectCall(hObject, eventdata, handles);
                 case 'd'
                     DrawBox(hObject, eventdata, handles, app);
+                case 'w'
+                    buttonReLabel_Callback(app, event);
                 case 127 % Delete key
                     if handles.data.currentcall > 0
                         handles.data.calls(handles.data.currentcall,:) = [];
@@ -1189,26 +1191,11 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             ExportTensorFlowStep2()
         end
 
-        % Button pushed function: buttonChangeLabel
-        function buttonChangeLabel_Callback(app, event)
+        % Button pushed function: buttonReLabel
+        function buttonReLabel_Callback(app, event)
             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
             if handles.data.currentcall > 0
-                list = [cellstr(unique(handles.data.calls.Type));'Add New Call Type'];
-
-                [indx,tf] = listdlg('PromptString',{'Select the call type you want.',' ',' '},...
-                    'ListString',list,'ListSize',[200,300],'SelectionMode','single');
-                if tf
-                    if indx == length(list)
-                        prompt = {'Enter call type:'};
-                        definput = {''};
-                        dlg_title = 'Set Custom Label';
-                        num_lines=[1,60]; options.Resize='off'; options.WindowStyle='modal'; options.Interpreter='none';
-                        new_label = inputdlg(prompt,dlg_title,num_lines,definput,options);
-                        handles.data.calls.Type(handles.data.currentcall) = categorical({new_label{1}});
-                    else
-                        handles.data.calls.Type(handles.data.currentcall) = categorical({list{indx}});
-                    end
-                end
+                handles.data.calls.Type(handles.data.currentcall) = categorical({app.textDrawType.Text});
                 update_fig(hObject, handles);
             end
         end
@@ -1229,6 +1216,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 handles.data.calls.Visible(:) = 0;
                 handles.data.calls.Visible(ismember(handles.data.calls.Type,categorical(list(indx)))) = 1;
             end
+            % Update green bar
+            handles.update_position_axes = 1;
             update_fig(hObject, handles);
         end
     end
@@ -1797,7 +1786,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonNextAudFile = uibutton(app.mainfigure, 'push');
             app.buttonNextAudFile.ButtonPushedFcn = createCallbackFcn(app, @buttonNextAudFile_Callback, true);
             app.buttonNextAudFile.Tag = 'NextFile';
-            app.buttonNextAudFile.BackgroundColor = [0.8706 0.1098 0.5804];
+            app.buttonNextAudFile.BackgroundColor = [0.8706 0.1137 0.5804];
             app.buttonNextAudFile.FontSize = 14.6666666666667;
             app.buttonNextAudFile.FontWeight = 'bold';
             app.buttonNextAudFile.FontColor = [1 1 1];
@@ -1809,7 +1798,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonPrevAudFile = uibutton(app.mainfigure, 'push');
             app.buttonPrevAudFile.ButtonPushedFcn = createCallbackFcn(app, @buttonPrevAudFile_Callback, true);
             app.buttonPrevAudFile.Tag = 'PrevFile';
-            app.buttonPrevAudFile.BackgroundColor = [0.8706 0.1098 0.5804];
+            app.buttonPrevAudFile.BackgroundColor = [0.8706 0.1137 0.5804];
             app.buttonPrevAudFile.FontSize = 14.6666666666667;
             app.buttonPrevAudFile.FontWeight = 'bold';
             app.buttonPrevAudFile.FontColor = [1 1 1];
@@ -1833,7 +1822,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonFwdALot = uibutton(app.mainfigure, 'push');
             app.buttonFwdALot.ButtonPushedFcn = createCallbackFcn(app, @buttonFwdALot_Callback, true);
             app.buttonFwdALot.Tag = 'forwardButton';
-            app.buttonFwdALot.BackgroundColor = [0.8706 0.1098 0.5804];
+            app.buttonFwdALot.BackgroundColor = [0.949 0.451 0.102];
             app.buttonFwdALot.FontSize = 14.6666666666667;
             app.buttonFwdALot.FontWeight = 'bold';
             app.buttonFwdALot.FontColor = [1 1 1];
@@ -1845,7 +1834,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonFwdABit = uibutton(app.mainfigure, 'push');
             app.buttonFwdABit.ButtonPushedFcn = createCallbackFcn(app, @buttonFwdABit_Callback, true);
             app.buttonFwdABit.Tag = 'topRightButton';
-            app.buttonFwdABit.BackgroundColor = [0.8706 0.1098 0.5804];
+            app.buttonFwdABit.BackgroundColor = [0.8588 0.3216 0.2196];
             app.buttonFwdABit.FontSize = 14.6666666666667;
             app.buttonFwdABit.FontWeight = 'bold';
             app.buttonFwdABit.FontColor = [1 1 1];
@@ -1857,7 +1846,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonNextCall = uibutton(app.mainfigure, 'push');
             app.buttonNextCall.ButtonPushedFcn = createCallbackFcn(app, @buttonNextCall_Callback, true);
             app.buttonNextCall.Tag = 'NextCall';
-            app.buttonNextCall.BackgroundColor = [0.8706 0.1098 0.5804];
+            app.buttonNextCall.BackgroundColor = [0.5686 0.1412 0.4];
             app.buttonNextCall.FontSize = 14.6666666666667;
             app.buttonNextCall.FontWeight = 'bold';
             app.buttonNextCall.FontColor = [1 1 1];
@@ -1869,7 +1858,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonPrevCall = uibutton(app.mainfigure, 'push');
             app.buttonPrevCall.ButtonPushedFcn = createCallbackFcn(app, @buttonPrevCall_Callback, true);
             app.buttonPrevCall.Tag = 'PreviousCall';
-            app.buttonPrevCall.BackgroundColor = [0.8706 0.1098 0.5804];
+            app.buttonPrevCall.BackgroundColor = [0.5686 0.1412 0.4];
             app.buttonPrevCall.FontSize = 14.6666666666667;
             app.buttonPrevCall.FontWeight = 'bold';
             app.buttonPrevCall.FontColor = [1 1 1];
@@ -1881,7 +1870,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonBackABit = uibutton(app.mainfigure, 'push');
             app.buttonBackABit.ButtonPushedFcn = createCallbackFcn(app, @buttonBackABit_Callback, true);
             app.buttonBackABit.Tag = 'topLeftButton';
-            app.buttonBackABit.BackgroundColor = [0.8706 0.1098 0.5804];
+            app.buttonBackABit.BackgroundColor = [0.8588 0.3216 0.2196];
             app.buttonBackABit.FontSize = 14.6666666666667;
             app.buttonBackABit.FontWeight = 'bold';
             app.buttonBackABit.FontColor = [1 1 1];
@@ -1893,7 +1882,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.buttonBackALot = uibutton(app.mainfigure, 'push');
             app.buttonBackALot.ButtonPushedFcn = createCallbackFcn(app, @buttonBackALot_Callback, true);
             app.buttonBackALot.Tag = 'backwardButton';
-            app.buttonBackALot.BackgroundColor = [0.8706 0.1098 0.5804];
+            app.buttonBackALot.BackgroundColor = [0.949 0.451 0.102];
             app.buttonBackALot.FontSize = 14.6666666666667;
             app.buttonBackALot.FontWeight = 'bold';
             app.buttonBackALot.FontColor = [1 1 1];
@@ -1919,15 +1908,15 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textDrawType.Position = [603 51 152 22];
             app.textDrawType.Text = 'Call';
 
-            % Create buttonChangeLabel
-            app.buttonChangeLabel = uibutton(app.mainfigure, 'push');
-            app.buttonChangeLabel.ButtonPushedFcn = createCallbackFcn(app, @buttonChangeLabel_Callback, true);
-            app.buttonChangeLabel.Interruptible = 'off';
-            app.buttonChangeLabel.BackgroundColor = [0.6353 0.0784 0.1843];
-            app.buttonChangeLabel.FontWeight = 'bold';
-            app.buttonChangeLabel.FontColor = [1 1 1];
-            app.buttonChangeLabel.Position = [499 18 94 24];
-            app.buttonChangeLabel.Text = 'Change Label';
+            % Create buttonReLabel
+            app.buttonReLabel = uibutton(app.mainfigure, 'push');
+            app.buttonReLabel.ButtonPushedFcn = createCallbackFcn(app, @buttonReLabel_Callback, true);
+            app.buttonReLabel.Interruptible = 'off';
+            app.buttonReLabel.BackgroundColor = [0.6353 0.0784 0.1843];
+            app.buttonReLabel.FontWeight = 'bold';
+            app.buttonReLabel.FontColor = [1 1 1];
+            app.buttonReLabel.Position = [499 18 94 24];
+            app.buttonReLabel.Text = 'Re-Label (w)';
 
             % Create buttonDrawLabel
             app.buttonDrawLabel = uibutton(app.mainfigure, 'push');
