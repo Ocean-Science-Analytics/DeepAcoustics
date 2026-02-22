@@ -5,7 +5,7 @@ function ExportRaven(hObject, eventdata, handles)
     raventable = [{'Selection'} {'View'} {'Channel'} {'Begin Time (s)'} {'End Time (s)'} {'Low Freq (Hz)'} {'High Freq (Hz)'} {'Delta Time (s)'} {'Delta Freq (Hz)'} {'Avg Power Density (dB FS)'} {'Annotation'} {'Begin Path'} {'Begin File'} {'File Offset'}];
     View = 'Spectrogram 1';
     Channel = 1;
-    RavenTableType = questdlg('Do you want to save as Sound Selection Table or Selection Table? (If you do not understand the difference, try both and see which one works the way you expect.)','Selection Table Type',...
+    RavenTableType = questdlg('Do you want to save as Sound Selection Table or Selection Table? (If you do not understand the difference, try both and see which one works the way you expect. Note that a opening a Sound Selection Table in Raven will not load audio files with no detections.)','Selection Table Type',...
         'Sound Selection Table','Selection Table','Sound Selection Table');
     if isempty(RavenTableType); return; end
     switch RavenTableType % Load Model
