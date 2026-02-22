@@ -20,6 +20,7 @@ end
 %guidata(hObject, handles);
 
 Calls = handles.data.calls;
+Calls.Visible(:) = 1;
 if bAuto
     [PathName, FileName, thisext] = fileparts(handles.SaveFile);
     FileName = [FileName thisext];
