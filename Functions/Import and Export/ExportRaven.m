@@ -13,7 +13,7 @@ function ExportRaven(hObject, eventdata, handles)
             bSST = true;
         case 'Selection Table'
             bSST = false;
-            [expCalls] = CreateBoxAdj(expCalls, allAudio);
+            [expCalls] = CreateBoxAdj(expCalls, handles.data.allAudio);
     end
     for i = 1:height(expCalls)
         if expCalls.Accept(i)
