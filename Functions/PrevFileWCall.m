@@ -2,6 +2,8 @@ function PrevFileWCall(hObject, eventdata, handles)
 update_folders(hObject, handles);
 handles = guidata(hObject);  % Get newest version of handles
 
+handles.data.thisaudst = [];
+handles.data.thisaudend = [];
 % Break if find calls or no calls any earlier in dataset
 while isempty(handles.data.thisaudst) && handles.data.thisAllAudind > 1
     handles.data.thisAllAudind = handles.data.thisAllAudind - 1;

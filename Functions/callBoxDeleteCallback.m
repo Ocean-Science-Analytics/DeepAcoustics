@@ -12,9 +12,20 @@ clicked_tag = str2double(get(rectangle, 'Tag'));
 switch  evt.SelectionType
     case 'right' % delete if right click
         handles.data.calls(clicked_tag,:) = [];
-        % Refresh indices and figure
-        if height(handles.data.calls(handles.data.calls.Visible==1,:)) > 0
-            handles.data.currentcall = min(clicked_tag,find(handles.data.calls.Visible==1,1,'last'));
+        % Indices subset of visible calls
+        indVis = find(handles.data.calls.Visible==1);
+        if ~isempty(indVis)
+            % Find closest to currentcall
+            diffind = abs(indVis-clicked_tag);
+            [~,minind] = min(diffind);
+            handles.data.currentcall = indVis(minind);
+            % Set audiodata
+            handles.data.thisAllAudind = find(strcmp({handles.data.allAudio.Filename},handles.data.calls.Audiodata(handles.data.currentcall).Filename));
+            if length(handles.data.thisAllAudind) ~= 1
+                error('This should not happen')
+            end
+            handles.data.audiodata = handles.data.allAudio(handles.data.thisAllAudind);
+            % Refresh indices and figure
             % Get beginning and end rows for the current audio file
             handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
                 (strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename)),...

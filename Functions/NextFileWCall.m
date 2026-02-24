@@ -2,6 +2,8 @@ function NextFileWCall(hObject, eventdata, handles)
 update_folders(hObject, handles);
 handles = guidata(hObject);  % Get newest version of handles
 
+handles.data.thisaudst = [];
+handles.data.thisaudend = [];
 % Break if find calls or no calls any later in dataset
 while isempty(handles.data.thisaudst) && handles.data.thisAllAudind < height(handles.data.allAudio)
     handles.data.thisAllAudind = handles.data.thisAllAudind + 1;

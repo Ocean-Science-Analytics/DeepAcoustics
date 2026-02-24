@@ -551,23 +551,22 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 case 127 % Delete key
                     if handles.data.currentcall > 0
                         handles.data.calls(handles.data.currentcall,:) = [];
-                        % Refresh indices and figure
-                        if height(handles.data.calls(handles.data.calls.Visible==1,:)) > 0
-                            handles.data.currentcall = min(handles.data.currentcall,find(handles.data.calls.Visible==1,1,'last'));
-                            % Get beginning and end rows for the current audio file
-                            handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
-                                (strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename)),...
-                                1,'first');
-                            handles.data.thisaudend = find((handles.data.calls.Visible==1) & ...
-                                (strcmp({handles.data.calls.Audiodata.Filename}',handles.data.audiodata.Filename)),...
-                                1,'last');
+                        % Indices subset of visible calls
+                        indVis = find(handles.data.calls.Visible==1);
+                        if ~isempty(indVis)
+                            % Find closest to currentcall
+                            diffind = abs(indVis-handles.data.currentcall);
+                            [~,minind] = min(diffind);
+                            handles.data.currentcall = indVis(minind);
+                            LoadCalls(hObject, eventdata, handles, handles.data.currentcall);
                         else
                             handles.data.currentcall = 0;
                             handles.data.thisaudst = [];
                             handles.data.thisaudend = [];
+                            % Update figure
+                            update_fig(hObject, handles);
+                            msgbox('No calls of this type exist in the loaded detections file.')
                         end
-                        % Update figure
-                        update_fig(hObject, handles);
                     end
                 case 30 % char(30) is up arrow key
                     MoveFocus(+ handles.data.settings.focus_window_size, hObject, eventdata, handles)
@@ -1218,7 +1217,23 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             end
             % Update green bar
             handles.update_position_axes = 1;
-            update_fig(hObject, handles);
+            % Update current call
+            % Indices subset of visible calls
+            indVis = find(handles.data.calls.Visible==1);
+            if ~isempty(indVis)
+                % Find closest to currentcall
+                diffind = abs(indVis-handles.data.currentcall);
+                [~,minind] = min(diffind);
+                handles.data.currentcall = indVis(minind);
+                LoadCalls(hObject, eventdata, handles, handles.data.currentcall);
+            else
+                handles.data.currentcall = 0;
+                handles.data.thisaudst = [];
+                handles.data.thisaudend = [];
+                % Update figure
+                update_fig(hObject, handles);
+                msgbox('No calls of this type exist in the loaded detections file.')
+            end
         end
     end
 
