@@ -52,8 +52,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuAbout                   matlab.ui.container.Menu
         menuViewManual              matlab.ui.container.Menu
         menuKeyboardShortcuts       matlab.ui.container.Menu
-        CallLabel_2                 matlab.ui.control.Label
-        CallLabel                   matlab.ui.control.Label
+        labelGoToSubCall            matlab.ui.control.Label
+        labelGoToCall               matlab.ui.control.Label
         textFileName                matlab.ui.control.Label
         dropdownAudFile             matlab.ui.control.DropDown
         textScore                   matlab.ui.control.Label
@@ -1220,6 +1220,18 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             end
             % Update green bar
             handles.update_position_axes = 1;
+
+            if all(handles.data.calls.Visible==1)
+                app.labelGoToSubCall.Visible = 'off';
+                app.labelGoToSubCallTotal.Visible = 'off';
+                app.editfieldGoToSubCall.Visible = 'off';
+                app.editfieldGoToSubCall.Editable = 'off';
+            else
+                app.labelGoToSubCall.Visible = 'on';
+                app.labelGoToSubCallTotal.Visible = 'on';
+                app.editfieldGoToSubCall.Visible = 'on';
+                app.editfieldGoToSubCall.Editable = 'on';
+            end
             % Update current call
             % Indices subset of visible calls
             indVis = find(handles.data.calls.Visible==1);
@@ -1793,6 +1805,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.labelGoToSubCallTotal.Tag = 'GoToSubCallTotal';
             app.labelGoToSubCallTotal.FontSize = 16;
             app.labelGoToSubCallTotal.FontWeight = 'bold';
+            app.labelGoToSubCallTotal.FontColor = [1 1 1];
+            app.labelGoToSubCallTotal.Visible = 'off';
             app.labelGoToSubCallTotal.Position = [163 780 77 22];
             app.labelGoToSubCallTotal.Text = '/ ?';
 
@@ -1803,8 +1817,10 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.editfieldGoToSubCall.ValueDisplayFormat = '%d';
             app.editfieldGoToSubCall.ValueChangedFcn = createCallbackFcn(app, @editfieldGoToSubCall_Callback, true);
             app.editfieldGoToSubCall.Tag = 'GoToSubCall';
+            app.editfieldGoToSubCall.Editable = 'off';
             app.editfieldGoToSubCall.FontSize = 16;
             app.editfieldGoToSubCall.FontWeight = 'bold';
+            app.editfieldGoToSubCall.Visible = 'off';
             app.editfieldGoToSubCall.Position = [83 779 79 24];
 
             % Create labelGoToCallTotal
@@ -2318,21 +2334,23 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textFileName.Position = [314 801 1020 24];
             app.textFileName.Text = '';
 
-            % Create CallLabel
-            app.CallLabel = uilabel(app.mainfigure);
-            app.CallLabel.BackgroundColor = [0 0 0];
-            app.CallLabel.FontSize = 16;
-            app.CallLabel.FontWeight = 'bold';
-            app.CallLabel.FontColor = [1 1 1];
-            app.CallLabel.Position = [9 803 40 24];
-            app.CallLabel.Text = 'Call:';
+            % Create labelGoToCall
+            app.labelGoToCall = uilabel(app.mainfigure);
+            app.labelGoToCall.BackgroundColor = [0 0 0];
+            app.labelGoToCall.FontSize = 16;
+            app.labelGoToCall.FontWeight = 'bold';
+            app.labelGoToCall.FontColor = [1 1 1];
+            app.labelGoToCall.Position = [9 803 40 24];
+            app.labelGoToCall.Text = 'Call:';
 
-            % Create CallLabel_2
-            app.CallLabel_2 = uilabel(app.mainfigure);
-            app.CallLabel_2.FontSize = 16;
-            app.CallLabel_2.FontWeight = 'bold';
-            app.CallLabel_2.Position = [9 779 75 24];
-            app.CallLabel_2.Text = 'Sub-Call:';
+            % Create labelGoToSubCall
+            app.labelGoToSubCall = uilabel(app.mainfigure);
+            app.labelGoToSubCall.FontSize = 16;
+            app.labelGoToSubCall.FontWeight = 'bold';
+            app.labelGoToSubCall.FontColor = [1 1 1];
+            app.labelGoToSubCall.Visible = 'off';
+            app.labelGoToSubCall.Position = [9 779 75 24];
+            app.labelGoToSubCall.Text = 'Sub-Call:';
 
             % Show the figure after all components are created
             app.mainfigure.Visible = 'on';
