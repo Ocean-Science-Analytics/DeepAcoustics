@@ -23,5 +23,10 @@ end
 clim = mean(handles.data.clim) + range(handles.data.clim) .* handles.data.settings.spectrogramContrast;
 set(handles.spectrogramWindow,'Clim',clim)
 set(handles.focusWindow,'Clim',clim)
+
 % handles.data.saveSettings();
-guidata(hObject.Parent, handles);
+if isa(hObject,'matlab.ui.Figure') && isa(hObject.Parent,'matlab.ui.Root')
+    guidata(hObject, handles);
+else
+    guidata(hObject.Parent, handles);
+end
