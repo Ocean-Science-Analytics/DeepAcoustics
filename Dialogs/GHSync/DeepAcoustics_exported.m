@@ -52,6 +52,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         menuAbout                   matlab.ui.container.Menu
         menuViewManual              matlab.ui.container.Menu
         menuKeyboardShortcuts       matlab.ui.container.Menu
+        CallLabel_2                 matlab.ui.control.Label
         CallLabel                   matlab.ui.control.Label
         textFileName                matlab.ui.control.Label
         dropdownAudFile             matlab.ui.control.DropDown
@@ -100,6 +101,8 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
         buttonNextFileWCall         matlab.ui.control.Button
         editfieldGoToCall           matlab.ui.control.NumericEditField
         labelGoToCallTotal          matlab.ui.control.Label
+        editfieldGoToSubCall        matlab.ui.control.NumericEditField
+        labelGoToSubCallTotal       matlab.ui.control.Label
         textSettings                matlab.ui.control.Label
         textFocus                   matlab.ui.control.Label
         dropdownFocus               matlab.ui.control.DropDown
@@ -1235,6 +1238,26 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
                 msgbox('No calls of this type exist in the loaded detections file.')
             end
         end
+
+        % Value changed function: editfieldGoToSubCall
+        function editfieldGoToSubCall_Callback(app, event)
+            % Create GUIDE-style callback args - Added by Migration Tool
+            % Absolutely unhinged ValueChanging behavior and idk why
+            if strcmp(event.EventName,'ValueChanged')
+                [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
+
+                indSub = find(handles.data.calls.Visible==1);
+                
+                if ~isempty(indSub)
+                    app.editfieldGoToSubCall.Value = max(1,app.editfieldGoToSubCall.Value);
+                    app.editfieldGoToSubCall.Value = min(app.editfieldGoToSubCall.Value,indSub(end));
+    
+                    LoadCalls(hObject, eventdata, handles, indSub(app.editfieldGoToSubCall.Value));
+                else
+                    app.editfieldGoToSubCall.Value = 0;
+                end
+            end
+        end
     end
 
     % Component initialization
@@ -1572,7 +1595,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.winWaveform.FontSize = 11.3333333333333;
             app.winWaveform.NextPlot = 'replace';
             app.winWaveform.Tag = 'waveformWindow';
-            app.winWaveform.Position = [3 233 228 143];
+            app.winWaveform.Position = [3 208 228 143];
 
             % Create winContour
             app.winContour = uiaxes(app.mainfigure);
@@ -1583,7 +1606,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.winContour.FontSize = 10.6666666666667;
             app.winContour.NextPlot = 'replace';
             app.winContour.Tag = 'contourWindow';
-            app.winContour.Position = [3 400 228 127];
+            app.winContour.Position = [3 375 228 127];
 
             % Create buttonLowCLimPlus
             app.buttonLowCLimPlus = uibutton(app.mainfigure, 'push');
@@ -1764,6 +1787,25 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textSettings.FontColor = [1 1 1];
             app.textSettings.Position = [963 139 412 22];
             app.textSettings.Text = 'Settings ----------------------------------------------------------------------------------------';
+
+            % Create labelGoToSubCallTotal
+            app.labelGoToSubCallTotal = uilabel(app.mainfigure);
+            app.labelGoToSubCallTotal.Tag = 'GoToSubCallTotal';
+            app.labelGoToSubCallTotal.FontSize = 16;
+            app.labelGoToSubCallTotal.FontWeight = 'bold';
+            app.labelGoToSubCallTotal.Position = [163 780 77 22];
+            app.labelGoToSubCallTotal.Text = '/ ?';
+
+            % Create editfieldGoToSubCall
+            app.editfieldGoToSubCall = uieditfield(app.mainfigure, 'numeric');
+            app.editfieldGoToSubCall.Limits = [0 Inf];
+            app.editfieldGoToSubCall.RoundFractionalValues = 'on';
+            app.editfieldGoToSubCall.ValueDisplayFormat = '%d';
+            app.editfieldGoToSubCall.ValueChangedFcn = createCallbackFcn(app, @editfieldGoToSubCall_Callback, true);
+            app.editfieldGoToSubCall.Tag = 'GoToSubCall';
+            app.editfieldGoToSubCall.FontSize = 16;
+            app.editfieldGoToSubCall.FontWeight = 'bold';
+            app.editfieldGoToSubCall.Position = [83 779 79 24];
 
             % Create labelGoToCallTotal
             app.labelGoToCallTotal = uilabel(app.mainfigure);
@@ -2073,7 +2115,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.dropdownNeuralNet.FontSize = 10.6666666666667;
             app.dropdownNeuralNet.FontColor = [1 1 1];
             app.dropdownNeuralNet.BackgroundColor = [0.101960784313725 0.101960784313725 0.101960784313725];
-            app.dropdownNeuralNet.Position = [12 161 239 23];
+            app.dropdownNeuralNet.Position = [12 136 239 23];
             app.dropdownNeuralNet.Value = 'Neural Network Matrix';
 
             % Create textNeuralNet
@@ -2085,7 +2127,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textNeuralNet.FontSize = 16;
             app.textNeuralNet.FontWeight = 'bold';
             app.textNeuralNet.FontColor = [1 1 1];
-            app.textNeuralNet.Position = [12 184 238 20];
+            app.textNeuralNet.Position = [12 159 238 20];
             app.textNeuralNet.Text = 'Neural Networks';
 
             % Create sliderTonality
@@ -2097,7 +2139,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.sliderTonality.MinorTicks = [0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1];
             app.sliderTonality.FontSize = 10.6666666666667;
             app.sliderTonality.Tag = 'TonalitySlider';
-            app.sliderTonality.Position = [223 251 3 118];
+            app.sliderTonality.Position = [223 226 3 118];
 
             % Create textWaveform
             app.textWaveform = uilabel(app.mainfigure);
@@ -2108,7 +2150,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textWaveform.FontSize = 10.6666666666667;
             app.textWaveform.FontWeight = 'bold';
             app.textWaveform.FontColor = [1 1 1];
-            app.textWaveform.Position = [12 370 121 16];
+            app.textWaveform.Position = [12 345 121 16];
             app.textWaveform.Text = 'Waveform';
 
             % Create textContour
@@ -2120,7 +2162,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textContour.FontSize = 10.6666666666667;
             app.textContour.FontWeight = 'bold';
             app.textContour.FontColor = [1 1 1];
-            app.textContour.Position = [9 522 121 16];
+            app.textContour.Position = [9 497 121 16];
             app.textContour.Text = 'Contour';
 
             % Create textTonality
@@ -2131,7 +2173,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textTonality.FontSize = 16;
             app.textTonality.FontWeight = 'bold';
             app.textTonality.FontColor = [1 1 1];
-            app.textTonality.Position = [9 540 241 24];
+            app.textTonality.Position = [9 515 241 24];
             app.textTonality.Text = 'Tonality:';
 
             % Create textRelPwr
@@ -2142,7 +2184,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textRelPwr.FontSize = 16;
             app.textRelPwr.FontWeight = 'bold';
             app.textRelPwr.FontColor = [1 1 1];
-            app.textRelPwr.Position = [9 564 241 24];
+            app.textRelPwr.Position = [9 539 241 24];
             app.textRelPwr.Text = 'Rel Pwr:';
 
             % Create textSinuosity
@@ -2153,7 +2195,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textSinuosity.FontSize = 16;
             app.textSinuosity.FontWeight = 'bold';
             app.textSinuosity.FontColor = [1 1 1];
-            app.textSinuosity.Position = [9 588 241 24];
+            app.textSinuosity.Position = [9 563 241 24];
             app.textSinuosity.Text = 'Sinuosity:';
 
             % Create textSlope
@@ -2164,7 +2206,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textSlope.FontSize = 16;
             app.textSlope.FontWeight = 'bold';
             app.textSlope.FontColor = [1 1 1];
-            app.textSlope.Position = [9 612 241 24];
+            app.textSlope.Position = [9 587 241 24];
             app.textSlope.Text = 'Slope (KHz/s):';
 
             % Create textDuration
@@ -2175,7 +2217,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textDuration.FontSize = 16;
             app.textDuration.FontWeight = 'bold';
             app.textDuration.FontColor = [1 1 1];
-            app.textDuration.Position = [9 636 241 24];
+            app.textDuration.Position = [9 611 241 24];
             app.textDuration.Text = 'Duration (ms):';
 
             % Create textFrequency
@@ -2186,7 +2228,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textFrequency.FontSize = 16;
             app.textFrequency.FontWeight = 'bold';
             app.textFrequency.FontColor = [1 1 1];
-            app.textFrequency.Position = [9 660 241 24];
+            app.textFrequency.Position = [9 635 241 24];
             app.textFrequency.Text = 'Frequency (KHz):';
 
             % Create textClustAssign
@@ -2197,7 +2239,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textClustAssign.FontSize = 16;
             app.textClustAssign.FontWeight = 'bold';
             app.textClustAssign.FontColor = [1 1 1];
-            app.textClustAssign.Position = [9 684 241 24];
+            app.textClustAssign.Position = [9 659 241 24];
             app.textClustAssign.Text = 'Clust Assign:';
 
             % Create textLabel
@@ -2208,7 +2250,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textLabel.FontSize = 16;
             app.textLabel.FontWeight = 'bold';
             app.textLabel.FontColor = [1 1 1];
-            app.textLabel.Position = [9 708 241 24];
+            app.textLabel.Position = [9 683 241 24];
             app.textLabel.Text = 'Label:';
 
             % Create textUserID
@@ -2219,7 +2261,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textUserID.FontSize = 16;
             app.textUserID.FontWeight = 'bold';
             app.textUserID.FontColor = [1 1 1];
-            app.textUserID.Position = [9 732 241 24];
+            app.textUserID.Position = [9 707 241 24];
             app.textUserID.Text = 'User ID:';
 
             % Create textStatus
@@ -2230,7 +2272,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textStatus.FontSize = 16;
             app.textStatus.FontWeight = 'bold';
             app.textStatus.FontColor = [1 1 1];
-            app.textStatus.Position = [9 756 241 24];
+            app.textStatus.Position = [9 731 241 24];
             app.textStatus.Text = 'Status:';
 
             % Create textOvlp
@@ -2241,7 +2283,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textOvlp.FontSize = 16;
             app.textOvlp.FontWeight = 'bold';
             app.textOvlp.FontColor = [1 1 1];
-            app.textOvlp.Position = [129 780 121 24];
+            app.textOvlp.Position = [129 755 121 24];
             app.textOvlp.Text = 'Ovlp:';
 
             % Create textScore
@@ -2252,7 +2294,7 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.textScore.FontSize = 16;
             app.textScore.FontWeight = 'bold';
             app.textScore.FontColor = [1 1 1];
-            app.textScore.Position = [9 780 121 24];
+            app.textScore.Position = [9 755 121 24];
             app.textScore.Text = 'Score:';
 
             % Create dropdownAudFile
@@ -2284,6 +2326,13 @@ classdef DeepAcoustics_exported < matlab.apps.AppBase
             app.CallLabel.FontColor = [1 1 1];
             app.CallLabel.Position = [9 803 40 24];
             app.CallLabel.Text = 'Call:';
+
+            % Create CallLabel_2
+            app.CallLabel_2 = uilabel(app.mainfigure);
+            app.CallLabel_2.FontSize = 16;
+            app.CallLabel_2.FontWeight = 'bold';
+            app.CallLabel_2.Position = [9 779 75 24];
+            app.CallLabel_2.Text = 'Sub-Call:';
 
             % Show the figure after all components are created
             app.mainfigure.Visible = 'on';

@@ -90,6 +90,15 @@ handles.ContourLine.YData = [ls(1), ls(1) + ls(2) * size(I,2)];
 % Update call statistics text
 set(handles.GoToCall,'Value',handles.data.currentcall);
 set(handles.GoToCallTotal,'String',['/' num2str(height(handles.data.calls))]);
+% Update sub-call statistics text
+indSub = find(handles.data.calls.Visible==1);
+indSub = find(indSub==handles.data.currentcall,1);
+if isempty(indSub)
+    msgbox('Something weird happening trying to index visible calls, talk to Gabi');
+    error('Something weird happening trying to index visible calls, talk to Gabi')
+end
+set(handles.GoToSubCall,'Value',indSub);
+set(handles.GoToSubCallTotal,'String',['/' num2str(sum(handles.data.calls.Visible==1))]);
 
 set(handles.score,'String',['Score: ' num2str(handles.data.calls.Score(handles.data.currentcall))]);
 if any(strcmp('Ovlp', handles.data.calls.Properties.VariableNames))

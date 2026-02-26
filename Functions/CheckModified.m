@@ -5,7 +5,17 @@ if ~isempty(handles.data.calls)
     opts.Interpreter = 'tex';
     opts.Default='Yes';
     if ~isempty(handles.current_file_id) && ~isempty(handles.current_detection_file)
+        % Wait dialog so user doesn't panic
+        fig = uifigure;
+        d = uiprogressdlg(fig,'Title','Checking for Modifications Before Save',...
+            'Indeterminate','on');
+        drawnow
+        
+        % Load og loaded file to check for modifications
         [~, ~, ~, ~, ~, modcheck] = loadCallfile(fullfile(handles.detectionfiles(handles.current_file_id).folder,  handles.current_detection_file), handles,false);
+
+        % close the progress dialog box
+        close(d)
         if ~isequaln(modcheck.calls, handles.data.calls) || ~isequaln(modcheck.spect, handles.data.settings.spect)
             if ~isequaln(modcheck.calls, handles.data.calls) 
                 if length(unique(modcheck.calls.Type)) ~= length(unique(handles.data.calls.Type))
