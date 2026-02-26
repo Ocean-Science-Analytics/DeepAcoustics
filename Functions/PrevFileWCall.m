@@ -11,19 +11,22 @@ while isempty(handles.data.thisaudst) && handles.data.thisAllAudind > 1
     handles.data.thisaudst = find((handles.data.calls.Visible==1) & ...
         (strcmp({handles.data.calls.Audiodata.Filename}',handles.data.allAudio(handles.data.thisAllAudind).Filename)),...
         1,'first');
+    handles.data.thisaudend = find((handles.data.calls.Visible==1) & ...
+        (strcmp({handles.data.calls.Audiodata.Filename}',handles.data.allAudio(handles.data.thisAllAudind).Filename)),...
+        1,'last');
 
     % Add back one because subtract one below
-    if ~isempty(handles.data.thisaudst)
-        handles.data.thisaudst = handles.data.thisaudst+1;
-    end
+    % if ~isempty(handles.data.thisaudst)
+    %     handles.data.thisaudst = handles.data.thisaudst+1;
+    % end
 end
 
 % If prev call found
 if ~isempty(handles.data.thisaudst)
-    if handles.data.thisaudst > 1
+    %if handles.data.thisaudst > 1
         % Check for changes to save to current file
         %CheckModified(hObject, eventdata, handles);
         % Load next audio file in this detections file
-        LoadCalls(hObject, eventdata, handles, handles.data.thisaudst-1);
-    end
+        LoadCalls(hObject, eventdata, handles, handles.data.thisaudend);
+    %end
 end

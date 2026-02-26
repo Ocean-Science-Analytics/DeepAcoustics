@@ -18,17 +18,17 @@ while isempty(handles.data.thisaudst) && handles.data.thisAllAudind < height(han
     % Set thisaudend to one before thisaudst so that indexing below is
     % correct (i.e., LoadCalls will load actual thisaudst and then reset
     % thisaudst and thisaudend correctly)
-    if ~isempty(handles.data.thisaudst)
-        handles.data.thisaudend = handles.data.thisaudst-1;
-    end
+    % if ~isempty(handles.data.thisaudst)
+    %     handles.data.thisaudend = handles.data.thisaudst-1;
+    % end
 end
 
 % If next call found
 if ~isempty(handles.data.thisaudst)
-    if handles.data.thisaudend < height(handles.data.calls)
+    %if handles.data.thisaudend < height(handles.data.calls)
         % Check for changes to save to current file
         %CheckModified(hObject, eventdata, handles);
         % Load first call in the next audio file with dets in this detections file
-        LoadCalls(hObject, eventdata, handles, handles.data.thisaudend+1)
-    end
+        LoadCalls(hObject, eventdata, handles, handles.data.thisaudst)
+    %end
 end
