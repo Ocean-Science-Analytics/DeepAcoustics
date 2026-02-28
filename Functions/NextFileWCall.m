@@ -2,6 +2,9 @@ function NextFileWCall(hObject, eventdata, handles)
 update_folders(hObject, handles);
 handles = guidata(hObject);  % Get newest version of handles
 
+curraudst = handles.data.thisaudst;
+curraudend = handles.data.thisaudend;
+currAud = handles.data.thisAllAudind;
 handles.data.thisaudst = [];
 handles.data.thisaudend = [];
 % Break if find calls or no calls any later in dataset
@@ -31,4 +34,8 @@ if ~isempty(handles.data.thisaudst)
         % Load first call in the next audio file with dets in this detections file
         LoadCalls(hObject, eventdata, handles, handles.data.thisaudst)
     %end
+else
+    handles.data.thisaudst = curraudst;
+    handles.data.thisaudend = curraudend;
+    handles.data.thisAllAudind = currAud;
 end
