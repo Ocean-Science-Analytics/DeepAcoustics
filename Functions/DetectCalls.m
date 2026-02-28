@@ -43,6 +43,9 @@ for j = 1:length(audfiles)
         end
     end
     
+    % Add to record of allAudio
+    allAudio = [allAudio; audioinfo(AudioFile)];
+
     % Move to next audio if no calls
     if isempty(Calls_ThisAudio)
         fprintf(1,'No Calls found in: %s \n',audioname)
@@ -62,7 +65,6 @@ for j = 1:length(audfiles)
     if ~isempty(Calls_ThisAudio)
         Calls = [Calls; Calls_ThisAudio];
     end
-    allAudio = [allAudio; audioinfo(AudioFile)];
     delete(h)
 end
 

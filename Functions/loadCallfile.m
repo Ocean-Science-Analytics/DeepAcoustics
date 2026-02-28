@@ -88,6 +88,45 @@ if isfield(data, 'Calls')
                 warning(['Mismatch b/w previously saved audio folder and detections folder. You are about to be asked to correct this. The folder you select should contain at least:',Calls_fns])
             end
             allAudio = [];
+        else 
+            % This is hopefully just temporary to fix a bug that would have
+            % messed up allAudio in Detected files
+            % Don't do this if just checking modified
+            if nargout < 6
+                % Double-check that all audio in folder exists in allAudio
+                % (correct bug where results of DetectCall were not saving
+                % allAudio right)
+                % Find audio in folder (default to directory of first call in
+                % Calls)
+                [audiopath,~,~] = fileparts(Calls.Audiodata(1).Filename);
+                % If Calls directory doesn't exist (should only happen if moved wav files), open preset audiofolder
+                if exist(audiopath,'file') ~= 7
+                    audiopath = uigetdir(handles.data.settings.audiofolder,'Select Folder Containing All Audio Files Used to Generate This Detections File');
+                    if isnumeric(audiopath)
+                        error('You chose to cancel')
+                    end
+                end
+                audiodir = [dir([audiopath '\*.wav']); ...
+                    dir([audiopath '\*.ogg']); ...
+                    dir([audiopath '\*.flac']); ...
+                    dir([audiopath '\*.UVD']); ...
+                    dir([audiopath '\*.au']); ...
+                    dir([audiopath '\*.aiff']); ...
+                    dir([audiopath '\*.aif']); ...
+                    dir([audiopath '\*.aifc']); ...
+                    dir([audiopath '\*.mp3']); ...
+                    dir([audiopath '\*.m4a']); ...
+                    dir([audiopath '\*.mp4'])];
+                if length(audiodir) ~= length(allAudio)
+                    bUpdate = questdlg('WARNING: It looks like either allAudio was not built right (oops sorryyyy) or audio files have been added to the path since this file was created. Do you want to fix this now (recommended)? If unsure, ask Gabi or cancel and back-up your file before attempting.','Fix allAudio?','Yes','No','Cancel','Cancel');
+                    switch bUpdate
+                    case 'Yes'
+                        allAudio = [];
+                    case 'Cancel'
+                        error('You chose to cancel')
+                    end
+                end
+            end
         end
     end
 
