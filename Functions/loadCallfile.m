@@ -298,6 +298,8 @@ if isfield(data, 'Calls')
         end
         %save(filename,'Calls','-append');
         save(filename,'Calls','allAudio','detection_metadata','spect');
+    else
+        Calls.StTime.Format = 'yyyy-MM-dd HH:mm:ss.SSS';
     end
 
     if isempty(spect)

@@ -143,4 +143,5 @@ for i = 1:height(Calls)
     end
 end
 
+vecStTime.Format = 'yyyy-MM-dd HH:mm:ss.SSS';
 Calls.StTime = vecStTime;
