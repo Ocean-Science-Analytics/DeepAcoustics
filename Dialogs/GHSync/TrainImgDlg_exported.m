@@ -316,7 +316,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.editNumAugDup = uieditfield(app.dlgTrainImg, 'numeric');
             app.editNumAugDup.Limits = [0 Inf];
             app.editNumAugDup.RoundFractionalValues = 'on';
-            app.editNumAugDup.ValueDisplayFormat = '%.0f';
+            app.editNumAugDup.ValueDisplayFormat = '%d';
             app.editNumAugDup.HorizontalAlignment = 'center';
             app.editNumAugDup.Position = [473 94 70 22];
 
@@ -324,7 +324,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             app.editImgSize = uieditfield(app.dlgTrainImg, 'numeric');
             app.editImgSize.Limits = [0 Inf];
             app.editImgSize.RoundFractionalValues = 'on';
-            app.editImgSize.ValueDisplayFormat = '%.0f';
+            app.editImgSize.ValueDisplayFormat = '%d';
             app.editImgSize.ValueChangedFcn = createCallbackFcn(app, @buttonOptimizeValueChanged, true);
             app.editImgSize.HorizontalAlignment = 'center';
             app.editImgSize.Position = [473 126 70 22];
@@ -345,7 +345,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             % Create editNFFT
             app.editNFFT = uieditfield(app.dlgTrainImg, 'numeric');
             app.editNFFT.Limits = [0 Inf];
-            app.editNFFT.ValueDisplayFormat = '%.0f';
+            app.editNFFT.ValueDisplayFormat = '%d';
             app.editNFFT.ValueChangedFcn = createCallbackFcn(app, @editNFFTValueChanged, true);
             app.editNFFT.HorizontalAlignment = 'center';
             app.editNFFT.Position = [474 192 69 22];
@@ -361,7 +361,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
             % Create editWinSize
             app.editWinSize = uieditfield(app.dlgTrainImg, 'numeric');
             app.editWinSize.Limits = [0 Inf];
-            app.editWinSize.ValueDisplayFormat = '%.0f';
+            app.editWinSize.ValueDisplayFormat = '%d';
             app.editWinSize.ValueChangedFcn = createCallbackFcn(app, @editWinSizeValueChanged, true);
             app.editWinSize.HorizontalAlignment = 'center';
             app.editWinSize.Position = [474 261 69 22];

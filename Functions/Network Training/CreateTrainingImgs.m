@@ -377,8 +377,8 @@ while any(size(p) < 3) && nCountTries < 5
         thiswind = thisnfft;
     else
         AmplitudeFactor = 1;
-        thisnfft = nfft*rate;
-        thiswind = wind*rate;
+        thisnfft = round(nfft*rate);
+        thiswind = round(wind*rate);
     end
     if width(audio)>height(audio)
         audio=audio';
