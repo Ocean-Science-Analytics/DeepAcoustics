@@ -137,7 +137,16 @@ if isfield(data, 'Calls')
                     Calls_fns = strcat(Calls_fns,Calls_exts);
                     Calls_fns = sprintf('\n%s', Calls_fns{:});
                     warning(['Mismatch b/w selected audio folder and detections folder. Folder should contain:',Calls_fns])
-                    allAudio = [];
+                    bProbButCont = questdlg('WARNING: Mismatch b/w selected audio folder and detections audio. See main window output for list of required audio files. Do you want to continue without figuring this out (not recommended)?','Accept Risk and Continue?','Yes','No','No');
+                    switch bProbButCont
+                    case 'Yes'
+                        allAudio = [];
+                    case 'No'
+                        error('You chose to cancel')
+                    end
+                    if isempty(bProbButCont)
+                        error('You chose to cancel')
+                    end
                 end
                 %save(filename,'allAudio','-append');
                 save(filename,'Calls','allAudio','detection_metadata','spect');
@@ -145,7 +154,7 @@ if isfield(data, 'Calls')
                 % This should only come up if the wrong audio folder was assigned
                 % to a detections file during an older version of DA
                 % Make sure allAudio is reflected in Audiodata
-                if any(~ismember(uniqAud,unique({allAudio.Filename})))
+                if ~isempty(allAudio) && any(~ismember(uniqAud,unique({allAudio.Filename})))
                     uniqAllAud = unique({allAudio.Filename});
                     for i = 1:length(uniqAud)
                         indrep = find(strcmp({Calls.Audiodata.Filename},uniqAud{i}));
