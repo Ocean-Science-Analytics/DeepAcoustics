@@ -92,7 +92,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
         % Selection changed function: buttongroupSpecUnits
         function buttongroupSpecUnits_Callback(app, event)
-            switch app.buttongroupSpecUnits.SelectedObject
+            switch app.buttongroupSpecUnits.SelectedObject.Text
                 case 'Samples'
                     app.labelWinSize.Text = 'Window Size (# of samples):';
                     app.labelNFFT.Text = 'NFFT (# of samples):';
@@ -183,7 +183,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
         % Value changed function: editWinSize
         function editWinSizeValueChanged(app, event)
-            switch app.buttongroupSpecUnits.SelectedObject
+            switch app.buttongroupSpecUnits.SelectedObject.Text
                 case 'Samples'
                     app.HandlesSpect.windowsizesmp = app.editWinSize.Value;
                     app.HandlesSpect.windowsize = app.HandlesSpect.windowsizesmp/app.dEffectiveSR;
@@ -195,7 +195,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
 
         % Value changed function: editNFFT
         function editNFFTValueChanged(app, event)
-            switch app.buttongroupSpecUnits.SelectedObject
+            switch app.buttongroupSpecUnits.SelectedObject.Text
                 case 'Samples'
                     app.HandlesSpect.nfftsmp = app.editNFFT.Value;
                     app.HandlesSpect.nfft = app.HandlesSpect.nfftsmp/app.dEffectiveSR;
