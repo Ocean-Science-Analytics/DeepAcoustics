@@ -1,4 +1,4 @@
-function handles = render_call_boxes(current_axes,handles,roi, fill_heigth)
+function handles = render_call_boxes(current_axes,handles,roi, fill_height)
 %% This function draws rectangles in the focus view and page view
 
 axis_xlim = get(current_axes,'Xlim');
@@ -30,7 +30,7 @@ boxes = handles.data.calls.Box(calls_in_page,:);
 for box_number = 1:length(calls_in_page)
     current_tag = num2str(calls_in_page(box_number));
     
-    if fill_heigth
+    if fill_height
         boxes(box_number,2) = axis_ylim(1);
         boxes(box_number,4) = axis_ylim(2);
     end
@@ -49,7 +49,7 @@ for box_number = 1:length(calls_in_page)
         end
     end
     if calls_in_page(box_number) == handles.data.currentcall
-        line_width = 2;
+        line_width = 3;
     end
     
     if roi
