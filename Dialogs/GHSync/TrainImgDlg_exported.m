@@ -109,7 +109,7 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
                     app.editWinSize.ValueDisplayFormat = '%11.4g';
                     app.editNFFT.Value = app.HandlesSpect.nfft;
                     app.editNFFT.ValueDisplayFormat = '%11.4g';
-                    app.labelWarnEffNyq.visible = "off";
+                    app.labelWarnEffNyq.Visible = "off";
                     app.editFreqHigh.FontColor = [0,0,0]; 
             end
         end
@@ -156,8 +156,8 @@ classdef TrainImgDlg_exported < matlab.apps.AppBase
                 case 'Seconds'
                     app.MainApp.TrainImgSettings.windowsize = app.editWinSize.Value;
                     app.MainApp.TrainImgSettings.nfft = app.editNFFT.Value;
-                    app.MainApp.TrainImgSettings.windowsizesmp = app.MainApp.TrainImgSettings.windowsizesmp*app.dEffectiveSR;
-                    app.MainApp.TrainImgSettings.nfftsmp = app.MainApp.TrainImgSettings.nfftsmp*app.dEffectiveSR;
+                    app.MainApp.TrainImgSettings.windowsizesmp = app.MainApp.TrainImgSettings.windowsize*app.dEffectiveSR;
+                    app.MainApp.TrainImgSettings.nfftsmp = app.MainApp.TrainImgSettings.nfft*app.dEffectiveSR;
             end
             app.MainApp.TrainImgSettings.noverlap = (app.editOverlap.Value / 100) * app.MainApp.TrainImgSettings.windowsize;
 
