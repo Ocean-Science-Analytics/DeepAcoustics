@@ -2,7 +2,7 @@ function ExportRaven(hObject, eventdata, handles)
     expCalls = handles.data.calls;
     % Export current file as a txt file for viewing in Raven
     % http://www.birds.cornell.edu/brp/raven/RavenOverview.html
-    raventable = [{'Selection'} {'View'} {'Channel'} {'Begin Time (s)'} {'End Time (s)'} {'Low Freq (Hz)'} {'High Freq (Hz)'} {'Delta Time (s)'} {'Delta Freq (Hz)'} {'Avg Power Density (dB FS)'} {'Annotation'} {'Begin Path'} {'Begin File'} {'File Offset'}];
+    raventable = [{'Selection'} {'View'} {'Channel'} {'TimeStamp'} {'Begin Time (s)'} {'End Time (s)'} {'Low Freq (Hz)'} {'High Freq (Hz)'} {'Delta Time (s)'} {'Delta Freq (Hz)'} {'Avg Power Density (dB FS)'} {'Annotation'} {'Begin Path'} {'Begin File'} {'File Offset'}];
     View = 'Spectrogram 1';
     Channel = 1;
     RavenTableType = questdlg('Do you want to save as Sound Selection Table or Selection Table? (If you do not understand the difference, try both and see which one works the way you expect. Note that a opening a Sound Selection Table in Raven will not load audio files with no detections.)','Selection Table Type',...
@@ -35,7 +35,8 @@ function ExportRaven(hObject, eventdata, handles)
             [~,thisfile,ext] = fileparts(BeginPath);
             BeginFile = [thisfile ext];
             FileOffset = expCalls.Box(i, 1);
-            raventable = [raventable; {Selection} {View} {Channel} {BeginTime} {EndTime} {LowFreq} {HighFreq} {DeltaTime} {DeltaFreq} {AvgPwr} {Annotation} {BeginPath} {BeginFile} {FileOffset}];
+            TimeStamp = char(expCalls.StTime(i));
+            raventable = [raventable; {Selection} {View} {Channel} {TimeStamp} {BeginTime} {EndTime} {LowFreq} {HighFreq} {DeltaTime} {DeltaFreq} {AvgPwr} {Annotation} {BeginPath} {BeginFile} {FileOffset}];
         end
     end
     a  = cell2table(raventable);
