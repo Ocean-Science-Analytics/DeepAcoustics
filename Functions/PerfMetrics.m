@@ -158,9 +158,11 @@ if strVer >= 2023
     indUM = strcmp(confusionClassNames,'unmatched');
     % Add Calls classified as Noise to unmatched category (skip unmatched
     % Noise)
-    confMat{1}(~indUM,indUM) = confMat{1}(~indUM,indUM)+confMat{1}(~indUM,indNoise);
-    confMat{1} = confMat{1}(~indNoise,~indNoise);
-    confusionClassNames = confusionClassNames(~indNoise);
+    if any(indNoise)
+        confMat{1}(~indUM,indUM) = confMat{1}(~indUM,indUM)+confMat{1}(~indUM,indNoise);
+        confMat{1} = confMat{1}(~indNoise,~indNoise);
+        confusionClassNames = confusionClassNames(~indNoise);
+    end
     figure
     cm = confusionchart(confMat{1},confusionClassNames);
     cm.RowSummary = 'row-normalized';
