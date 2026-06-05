@@ -34,10 +34,13 @@ num_lines = [1 length(dlg_title)+30]; options.Resize='off'; options.WindowStyle=
 % If metadata attached to ground-truthed files, use those as default
 % values (although I don't think this should ever happen)
 if ~isempty(detmetadata) && isa(detmetadata(1).Settings,'double')
-    if ~isequal(detmetadata.Settings) || length(detmetadata) ~= length(detfile)
+    if (length(detmetadata) > 1 && ~isequal(detmetadata.Settings)) || length(detmetadata) ~= length(detfile)
         error('Something odd about incoming detmetadata for ground-truthed files - double-check files or talk to GA')
     end
     def = detmetadata(1).Settings;
+    if ~iscell(def)
+        def = sprintfc('%g',def);
+    end
 else
     def = handles.data.settings.detectionSettings;
 end
