@@ -15,46 +15,11 @@ for i = 1:height(Calls)
         [nPairs,~] = regexp(audioname,'([0-9]{2})','tokens','match');
         nPairs = size(nPairs,2);
         if nPairs >= 6
-            % First look for YYYYMMDD.*HHMMSS
-            [thisdt,~] = regexp(audioname,'([0-9]{8}).*([0-9]{6})','tokens','match');
-            % If failure, then try YYMMDD.*HHMMSS
-            if isempty(thisdt)
-                % Look for YYMMDD.*HHMMSS
+            % Even more first, look for SanctSound
+            if strcmp(audioname(1:10),'SanctSound')
                 [thisdt,~] = regexp(audioname,'([0-9]{6})','tokens','match');
-                % If failure, then try YYMMDD.*HHMM
                 if size(thisdt,2) < 2
-                    [thisdt,~] = regexp(audioname,'([0-9]{6}).*([0-9]{4})','tokens','match');
-                    if isempty(thisdt)
-                        % Look for YYYY-MM-DD.HH-MM-SS OR
-                        % YYYY_MM_DD.HH_MM_SS (specifically targeting
-                        % BioDCASE YYYY-MM-DDTHH-MM-SS_SSS format (ignoring
-                        % milliseconds for now...)
-                        [thisdt,~] = regexp(audioname,'([0-9]{4})[\-_]([0-9]{2})[\-_]([0-9]{2}).([0-9]{2})[\-_]([0-9]{2})[\-_]([0-9]{2})','tokens','match');
-                        if ~isempty(thisdt)
-                            % Unnest (assume last array contains date/time) (ST)
-                            thisdt = thisdt{end};
-                            if ~strcmp(thisdt{1}(1:2),'20')
-                                if strcmp(thisdt{1}(1:2),'19')
-                                    warning('Ask Gabi about integrating data from the 90s')
-                                    break
-                                else
-                                    warning('Date/time format not recognizable - please use YYMMDD.*HHMMSS in your audio file or talk to Gabi about your particular D/T format')
-                                    break
-                                end
-                            end
-                            % Get rid of lead year and concat date and time
-                            % and repack thisdt
-                            thisdt{1} = [thisdt{1}(end-1:end) thisdt{2} thisdt{3}];
-                            thisdt{2} = [thisdt{4} thisdt{5} thisdt{6}];
-                            thisdt = thisdt(1:2);
-                            thissec = str2double(thisdt{2}(5:6));
-                        end
-                    else
-                        % Unnest (assume last array contains date/time) (ST)
-                        thisdt = thisdt{end};
-                        thissec = 0;
-                    end
-                % If success
+                    error('SanctSound format unexpected')
                 else
                     % Assume the last two arrays contain the date/time (ST)
                     thisdt = thisdt(end-1:end);
@@ -64,20 +29,70 @@ for i = 1:height(Calls)
                     thissec = str2double(thisdt{2}(5:6));
                 end
             else
-                % Unnest (assume last array contains date/time) (ST)
-                thisdt = thisdt{end};
-                if ~strcmp(thisdt{1}(1:2),'20')
-                    if strcmp(thisdt{1}(1:2),'19')
-                        warning('Ask Gabi about integrating data from the 90s')
-                        break
+                % First look for YYYYMMDD.*HHMMSS
+                [thisdt,~] = regexp(audioname,'([0-9]{8}).*([0-9]{6})','tokens','match');
+                % If failure, then try YYMMDD.*HHMMSS
+                if isempty(thisdt)
+                    % Look for YYMMDD.*HHMMSS
+                    [thisdt,~] = regexp(audioname,'([0-9]{6})','tokens','match');
+                    % If failure, then try YYMMDD.*HHMM
+                    if size(thisdt,2) < 2
+                        [thisdt,~] = regexp(audioname,'([0-9]{6}).*([0-9]{4})','tokens','match');
+                        if isempty(thisdt)
+                            % Look for YYYY-MM-DD.HH-MM-SS OR
+                            % YYYY_MM_DD.HH_MM_SS (specifically targeting
+                            % BioDCASE YYYY-MM-DDTHH-MM-SS_SSS format (ignoring
+                            % milliseconds for now...)
+                            [thisdt,~] = regexp(audioname,'([0-9]{4})[\-_]([0-9]{2})[\-_]([0-9]{2}).([0-9]{2})[\-_]([0-9]{2})[\-_]([0-9]{2})','tokens','match');
+                            if ~isempty(thisdt)
+                                % Unnest (assume last array contains date/time) (ST)
+                                thisdt = thisdt{end};
+                                if ~strcmp(thisdt{1}(1:2),'20')
+                                    if strcmp(thisdt{1}(1:2),'19')
+                                        warning('Ask Gabi about integrating data from the 90s')
+                                        break
+                                    else
+                                        warning('Date/time format not recognizable - please use YYMMDD.*HHMMSS in your audio file or talk to Gabi about your particular D/T format')
+                                        break
+                                    end
+                                end
+                                % Get rid of lead year and concat date and time
+                                % and repack thisdt
+                                thisdt{1} = [thisdt{1}(end-1:end) thisdt{2} thisdt{3}];
+                                thisdt{2} = [thisdt{4} thisdt{5} thisdt{6}];
+                                thisdt = thisdt(1:2);
+                                thissec = str2double(thisdt{2}(5:6));
+                            end
+                        else
+                            % Unnest (assume last array contains date/time) (ST)
+                            thisdt = thisdt{end};
+                            thissec = 0;
+                        end
+                    % If success
                     else
-                        warning('Date/time format not recognizable - please use YYMMDD.*HHMMSS in your audio file or talk to Gabi about your particular D/T format')
-                        break
+                        % Assume the last two arrays contain the date/time (ST)
+                        thisdt = thisdt(end-1:end);
+                        % Unnest
+                        thisdt{1} = thisdt{1}{1};
+                        thisdt{2} = thisdt{2}{1};
+                        thissec = str2double(thisdt{2}(5:6));
                     end
+                else
+                    % Unnest (assume last array contains date/time) (ST)
+                    thisdt = thisdt{end};
+                    if ~strcmp(thisdt{1}(1:2),'20')
+                        if strcmp(thisdt{1}(1:2),'19')
+                            warning('Ask Gabi about integrating data from the 90s')
+                            break
+                        else
+                            warning('Date/time format not recognizable - please use YYMMDD.*HHMMSS in your audio file or talk to Gabi about your particular D/T format')
+                            break
+                        end
+                    end
+                    % Get rid of lead year
+                    thisdt{1} = thisdt{1}(end-5:end);
+                    thissec = str2double(thisdt{2}(5:6));
                 end
-                % Get rid of lead year
-                thisdt{1} = thisdt{1}(end-5:end);
-                thissec = str2double(thisdt{2}(5:6));
             end
         % Try looking for YYMMDD.*HHMM
         elseif nPairs >= 5
