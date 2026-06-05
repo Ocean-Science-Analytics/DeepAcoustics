@@ -88,7 +88,7 @@ Calls = [];
 for i = 1:length(allAudio)
     % Run detector
     AudioFile = allAudio(i).Filename;
-    Calls_ThisAudio = DetectInFile(AudioFile,NeuralNetwork,Settings,1,1);
+    Calls_ThisAudio = DetectInFile(AudioFile,NeuralNetwork,Settings,i,length(allAudio));
 
     % Add detections to all Calls tables
     if ~isempty(Calls_ThisAudio)
