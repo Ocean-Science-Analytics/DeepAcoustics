@@ -1,0 +1,65 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the article below and the software."
+type: software
+title: "DeepAcoustics"
+abstract: "A GUI-based deep learning tool for passive acoustic monitoring, modified from DeepSqueak for marine bioacoustic data, with multi-class call detection, interactive network training and processing of large datasets. Developed by Ocean Science Analytics in collaboration with Acoustic Interactions."
+authors:
+  - family-names: "Sugarman"
+    given-names: "Peter"
+  - family-names: "Alongi"
+    given-names: "Gabriela"
+  - family-names: "Ferguson"
+    given-names: "Elizabeth"
+  - family-names: "Schallert"
+    given-names: "Jennifer Pettis"
+  - name: "Ocean Science Analytics, LLC"
+  - name: "Acoustic Interactions"
+repository-code: "https://github.com/Ocean-Science-Analytics/DeepAcoustics"
+url: "https://www.oceanscienceanalytics.com/bioacoustic-resources"
+license: BSD-3-Clause
+version: "1.0"
+date-released: 2026-10-15
+keywords:
+  - "bioacoustics"
+  - "passive acoustic monitoring"
+  - "deep learning"
+  - "object detection"
+  - "delphinid whistles"
+  - "MATLAB"
+preferred-citation:
+  type: article
+  title: "Effects of network selection and acoustic environment on bounding-box object detection of delphinid whistles using a deep learning tool"
+  authors:
+    - family-names: "Sugarman"
+      given-names: "Peter C."
+    - family-names: "Ferguson"
+      given-names: "Elizabeth L."
+    - family-names: "Alongi"
+      given-names: "Gabriela C."
+    - family-names: "Schallert"
+      given-names: "Jennifer P."
+    - family-names: "Lyn"
+      given-names: "Heidi"
+  journal: "The Journal of the Acoustical Society of America"
+  year: 2025
+  volume: 157
+  issue: 6
+  start: 4613
+  doi: "10.1121/10.0036942"
+references:
+  - type: article
+    title: "DeepSqueak: a deep learning-based system for detection and analysis of ultrasonic vocalizations"
+    authors:
+      - family-names: "Coffey"
+        given-names: "Kevin R."
+      - family-names: "Marx"
+        given-names: "R. E."
+      - family-names: "Neumaier"
+        given-names: "John F."
+    journal: "Neuropsychopharmacology"
+    year: 2019
+    volume: 44
+    issue: 5
+    start: 859
+    end: 868
+    doi: "10.1038/s41386-018-0303-6"
