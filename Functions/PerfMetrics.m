@@ -26,6 +26,9 @@ NeuralNetwork = load([NetPath NetName]);
 if ~isempty(warnMsg)
     error('Problem pathing to ValidationData - Talk to Gabi')
 end
+ 
+uniqClass = NeuralNetwork.detector.ClassNames;
+nTypes = length(uniqClass);
 
 % If detection settings are attached to network, those are first choice.  Otherwise
 % prompt user to supply
@@ -119,116 +122,170 @@ if percTPThresh < 0 || percTPThresh > 1
     error('Threshold for overlap must be between 0 and 1')
 end
 
-results = table({table2array(Calls(:,'BoxAdj'))},{table2array(Calls(:,2))},{categorical(Calls.Type)});
-results = renamevars(results,1:3,{'Box','Scores','Label'});
-grdtruth = table({table2array(CallsAnn(:,'BoxAdj'))},{categorical(CallsAnn.Type)});
-grdtruth = renamevars(grdtruth,1:2,{'Box','Label'});
-
-uniqClass = NeuralNetwork.detector.ClassNames;
-nTypes = length(uniqClass);
-
-% Set underlying category possibilities for annotated calls so eOD() can
-% run below
-grdtruth.Label{:} = setcats(grdtruth.Label{:},uniqClass);
-
-strVer = version;
-strVer = regexp(strVer,'R20[0-9]{2}[a-b]','match');
-strVer = strVer{1};
-strVer = regexp(strVer,'20[0-9]{2}','match');
-strVer = str2double(strVer{1});
-if strVer >= 2023
-    odMetrics = evaluateObjectDetection(results, grdtruth, percTPThresh);
-    odMetricsmAP = evaluateObjectDetection(results, grdtruth, 0.1:0.1:0.9);
-    avgprec = zeros(nTypes,1);
-    mAP = zeros(nTypes,1);
-    prec = zeros(nTypes,1);
-    recall = zeros(nTypes,1);
-    recallvec = cell(nTypes,1);
-    precvec = cell(nTypes,1);
-    for i = 1:nTypes
-        avgprec(i) = odMetrics.ClassMetrics.AP{uniqClass(i)};
-        recallvec{i} = odMetrics.ClassMetrics.Recall{uniqClass(i)};
-        precvec{i} = odMetrics.ClassMetrics.Precision{uniqClass(i)};
-        mAP(i) = odMetricsmAP.ClassMetrics.APOverlapAvg(uniqClass(i));
-
-        % Retrieve only the precision and recall values if accept all scores
-        prec(i) = precvec{i}(end);
-        recall(i) = recallvec{i}(end);
-    end
-    % Confusion Matrix (remove Noise)
-    [confMat,confusionClassNames] = confusionMatrix(odMetrics,scoreThreshold=0,overlapThreshold=percTPThresh);
-    indNoise = strcmp(confusionClassNames,'Noise');
-    indUM = strcmp(confusionClassNames,'unmatched');
-    % Add Calls classified as Noise to unmatched category (skip unmatched
-    % Noise)
-    if any(indNoise)
-        confMat{1}(~indUM,indUM) = confMat{1}(~indUM,indUM)+confMat{1}(~indUM,indNoise);
-        confMat{1} = confMat{1}(~indNoise,~indNoise);
-        confusionClassNames = confusionClassNames(~indNoise);
-    end
-    figure
-    cm = confusionchart(confMat{1},confusionClassNames);
-    cm.RowSummary = 'row-normalized';
-    cm.ColumnSummary = 'column-normalized';
-else
-    if nTypes > 1
-        error('Multi-Class not set up for Matlab functions in versions < 2023 - update Matlab or beg Gabi');
-    end
-    grdtruth = table({table2array(CallsAnn(:,'BoxAdj'))});
-    grdtruth = renamevars(grdtruth,1,'Call');
-    [avgprec, recallvec, precvec] = evaluateDetectionPrecision(results, grdtruth, percTPThresh);
-    odMetrics = [];
-    mAP = NaN;
-    warning('Object detection metrics only available with Matlab 2023 or greater')
+% BY HOUR
+totalHrs = floor(sum([allAudio.Duration])/(60*60));
+Calls.StHr = dateshift([Calls.StTime],'start','hour');
+CallsAnn.StHr = dateshift([CallsAnn.StTime],'start','hour');
+uniqHrs = unique(dateshift([[Calls.StTime];[CallsAnn.StTime]],'start','hour'));
+% make sure to include hrs with no dets or calls in average (by hour) metrics
+zeroHrs = totalHrs-length(uniqHrs);
+% round to deal with partial hrs on ends if may cause calculation issue
+if zeroHrs < 0
+    totalHrs = length(uniqHrs);
 end
+HrTDs = zeros(nTypes,totalHrs);
+HrTPs = zeros(nTypes,totalHrs);
+HrFPs = zeros(nTypes,totalHrs);
+HrFNs = zeros(nTypes,totalHrs);
 
-numTrueDets = zeros(nTypes,1);
-numDets = zeros(nTypes,1);
-[resCnt,resCat,~] = groupcounts(results.Label{1});
-for i = 1:nTypes
-    numTrueDets(i) = sum(CallsAnn.Type==uniqClass(i));
-    if ismember(uniqClass(i),resCat)
-        numDets(i) = resCnt(ismember(resCat,uniqClass(i)));
+% 1:uniqHr will get hourly stats, +1 will do all stats overall
+for j = 1:(length(uniqHrs)+1)
+    if j < length(uniqHrs)+1
+        results = Calls([Calls.StHr] == uniqHrs(j),:);
+        grdtruth = CallsAnn([CallsAnn.StHr] == uniqHrs(j),:);
+    else
+        results = Calls;
+        grdtruth = CallsAnn;
     end
-end
-numTP = recall.*numTrueDets;
-numFP = numDets-numTP;
-numFN = numTrueDets - numTP;
-fscore = 2.*((prec.*recall)./(prec+recall));
 
-scores = cell(nTypes,1);
-for i = 1:nTypes
-    % Skip Noise
-    if ~strcmp(uniqClass{i},'Noise')
-        scores{i} = [results.Scores{1}(results.Label{:} == uniqClass(i))];
-        scores{i} = sort(scores{i},'descend');
-        scores{i} = [scores{i};0];
-        figure
-        scatter(recallvec{i},precvec{i},[],scores{i},'filled','MarkerEdgeColor',[0 0 0])
-        grid on
-        c = colorbar;
-        c.Label.String = 'Score Threshold';
-        title({sprintf('Call Type: %s',uniqClass{i}); ...
-            sprintf('Average Precision = %.1f',avgprec(i))})
-        xlabel('Recall')
-        ylabel('Precision')
+    results = table({table2array(results(:,'BoxAdj'))},{table2array(results(:,2))},{categorical(results.Type)});
+    results = renamevars(results,1:3,{'Box','Scores','Label'});
+    grdtruth = table({table2array(grdtruth(:,'BoxAdj'))},{categorical(grdtruth.Type)});
+    grdtruth = renamevars(grdtruth,1:2,{'Box','Label'});
     
-        msgbox({sprintf('Call Type: %s',uniqClass{i});...
-            'Values for Score Threshold == 0:'; ...
-            sprintf('# True Positives: %u',int16(numTP(i))); ...
-            sprintf('# False Positives: %u', int16(numFP(i)));...
-            sprintf('# of False Negatives: %u', int16(numFN(i)));...
-            sprintf('Precision: %.4f',prec(i));...
-            sprintf('Recall: %.4f', recall(i));...
-            sprintf('F-Score: %.4f', fscore(i));...
-            sprintf('Average Prec (%.2f Ovlp Threshold): %.4f',percTPThresh, avgprec(i));...
-            sprintf('mAP (0.1:0.1:0.9 Ovlp Threshold): %.4f', mAP(i))},'P/R Result');
+    % Set underlying category possibilities for annotated calls so eOD() can
+    % run below
+    grdtruth.Label{:} = setcats(grdtruth.Label{:},uniqClass);
+    
+    strVer = version;
+    strVer = regexp(strVer,'R20[0-9]{2}[a-b]','match');
+    strVer = strVer{1};
+    strVer = regexp(strVer,'20[0-9]{2}','match');
+    strVer = str2double(strVer{1});
+    if strVer >= 2023
+        odMetrics = evaluateObjectDetection(results, grdtruth, percTPThresh);
+        odMetricsmAP = evaluateObjectDetection(results, grdtruth, 0.1:0.1:0.9);
+        avgprec = zeros(nTypes,1);
+        mAP = zeros(nTypes,1);
+        prec = zeros(nTypes,1);
+        recall = zeros(nTypes,1);
+        recallvec = cell(nTypes,1);
+        precvec = cell(nTypes,1);
+        for i = 1:nTypes
+            avgprec(i) = odMetrics.ClassMetrics.AP{uniqClass(i)};
+            recallvec{i} = odMetrics.ClassMetrics.Recall{uniqClass(i)};
+            precvec{i} = odMetrics.ClassMetrics.Precision{uniqClass(i)};
+            mAP(i) = odMetricsmAP.ClassMetrics.APOverlapAvg(uniqClass(i));
+    
+            % Retrieve only the precision and recall values if accept all scores
+            prec(i) = precvec{i}(end);
+            recall(i) = recallvec{i}(end);
+        end
+        
+        % Only do conf mat with overall run, not hourly
+        if j == length(uniqHrs)+1
+            % Confusion Matrix (remove Noise)
+            [confMat,confusionClassNames] = confusionMatrix(odMetrics,scoreThreshold=0,overlapThreshold=percTPThresh);
+            indNoise = strcmp(confusionClassNames,'Noise');
+            indUM = strcmp(confusionClassNames,'unmatched');
+            % Add Calls classified as Noise to unmatched category (skip unmatched
+            % Noise)
+            if any(indNoise)
+                confMat{1}(~indUM,indUM) = confMat{1}(~indUM,indUM)+confMat{1}(~indUM,indNoise);
+                confMat{1} = confMat{1}(~indNoise,~indNoise);
+                confusionClassNames = confusionClassNames(~indNoise);
+            end
+            figure
+            cm = confusionchart(confMat{1},confusionClassNames);
+            cm.RowSummary = 'row-normalized';
+            cm.ColumnSummary = 'column-normalized';
+        end
+    else
+        if nTypes > 1
+            error('Multi-Class not set up for Matlab functions in versions < 2023 - update Matlab or beg Gabi');
+        end
+        grdtruth.Label = [];
+        grdtruth = renamevars(grdtruth,1,'Call');
+        [avgprec, recallvec, precvec] = evaluateDetectionPrecision(results, grdtruth, percTPThresh);
+        odMetrics = [];
+        mAP = NaN;
+        warning('Object detection metrics only available with Matlab 2023 or greater')
+    end
+
+    numTrueDets = zeros(nTypes,1);
+    numDets = zeros(nTypes,1);
+    [resCnt,resCat,~] = groupcounts(results.Label{1});
+    for i = 1:nTypes
+        numTrueDets(i) = sum(grdtruth.Label{:}==uniqClass(i));
+        if ismember(uniqClass(i),resCat)
+            numDets(i) = resCnt(ismember(resCat,uniqClass(i)));
+        end
+    end
+    numTP = recall.*numTrueDets;
+    numFP = numDets-numTP;
+    numFN = numTrueDets - numTP;
+    
+    % Fill in hourly metrics - leftovers will be 0s to account for hours
+    % with no dets or true calls
+    if j < length(uniqHrs)+1
+        HrTDs(:,j) = numTrueDets;
+        HrTPs(~isnan(numTP),j) = numTP(~isnan(numTP));
+        HrFPs(~isnan(numFP),j) = numFP(~isnan(numFP));
+        HrFNs(~isnan(numFN),j) = numFN(~isnan(numFN));
+    else
+        fscore = 2.*((prec.*recall)./(prec+recall));
+
+        MuHrTDs = mean(HrTDs,2);
+        MuHrTPs = mean(HrTPs,2);
+        MuHrFPs = mean(HrFPs,2);
+        MuHrFNs = mean(HrFNs,2);
+        SDHrTDs = std(HrTDs,0,2);
+        SDHrTPs = std(HrTPs,0,2);
+        SDHrFPs = std(HrFPs,0,2);
+        SDHrFNs = std(HrFNs,0,2);
+
+        scores = cell(nTypes,1);
+        for i = 1:nTypes
+            % Skip Noise
+            if ~strcmp(uniqClass{i},'Noise')
+                scores{i} = [results.Scores{1}(results.Label{:} == uniqClass(i))];
+                scores{i} = sort(scores{i},'descend');
+                scores{i} = [scores{i};0];
+                figure
+                scatter(recallvec{i},precvec{i},[],scores{i},'filled','MarkerEdgeColor',[0 0 0])
+                grid on
+                c = colorbar;
+                c.Label.String = 'Score Threshold';
+                title({sprintf('Call Type: %s',uniqClass{i}); ...
+                    sprintf('Average Precision = %.1f',avgprec(i))})
+                xlabel('Recall')
+                ylabel('Precision')
+            
+                msgbox({sprintf('Call Type: %s',uniqClass{i});...
+                    'Values for Score Threshold == 0:'; ...
+                    sprintf('# True Positives: %u',int16(numTP(i))); ...
+                    sprintf('# False Positives: %u', int16(numFP(i)));...
+                    sprintf('# of False Negatives: %u', int16(numFN(i)));...
+                    sprintf('Precision: %.4f',prec(i));...
+                    sprintf('Recall: %.4f', recall(i));...
+                    sprintf('F-Score: %.4f', fscore(i));...
+                    sprintf('Average Prec (%.2f Ovlp Threshold): %.4f',percTPThresh, avgprec(i));...
+                    sprintf('mAP (0.1:0.1:0.9 Ovlp Threshold): %.4f', mAP(i)); ...
+                    sprintf('Mean (SD) of Hourly Confirmed Calls: %.2f (%.2f)',MuHrTDs(i),SDHrTDs(i)); ...
+                    sprintf('Mean (SD) of Hourly True Positives: %.2f (%.2f)',MuHrTPs(i),SDHrTPs(i)); ...
+                    sprintf('Mean (SD) of Hourly False Positives: %.2f (%.2f)',MuHrFPs(i),SDHrFPs(i)); ...
+                    sprintf('Mean (SD) of Hourly False Negatives: %.2f (%.2f)',MuHrFNs(i),SDHrFNs(i)); ...
+                    },'P/R Result');
+            end
+        end
     end
 end
 
 [file,path] = uiputfile([handles.data.settings.networkfolder '\PerformanceMetrics.mat'],'Save Performance Metrics');
 save(fullfile(path,file),'NetPath','NetName','PathToDet','results','precvec','recallvec','prec','recall',...
-    'numTrueDets','numTP','numDets','numFP','numFN','fscore','avgprec','mAP','odMetrics','odMetricsmAP','confMat','confusionClassNames')
+    'numTrueDets','numTP','numDets','numFP','numFN',...
+    'MuHrTDs','MuHrTPs','MuHrFPs','MuHrFNs','SDHrTDs','SDHrTPs','SDHrFPs','SDHrFNs',...
+    'fscore','avgprec','mAP','odMetrics','odMetricsmAP','confMat','confusionClassNames')
 
 [~,audioname] = fileparts(AudioFile);
 detectiontime=datestr(datetime('now'),'yyyy-mm-dd HH_MM PM');
